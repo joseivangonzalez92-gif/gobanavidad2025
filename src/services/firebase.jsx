@@ -1,7 +1,9 @@
+// src/firebase.jsx
 import { initializeApp } from 'firebase/app';
 import { getFirestore } from 'firebase/firestore';
 import { getAuth } from 'firebase/auth';
 
+// Configuración de Firebase - DIRECTAMENTE en el código (seguro para Firebase)
 const firebaseConfig = {
   apiKey: "AIzaSyALru5iCwREf8eux1t0BrsJWADRSrIy5VI",
   authDomain: "goba-navidad-2025.firebaseapp.com",
@@ -21,7 +23,7 @@ if (!firebaseConfig.projectId) {
   console.error("❌ FALTA projectId en Firebase config");
 }
 
-// Declarar variables fuera del try
+// Declarar variables
 let app;
 let db;
 let auth;
@@ -46,5 +48,5 @@ try {
   throw error;
 }
 
-// Exportar servicios - FUERA del bloque try
+// Exportar servicios
 export { db, auth };

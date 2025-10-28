@@ -15,13 +15,8 @@ export default defineConfig({
       }
     }
   },
-  // Configuración optimizada para SPA en Vercel
+  // Ayuda con el routing en producción
   server: {
     host: true
-  },
-  // Importante para el routing del SPA en producción
-  preview: {
-    host: true,
-    port: 4173
   }
 })

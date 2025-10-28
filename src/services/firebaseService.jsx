@@ -1,5 +1,5 @@
 // src/services/firebaseService.jsx
-import { db } from '../firebase.jsx';
+import { db } from './firebase.jsx';
 import { 
   collection, 
   doc, 
