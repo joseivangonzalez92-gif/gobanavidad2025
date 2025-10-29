@@ -8,5 +8,9 @@ export default defineConfig({
     rollupOptions: {
       input: './index.html'
     }
+  },
+  // 👇 AGREGAR ESTO
+  optimizeDeps: {
+    include: ['react', 'react-dom', 'react-router-dom']
   }
 })
