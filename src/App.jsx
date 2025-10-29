@@ -9,11 +9,11 @@ import Votaciones from "./pages/votaciones.jsx";
 import Admin from "./pages/admin.jsx";
 import Login from "./pages/login.jsx";
 // import BotObservador from "./components/BotObservador.jsx"; // DESACTIVADO TEMPORALMENTE
-import Navidad from './pages/navidad';
-import Juegos from './pages/juegos';
-import Rankings from './pages/rankings';
-import ConcursoRapido from "./pages/concurso-rapido";
-import Perfil from "./pages/perfil"; 
+import Navidad from './pages/navidad.jsx';
+import Juegos from './pages/juegos.jsx';
+import Rankings from './pages/rankings.jsx';
+import ConcursoRapido from "./pages/concurso-rapido.jsx";
+import Perfil from "./pages/perfil.jsx"; 
 
 // 🧱 Componente para rutas privadas
 function RutaPrivada({ children }) {
