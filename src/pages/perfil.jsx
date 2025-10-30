@@ -150,14 +150,9 @@ export default function Perfil() {
     <div className="min-h-screen bg-gradient-to-br from-white via-blue-50 to-emerald-50 py-8">
       <div className="max-w-4xl mx-auto px-4">
         
-        {/* Header */}
+        {/* Header CORREGIDO - Centrado y sin avatar duplicado */}
         <div className="text-center mb-8">
-          <Link 
-            to="/home" 
-            className="inline-block mb-6 text-gray-600 hover:text-gray-800 font-medium"
-          >
-            ← Volver al Home
-          </Link>
+        
           <h1 className="text-4xl font-bold text-gray-800 mb-4">👤 Mi Perfil</h1>
           <p className="text-xl text-gray-600">Personaliza tu identidad navideña</p>
         </div>
@@ -168,6 +163,7 @@ export default function Perfil() {
           <div className="lg:col-span-1">
             <div className="bg-white rounded-3xl p-6 shadow-2xl border-2 border-green-200 sticky top-8">
               <div className="text-center">
+                {/* Avatar principal - SOLO UNO */}
                 <div className="text-8xl mb-4">{usuario.avatar || "👤"}</div>
                 <h2 className="text-2xl font-bold text-gray-800 mb-2">{usuario.nombre}</h2>
                 <p className="text-lg text-green-600 font-semibold mb-1">{usuario.pais || "Sin territorio"}</p>
@@ -175,19 +171,14 @@ export default function Perfil() {
                   <p className="text-gray-600 italic mb-4">"{usuario.frase}"</p>
                 )}
                 
-                {/* Stats */}
-                <div className="bg-gray-50 rounded-xl p-4 mt-4">
-                  <div className="grid grid-cols-2 gap-4 text-center">
-                    <div>
-                      <p className="text-2xl font-bold text-green-600">{usuario.puntos || 0}</p>
-                      <p className="text-sm text-gray-600">⭐ Puntos</p>
-                    </div>
-                    <div>
-                      <p className="text-2xl font-bold text-blue-600">{usuario.esAdmin ? "👑" : "😊"}</p>
-                      <p className="text-sm text-gray-600">{usuario.esAdmin ? "Admin" : "Usuario"}</p>
-                    </div>
-                  </div>
-                </div>
+                {/* Stats - ACTUALIZADO para conectar con retos */}
+            <div className="bg-gradient-to-r from-green-100 to-blue-100 rounded-xl p-6 mt-4 text-center border-2 border-green-200">
+  <div className="flex flex-col items-center justify-center">
+    <p className="text-4xl font-bold text-green-600 mb-2">{usuario.puntos || 0}</p>
+    <p className="text-lg font-semibold text-gray-700">⭐ Puntos de Retos</p>
+    <p className="text-sm text-gray-500 mt-1">Acumulados en challenges</p>
+  </div>
+</div>
 
                 <div className="mt-6 bg-yellow-50 border border-yellow-200 rounded-xl p-3">
                   <p className="text-sm text-yellow-700 text-center">
@@ -348,7 +339,19 @@ export default function Perfil() {
                   <li>• ¡Sé creativo y diviértete personalizando tu perfil!</li>
                 </ul>
               </div>
+            </div>
 
+            {/* 🔥 BOTÓN VOLVER EN CUADRO COLORIDO - NUEVA SECCIÓN */}
+            <div className="mt-8 bg-gradient-to-r from-purple-500 to-pink-500 rounded-2xl p-6 text-center shadow-xl">
+              <Link 
+                to="/home" 
+                className="inline-block bg-white text-purple-600 hover:bg-purple-50 font-bold py-4 px-8 rounded-xl transition-all transform hover:scale-105 text-lg"
+              >
+                🏠 Volver al Home Navideño
+              </Link>
+              <p className="text-white text-sm mt-3 opacity-90">
+                Regresa a la diversión familiar
+              </p>
             </div>
           </div>
         </div>

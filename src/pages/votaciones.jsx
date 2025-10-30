@@ -11,37 +11,40 @@ export default function Votaciones() {
   const [modalVotacionAbierto, setModalVotacionAbierto] = useState(false);
   const [categoriaVotando, setCategoriaVotando] = useState(null);
   const [finalistasVotando, setFinalistasVotando] = useState([]);
+  const [modalNominacionAbierto, setModalNominacionAbierto] = useState(false);
+  const [categoriaNominando, setCategoriaNominando] = useState(null);
+  const [opcionesDropdown, setOpcionesDropdown] = useState([]);
 
   // 25 Categorías divertidas para los GOBA Awards
   const categoriasGOBA = [
-    { id: 1, nombre: "😴 El más dormilón del año", descripcion: "Quien aprovecha cualquier sillón o cama disponible" },
+    { id: 1, nombre: "😴 El más dormilón del año", descripcion: "Si no le despiertan seguiria durmiendo" },
     { id: 2, nombre: "👩‍🍳 Chef Oficial de la Familia", descripcion: "El rey/reina de la cocina" },
-    { id: 3, nombre: "🗣️ El que más habla de política", descripcion: "Siempre tiene opinión sobre todo" },
+    { id: 3, nombre: "🗣️ El que más habla", descripcion: "Siempre tiene algo que decir" },
     { id: 4, nombre: "📸 Rey/Reina del Selfie", descripcion: "Siempre listo para la foto perfecta" },
     { id: 5, nombre: "🎮 Adicto a los Videojuegos", descripcion: "No suelta el control ni para comer" },
     { id: 6, nombre: "☕ Dependiente del Café", descripcion: "Sin su taza matutina no es persona" },
-    { id: 7, nombre: "🐕 Mejor Amigo de las Mascotas", descripcion: "Todos los animales lo aman" },
-    { id: 8, nombre: "📚 Sabiondo/Sabionda Familiar", descripcion: "Siempre tiene un dato curioso" },
+    { id: 7, nombre: "🫔 Devorador de Baleadas", descripcion: "Comió más baleadas que todos" },
+    { id: 8, nombre: "💧 Ahorrando agua", descripcion: "Se baña cada 3 días" },
     { id: 9, nombre: "🎤 Estrella del Karaoke", descripcion: "Domina el micrófono en las reuniones" },
     { id: 10, nombre: "🛋️ Dueño/a del Control Remoto", descripcion: "Decide qué vemos en la TV" },
-    { id: 11, nombre: "😂 Payaso Oficial de la Familia", descripcion: "Siempre nos hace reír" },
+    { id: 11, nombre: "😂 El Bromas del año", descripcion: "Siempre nos hace reír" },
     { id: 12, nombre: "📱 Adicto al Celular", descripcion: "Pegado al teléfono 24/7" },
     { id: 13, nombre: "🛌 Rey/Reina de la Siesta", descripcion: "Maestro del descanso estratégico" },
     { id: 14, nombre: "🍫 Goloso/a Empedernido/a", descripcion: "Debilidades por los dulces" },
     { id: 15, nombre: "🎄 Espíritu Navideño Todo el Año", descripcion: "Siempre en modo festivo" },
     { id: 16, nombre: "📅 Organizador/a Nato/a", descripcion: "Todo lo tiene planificado" },
-    { id: 17, nombre: "🚗 Piloto Familiar", descripcion: "Siempre dispuesto a llevar a todos" },
-    { id: 18, nombre: "💸 Prestamista No Oficial", descripcion: "Todos le piden prestado" },
+    { id: 17, nombre: "🚗 Piloto Familiar", descripcion: "Voy por ellos" },
+    { id: 18, nombre: "🥤 Adict@ al refresco", descripcion: "Agua? no gracias Pepsi o Coca" },
     { id: 19, nombre: "🎭 Dramático/a por Excelencia", descripcion: "Convive todo en una telenovela" },
     { id: 20, nombre: "🏆 Competitivo/a Nato/a", descripcion: "Hasta en juegos de mesa es intenso" },
-    { id: 21, nombre: "📖 Contador de Historias", descripcion: "Tiene anécdotas para todo" },
-    { id: 22, nombre: "🎵 DJ Familiar No Oficial", descripcion: "Controla la música en reuniones" },
+    { id: 21, nombre: "🧘‍♂️ Más callad@", descripcion: "Tiene personalidad relajada y silenciosa" },
+    { id: 22, nombre: "🎵 DJ Familiar", descripcion: "Músicologo" },
     { id: 23, nombre: "🍕 Devorador de Pizza", descripcion: "Récord en porciones consumidas" },
     { id: 24, nombre: "🌅 Madrugador Incansable", descripcion: "Productivo desde el amanecer" },
-    { id: 25, nombre: "🎁 Mejor Dando Regalos", descripcion: "Siempre acierta con los detalles" }
+    { id: 25, nombre: "⛔ El o la más Trabada del año", descripcion: "Hoy no le hablo a nadie" }
   ];
 
-  // Lista de nombres de familia para sugerencias
+  // Lista de nombres de familia
   const nombresFamilia = [
     "Montserrat", "José Manuel", "Raquel", "Luisa", "Andrés", 
     "José Iván", "Mariana", "Ruth", "Reny", "Gabriela", 
@@ -85,6 +88,140 @@ export default function Votaciones() {
     nombresFamilia.forEach(name => allowed.add(normalizarNombre(name)));
     return allowed;
   }, [nombresFamilia]);
+
+  // 🆕 FUNCIÓN: Generar opciones aleatorias para dropdown
+const generarOpcionesDropdown = (categoriaId) => {
+  if (!usuarioActual) return [];
+  
+  const nominacionesCategoria = nominaciones[categoriaId] || [];
+  const misNominacionesEnCategoria = nominacionesCategoria.filter(n => 
+    n && n.nominador && normalizarNombre(n.nominador) === normalizarNombre(usuarioActual.nombre)
+  );
+
+  // Filtrar nombres que ya nominé en esta categoría
+  const nombresYaNominados = new Set(
+    misNominacionesEnCategoria.map(n => normalizarNombre(n.persona))
+  );
+
+  // 🎲 MEZCLAR ALEATORIAMENTE TODAS las opciones disponibles
+  const opcionesDisponibles = nombresFamilia
+    .filter(nombre => !nombresYaNominados.has(normalizarNombre(nombre)))
+    .sort(() => Math.random() - 0.5); // ✅ TODAS las opciones, mezcladas aleatoriamente
+
+  return opcionesDisponibles;
+};
+
+  // 🆕 FUNCIÓN: Abrir modal de nominación con dropdown
+  const abrirModalNominacion = (categoria) => {
+    if (!usuarioActual) {
+      alert("❌ Debes iniciar sesión para nominar");
+      return;
+    }
+
+    const nominacionesCategoria = nominaciones[categoria.id] || [];
+    const misNominacionesEnCategoria = nominacionesCategoria.filter(n => 
+      n && n.nominador && normalizarNombre(n.nominador) === normalizarNombre(usuarioActual.nombre)
+    );
+
+    if (misNominacionesEnCategoria.length >= 3) {
+      alert("❌ Ya has nominado a 3 personas en esta categoría");
+      return;
+    }
+
+    const opciones = generarOpcionesDropdown(categoria.id);
+    
+    if (opciones.length === 0) {
+      alert("❌ No hay más personas disponibles para nominar en esta categoría");
+      return;
+    }
+
+    setCategoriaNominando(categoria);
+    setOpcionesDropdown(opciones);
+    setModalNominacionAbierto(true);
+  };
+
+  // 🆕 FUNCIÓN: Nominar desde dropdown
+  const nominarDesdeDropdown = async (personaSeleccionada) => {
+    if (!personaSeleccionada || !categoriaNominando) return;
+
+    await nominarPersona(categoriaNominando.id, personaSeleccionada);
+    setModalNominacionAbierto(false);
+  };
+
+  // 🆕 COMPONENTE: Modal de Nominación con Dropdown
+  const ModalNominacionDropdown = () => {
+    if (!modalNominacionAbierto || !categoriaNominando) return null;
+
+    const nominacionesCategoria = nominaciones[categoriaNominando.id] || [];
+    const misNominacionesEnCategoria = nominacionesCategoria.filter(n => 
+      n && n.nominador && normalizarNombre(n.nominador) === normalizarNombre(usuarioActual.nombre)
+    );
+    const nominacionesRestantes = 3 - misNominacionesEnCategoria.length;
+
+    return (
+      <div className="fixed inset-0 bg-black bg-opacity-80 flex items-center justify-center z-50 p-4">
+        <div className="bg-white rounded-2xl p-6 max-w-md w-full">
+          <div className="text-center mb-6">
+            <h2 className="text-2xl font-bold text-gray-800 mb-2">🎭 Nominar</h2>
+            <h3 className="text-xl text-purple-600 font-semibold">{categoriaNominando.nombre}</h3>
+            <p className="text-gray-600 mt-2">Selecciona a quien quieres nominar</p>
+            <p className="text-sm text-green-600 mt-1">
+              Te quedan {nominacionesRestantes} nominación(es) en esta categoría
+            </p>
+          </div>
+
+          <div className="mb-6">
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Elige un familiar:
+            </label>
+            <select 
+              className="w-full p-3 border border-green-400 rounded-lg bg-white text-green-800 focus:ring-2 focus:ring-green-300 focus:border-green-500"
+              defaultValue=""
+            >
+              <option value="" disabled>Selecciona un familiar...</option>
+              {opcionesDropdown.map((nombre, index) => (
+                <option key={index} value={nombre}>
+                  {nombre}
+                </option>
+              ))}
+            </select>
+            <p className="text-xs text-gray-500 mt-2">
+            🎲 <strong>Todas las opciones disponibles</strong> - Orden aleatorio cada vez
+            </p>
+          </div>
+
+          <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-4">
+            <p className="text-sm text-green-700 text-center">
+              🎯 <strong>Estrategia:</strong> Elige sabiamente para que tu favorito llegue a la final
+            </p>
+          </div>
+
+          <div className="flex gap-3">
+            <button
+              onClick={() => {
+                const select = document.querySelector('select');
+                const selectedValue = select?.value;
+                if (selectedValue) {
+                  nominarDesdeDropdown(selectedValue);
+                } else {
+                  alert("Por favor selecciona un familiar");
+                }
+              }}
+              className="flex-1 bg-green-500 hover:bg-green-600 text-white font-medium py-3 px-4 rounded-lg transition-colors"
+            >
+              ✅ Confirmar Nominación
+            </button>
+            <button
+              onClick={() => setModalNominacionAbierto(false)}
+              className="flex-1 bg-gray-500 hover:bg-gray-600 text-white font-medium py-3 px-4 rounded-lg transition-colors"
+            >
+              Cancelar
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  };
 
   // Verificar y preparar usuario actual
   const prepararUsuarioActual = (usuarioRaw) => {
@@ -148,55 +285,55 @@ export default function Votaciones() {
     initializeVotaciones();
   }, [navigate]);
 
-// Función para procesar y combinar nominaciones - CORREGIDA
-const procesarNominacionesCombinadas = (nominacionesDeFirebase) => {
-  const todasNominacionesCombinadas = {};
-  
-  // CORRECCIÓN: Convertir objeto Firebase a array
-  const nominacionesArray = Array.isArray(nominacionesDeFirebase) 
-    ? nominacionesDeFirebase 
-    : Object.values(nominacionesDeFirebase || {});
-  
-  nominacionesArray.forEach(doc => {
-    if (doc && doc.nominaciones) {
-      if (typeof doc.nominaciones !== 'object' || Array.isArray(doc.nominaciones)) {
-        console.warn(`Skipping invalid nominaciones type for doc ${doc.id}`);
-        return;
+  // Función para procesar y combinar nominaciones - CORREGIDA
+  const procesarNominacionesCombinadas = (nominacionesDeFirebase) => {
+    const todasNominacionesCombinadas = {};
+    
+    // CORRECCIÓN: Convertir objeto Firebase a array
+    const nominacionesArray = Array.isArray(nominacionesDeFirebase) 
+      ? nominacionesDeFirebase 
+      : Object.values(nominacionesDeFirebase || {});
+    
+    nominacionesArray.forEach(doc => {
+      if (doc && doc.nominaciones) {
+        if (typeof doc.nominaciones !== 'object' || Array.isArray(doc.nominaciones)) {
+          console.warn(`Skipping invalid nominaciones type for doc ${doc.id}`);
+          return;
+        }
+
+        Object.keys(doc.nominaciones).forEach(categoriaId => {
+          if (!todasNominacionesCombinadas[categoriaId]) {
+            todasNominacionesCombinadas[categoriaId] = [];
+          }
+          
+          const nominacionesUsuarioEnCategoria = doc.nominaciones[categoriaId];
+          if (Array.isArray(nominacionesUsuarioEnCategoria)) {
+            nominacionesUsuarioEnCategoria.forEach(nominacion => {
+              if (nominacion && nominacion.persona) {
+                todasNominacionesCombinadas[categoriaId].push(nominacion);
+              }
+            });
+          }
+        });
       }
+    });
+    
+    console.log("📊 Nominaciones combinadas:", todasNominacionesCombinadas);
+    setNominaciones(todasNominacionesCombinadas);
+  };
 
-      Object.keys(doc.nominaciones).forEach(categoriaId => {
-        if (!todasNominacionesCombinadas[categoriaId]) {
-          todasNominacionesCombinadas[categoriaId] = [];
-        }
-        
-        const nominacionesUsuarioEnCategoria = doc.nominaciones[categoriaId];
-        if (Array.isArray(nominacionesUsuarioEnCategoria)) {
-          nominacionesUsuarioEnCategoria.forEach(nominacion => {
-            if (nominacion && nominacion.persona) {
-              todasNominacionesCombinadas[categoriaId].push(nominacion);
-            }
-          });
-        }
-      });
+  // Cargar todas las nominaciones desde Firebase - MANTENER IGUAL
+  const cargarTodasNominaciones = async () => {
+    try {
+      const todasNominaciones = await gobaService.obtenerTodasNominaciones();
+      console.log("📥 Nominaciones cargadas desde Firebase:", todasNominaciones);
+      procesarNominacionesCombinadas(todasNominaciones);
+    } catch (error) {
+      console.error('Error cargando nominaciones:', error);
+      const nominacionesGuardadas = JSON.parse(localStorage.getItem('nominacionesGOBA') || '{}');
+      setNominaciones(nominacionesGuardadas);
     }
-  });
-  
-  console.log("📊 Nominaciones combinadas:", todasNominacionesCombinadas);
-  setNominaciones(todasNominacionesCombinadas);
-};
-
-// Cargar todas las nominaciones desde Firebase - MANTENER IGUAL
-const cargarTodasNominaciones = async () => {
-  try {
-    const todasNominaciones = await gobaService.obtenerTodasNominaciones();
-    console.log("📥 Nominaciones cargadas desde Firebase:", todasNominaciones);
-    procesarNominacionesCombinadas(todasNominaciones); // ✅ Ahora funcionará
-  } catch (error) {
-    console.error('Error cargando nominaciones:', error);
-    const nominacionesGuardadas = JSON.parse(localStorage.getItem('nominacionesGOBA') || '{}');
-    setNominaciones(nominacionesGuardadas);
-  }
-};
+  };
 
   // FECHAS AUTOMÁTICAS
   const determinarFaseActual = () => {
@@ -214,36 +351,9 @@ const cargarTodasNominaciones = async () => {
     }
   };
 
-  // Nominar múltiples personas
+  // 🔄 REEMPLAZAR la función nominarMultiplesPersonas
   const nominarMultiplesPersonas = (categoriaId, categoriaNombre) => {
-    if (!usuarioActual) {
-      alert("❌ Debes iniciar sesión para nominar");
-      return;
-    }
-
-    const nominacionesCategoria = nominaciones[categoriaId] || [];
-    const misNominacionesEnCategoria = nominacionesCategoria.filter(n => 
-      n && n.nominador && normalizarNombre(n.nominador) === normalizarNombre(usuarioActual.nombre)
-    );
-
-    if (misNominacionesEnCategoria.length >= 3) {
-      alert("❌ Ya has nominado a 3 personas en esta categoría");
-      return;
-    }
-
-    const nominacionesRestantes = 3 - misNominacionesEnCategoria.length;
-    const sugerencias = nombresFamilia.join(', ');
-    
-    const persona = prompt(
-      `¿A quién quieres nominar para "${categoriaNombre}"?\n\n` +
-      `💡 Solo puedes nominar a personas de la lista familiar. Sugerencias: ${sugerencias}\n` +
-      `📝 Puedes nominar hasta ${nominacionesRestantes} persona(s) más\n\n` +
-      `(Los apodos y nombres con acentos se normalizan automáticamente)`
-    );
-
-    if (persona && persona.trim()) {
-      nominarPersona(categoriaId, persona.trim());
-    }
+    abrirModalNominacion({ id: categoriaId, nombre: categoriaNombre });
   };
 
   // Función principal para nominar persona
@@ -568,10 +678,10 @@ const cargarTodasNominaciones = async () => {
   const maxNominacionesPosibles = categoriasGOBA.length * 3;
 
   return (
-    <div className="max-w-6xl mx-auto px-4 py-8">
+    <div className="max-w-6xl mx-auto px-3 md:px-4 py-6 md:py-8">
       {/* Header */}
       <div className="text-center mb-8">
-        <h1 className="text-4xl font-bold text-gray-800 mb-4">🗳️ GOBA Awards 2025</h1>
+        <h1 className="text-3xl md:text-4xl font-bold text-gray-800 mb-4">🗳️ GOBA Awards 2025</h1>
         
         {/* Indicador de Fase Automática */}
         <div className="flex justify-center mb-6">
@@ -595,7 +705,7 @@ const cargarTodasNominaciones = async () => {
 
         <p className="text-xl text-gray-600 mb-6">
           {faseActual === "nominaciones" 
-            ? "Premios a lo más destacado (y divertido) de la familia" 
+            ? "Lo más destacado y divertido de la familia" 
             : "🔒 Votación Secreta - Los resultados son sorpresa"}
         </p>
         
@@ -627,21 +737,18 @@ const cargarTodasNominaciones = async () => {
         <>
           {/* Información importante */}
           <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-6 mb-8">
-            <h2 className="text-xl font-bold text-yellow-800 mb-3">📝 Cómo Funciona - Fase de Nominaciones</h2>
+            <h2 className="text-xl font-bold text-yellow-800 mb-3">📝 Nominaciones cierra 10 de Dic.</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-yellow-700">
               <div>
-                <p className="font-semibold">Fase 1: Nominaciones (Hasta 10 Dic)</p>
+                <p className="font-semibold">🎯 Sistema de Nominaciones</p>
                 <ul className="text-sm mt-2 space-y-1">
-                  <li>• Cada persona puede nominar hasta 3 personas por categoría</li>
-                  <li>• No puedes nominar a la misma persona dos veces en una categoría</li>
-                  <li>• Las 3 personas más nominadas pasan a votación final</li>
+                  <li>• Máximo <strong>3 nominados por categoría</strong> por persona</li>
+                  <li>• No puedes nominar a la misma persona dos veces</li>
                 </ul>
               </div>
               <div>
-                <p className="font-semibold">Próxima Fase: Votación Secreta (12-22 Dic)</p>
+                <p className="font-semibold">Próxima Fase: Votación (12-22 Dic).</p>
                 <ul className="text-sm mt-2 space-y-1">
-                  <li>• Votación 100% secreta y anónima</li>
-                  <li>• Solo el admin ve los resultados</li>
                   <li>• Ganadores se revelan en la Gran Gala</li>
                 </ul>
               </div>
@@ -677,22 +784,17 @@ const cargarTodasNominaciones = async () => {
                   )}
 
                   {/* Nominaciones actuales */}
-                  <div className="mb-4">
-                    <p className="text-xs font-semibold text-gray-500 mb-2">
-                      Top Nominados ({nominacionesCategoria.length} nominaciones)
-                    </p>
-                    {topNominados.length > 0 ? (
-                      <div className="space-y-1">
-                        {topNominados.map((nom, index) => (
-                          <div key={index} className="flex justify-between items-center text-sm">
-                            <span className="text-gray-700">{nom.persona}</span>
-                          </div>
-                        ))}
-                      </div>
-                    ) : (
-                      <p className="text-xs text-gray-400 text-center py-2">Aún no hay nominaciones</p>
-                    )}
-                  </div>
+             {/* Información de nominaciones (oculta los nombres) */}
+<div className="mb-4">
+  <p className="text-xs font-semibold text-gray-500 mb-2">
+    📊 {nominacionesCategoria.length} nominaciones en total
+  </p>
+  <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 text-center">
+    <p className="text-xs text-blue-700">
+      🎭 Los nominados se mantienen en secreto hasta la votación final
+    </p>
+  </div>
+</div>
 
                   {/* Botón de nominar */}
                   {yaNomineTodas ? (
@@ -725,7 +827,6 @@ const cargarTodasNominaciones = async () => {
                 <p className="font-semibold mb-2">🗳️ Cómo votar:</p>
                 <ul className="text-sm space-y-1">
                   <li>• Haz clic en "Votar" en cualquier categoría</li>
-                  <li>• Ingresa tu código secreto para validar</li>
                   <li>• Elige a tu favorito entre los 3 finalistas</li>
                   <li>• ¡Tu voto es 100% anónimo!</li>
                 </ul>
@@ -734,7 +835,6 @@ const cargarTodasNominaciones = async () => {
                 <p className="font-semibold mb-2">🎭 Misterio Navideño:</p>
                 <ul className="text-sm space-y-1">
                   <li>• Los resultados son SECRETOS</li>
-                  <li>• Solo el admin puede ver los votos</li>
                   <li>• Ganadores se revelan en la Gran Gala</li>
                   <li>• ¡Sorpresa garantizada!</li>
                 </ul>
@@ -820,6 +920,9 @@ const cargarTodasNominaciones = async () => {
           ← Volver a Home
         </Link>
       </div>
+
+      {/* Modal de Nominación con Dropdown */}
+      <ModalNominacionDropdown />
 
       {/* Modal de Votación Secreta */}
       <ModalVotacionSecreta />

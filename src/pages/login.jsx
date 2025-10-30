@@ -322,7 +322,7 @@ export default function Login() {
                   Conectando...
                 </>
               ) : (
-                '🎉 Entrar o Solicitar Acceso'
+                ' "Botón para solicitar crear el usuario o entrar si ya tienes" '
               )}
             </button>
           </div>
@@ -347,14 +347,14 @@ export default function Login() {
             <ul className="text-blue-700 text-sm space-y-1">
               <li>• Sistema de aprobación activado</li>
               <li>• Solo usuarios autorizados</li>
-              <li>• Tus datos están protegidos</li>
+              <li>• Espera aprobación si ya estás registrado ingresa </li>
             </ul>
           </div>
 
           {/* Info Firebase */}
           <div className="mt-4 text-center">
             <p className="text-xs text-gray-500">
-              Octubre2025
+              2025
             </p>
           </div>
         </div>

@@ -300,15 +300,6 @@ const fechasSemanales = [
 const getSemanaActual = () => {
   // ⚠️ TEMPORAL: Forzar semana 1 durante pruebas
   return 0; // Semana 1 (27 Oct-2 Nov)
-  
-  // ⚠️ COMENTA EL CÓDIGO ORIGINAL:
-  // const ahora = getFechaHonduras();
-  // const inicioTemporada = new Date(2025, 9, 19, 0, 0, 0); // 19 de Oct 2025 ✅
-  
-  // const diferenciaTiempo = ahora.getTime() - inicioTemporada.getTime();
-  // const diferenciaSemanas = Math.floor(diferenciaTiempo / (1000 * 60 * 60 * 24 * 7));
-  
-  // return Math.max(0, Math.min(7, diferenciaSemanas));
 };
 
   // Función para verificar estado de un reto
@@ -336,23 +327,6 @@ const getEstadoReto = (reto, index, tipo) => {
     
     // ⚠️ TEMPORAL: Forzar preguntas activas durante testing
     return "activo";
-    
-    // ⚠️ COMENTAR TEMPORALMENTE EL CÓDIGO ORIGINAL:
-    /*
-    const fechaBase = fechasSemanales[semanaReto];
-    const fechaApertura = new Date(fechaBase);
-    const diasExtra = index % 2 === 0 ? 2 : 4;
-    fechaApertura.setDate(fechaBase.getDate() + diasExtra);
-    fechaApertura.setHours(6, 0, 0, 0);
-    
-    const fechaCierre = new Date(fechaBase);
-    fechaCierre.setDate(fechaBase.getDate() + 6);
-    fechaCierre.setHours(18, 0, 0, 0);
-    
-    if (ahora < fechaApertura) return "proximo";
-    if (ahora > fechaCierre) return "cerrado";
-    return "activo";
-    */
   }
   
   if (tipo === "tesoro") {
@@ -451,6 +425,27 @@ const getEstadoReto = (reto, index, tipo) => {
     return proximos;
   };
 
+  // 🆕 FUNCIÓN PARA ACTUALIZAR PUNTOS EN TIEMPO REAL
+  const actualizarPuntosUsuario = async () => {
+    if (!usuarioActual) return;
+    
+    try {
+      console.log("🔄 Actualizando puntos del usuario...");
+      const usuarioActualizado = await gobaService.obtenerUsuario(usuarioActual.id);
+      
+      if (usuarioActualizado) {
+        console.log("✅ Puntos actualizados:", usuarioActualizado.puntos);
+        localStorage.setItem('usuarioActual', JSON.stringify(usuarioActualizado));
+        setUsuarioActual(usuarioActualizado);
+        return usuarioActualizado.puntos;
+      }
+    } catch (error) {
+      console.error("❌ Error actualizando puntos:", error);
+    }
+    
+    return usuarioActual.puntos;
+  };
+
   // Cargar usuario y datos al iniciar
   useEffect(() => {
     const usuario = JSON.parse(localStorage.getItem('usuarioActual'));
@@ -466,48 +461,55 @@ const loadChallengesData = async () => {
   try {
     setLoading(true);
 
-    const usuarioActual = JSON.parse(localStorage.getItem('usuarioActual'));
+    // 1. OBTENER USUARIO ACTUAL
+    let usuarioLocal = JSON.parse(localStorage.getItem('usuarioActual'));
     
-    if (!usuarioActual || !usuarioActual.id) {
-      console.log("⚠️ Usuario no disponible en challenges, buscando en localStorage...");
-      
-      const currentUser = JSON.parse(localStorage.getItem('usuarioActual'));
-      if (!currentUser) {
-        console.log("❌ No hay usuario logueado en loadChallengesData");
-        return;
-      }
-      
-      console.log("✅ Usuario recuperado:", currentUser);
-      setUsuarioActual(currentUser);
+    if (!usuarioLocal || !usuarioLocal.id) {
+      console.log("❌ No hay usuario logueado");
+      navigate("/login");
+      return;
     }
     
-    console.log("🔍 Cargando datos para usuario:", usuarioActual.nombre);
+    console.log("🔍 Usuario local:", usuarioLocal.nombre, "Puntos:", usuarioLocal.puntos);
+
+    // 2. ACTUALIZAR DESDE FIREBASE
+    console.log("🔄 Buscando usuario en Firebase...");
+    const usuarioFirebase = await gobaService.obtenerUsuario(usuarioLocal.id);
     
-    // 🆕 ACTUALIZAR USUARIO DESDE FIREBASE PRIMERO
-    const usuarioFirebase = await gobaService.obtenerUsuario(usuarioActual.id);
     if (usuarioFirebase) {
+      console.log("✅ Usuario Firebase encontrado:", usuarioFirebase.nombre, "Puntos:", usuarioFirebase.puntos);
+      
+      // ACTUALIZAR LOCALSTORAGE Y STATE
       localStorage.setItem('usuarioActual', JSON.stringify(usuarioFirebase));
       setUsuarioActual(usuarioFirebase);
-      console.log("🔄 Usuario actualizado desde Firebase:", usuarioFirebase.puntos);
+      usuarioLocal = usuarioFirebase;
+    } else {
+      console.log("⚠️ No se encontró usuario en Firebase, usando datos locales");
+      setUsuarioActual(usuarioLocal);
     }
-    
+
+    // 3. CARGAR DATOS ADICIONALES
+    console.log("📊 Cargando ranking y retos completados...");
     const [rankingData, completadosData, preguntasData] = await Promise.all([
       gobaService.getRanking(),
-      gobaService.getUserCompletedChallenges(usuarioActual.id),
-      gobaService.getCompletedQuestions(usuarioActual.id)
+      gobaService.getUserCompletedChallenges(usuarioLocal.id),
+      gobaService.getCompletedQuestions(usuarioLocal.id)
     ]);
 
     setRanking(rankingData);
     setRetosCompletados(completadosData);
     setPreguntasCompletadas(preguntasData);
     
-    // 🆕 RE-CALCULAR RETOS MANUALMENTE (en lugar de calcularRetos())
+    // 4. CALCULAR RETOS
     setRetosActivos(getRetosActivos());
     setRetosSemanaActual(getRetosSemanaActual());
     setRetosProximos(getRetosProximaSemana());
 
+    console.log("🎯 Datos cargados correctamente. Puntos actuales:", usuarioLocal.puntos);
+
   } catch (error) {
     console.error("❌ Error cargando datos de challenges:", error);
+    alert("Error al cargar los datos. Recarga la página.");
   } finally {
     setLoading(false);
   }
@@ -571,14 +573,10 @@ const completarPreguntaSemanal = async (retoId, respuesta) => {
       alert(`❌ Respuesta incorrecta. La respuesta correcta era: "${pregunta?.respuestaCorrecta}". No ganaste puntos.`);
     }
 
+    // 🆕 ACTUALIZAR PUNTOS INMEDIATAMENTE
+    await actualizarPuntosUsuario();
+    // Y luego recargar todo
     loadChallengesData();
-    
-    // 🆕 ACTUALIZAR USUARIO EN LOCALSTORAGE
-    const usuarioActualizado = await gobaService.obtenerUsuario(usuarioActual.id);
-    if (usuarioActualizado) {
-      localStorage.setItem('usuarioActual', JSON.stringify(usuarioActualizado));
-      setUsuarioActual(usuarioActualizado);
-    }
     
   } catch (error) {
     setIntentosPreguntas(prev => ({
@@ -613,24 +611,20 @@ const completarTesoro = async (retoId) => {
       return;
     }
     
-    // CORRECCIÓN: Pasar puntos explícitos para tesoros también
     const puntosObtenidos = await gobaService.completeChallenge(
       usuarioActual.id, 
       retoId, 
       respuestaUsuario, 
-      15 // ← 15 puntos explícitos para tesoros
+      15
     );
     
     alert(`✅ ¡Correcto! Descubriste el tesoro y ganaste ${puntosObtenidos} puntos`);
     manejarCambioRespuestaTesoro(retoId, "");
-    loadChallengesData();
     
-    // 🆕 ACTUALIZAR USUARIO EN LOCALSTORAGE
-    const usuarioActualizado = await gobaService.obtenerUsuario(usuarioActual.id);
-    if (usuarioActualizado) {
-      localStorage.setItem('usuarioActual', JSON.stringify(usuarioActualizado));
-      setUsuarioActual(usuarioActualizado);
-    }
+    // 🆕 ACTUALIZAR PUNTOS INMEDIATAMENTE
+    await actualizarPuntosUsuario();
+    // Y luego recargar todo
+    loadChallengesData();
     
   } catch (error) {
     alert(`❌ ${error.message}`);
@@ -697,19 +691,26 @@ const completarTesoro = async (retoId) => {
 
   return (
     <div className="max-w-6xl mx-auto px-4 py-8">
-      {/* Header */}
+      {/* Header MEJORADO - Avatar centrado sobre nombre */}
       <div className="text-center mb-8">
-        <div className="flex items-center justify-center gap-4 mb-4">
-          <span className="text-4xl">{usuarioActual.avatar}</span>
-          <div>
+        <div className="flex flex-col items-center justify-center gap-4 mb-4">
+          {/* Avatar CENTRADO sobre nombre y territorio */}
+          <div className="flex flex-col items-center justify-center">
+            <span className="text-6xl mb-2">{usuarioActual.avatar}</span>
             <h1 className="text-4xl font-bold text-gray-800">🎮 Retos Familiares</h1>
             <p className="text-xl text-gray-600">{usuarioActual.nombre} - {usuarioActual.pais}</p>
           </div>
         </div>
-        <div className="mt-4 bg-gradient-to-r from-green-100 to-blue-100 rounded-lg p-4 inline-block">
-          <p className="font-semibold text-gray-800 text-lg">
-            Puntos acumulados: <span className="text-3xl text-green-600">{usuarioActual.puntos || 0}</span>
-          </p>
+        
+        {/* Puntos acumulados - CONECTADO CON RANKING */}
+        <div className="mt-4 bg-gradient-to-r from-green-100 to-blue-100 rounded-xl p-6 inline-block border-2 border-green-200">
+          <div className="flex flex-col items-center justify-center">
+            <p className="text-4xl font-bold text-green-600 mb-2">
+              {usuarioActual.puntos || 0}
+            </p>
+            <p className="text-lg font-semibold text-gray-800">⭐ Puntos Acumulados</p>
+            <p className="text-sm text-gray-600 mt-1">Sumados desde retos completados</p>
+          </div>
         </div>
       </div>
 
@@ -765,58 +766,6 @@ const completarTesoro = async (retoId) => {
                       </div>
                       
                       <p className="text-gray-600 mb-4 text-sm">{reto.descripcion}</p>
-
-                      {/* FOTO - SUBIR O VER COMPLETADO */}
-                      {reto.tipo === "foto" && !completado && (
-                        <div className="space-y-4 p-4 bg-gradient-to-r from-green-50 to-blue-50 rounded-xl border-2 border-green-200">
-                          {/* Vista previa */}
-                          {imagenSubida && (
-                            <div className="text-center bg-white p-3 rounded-lg border-2 border-green-300">
-                              <p className="text-xs text-green-600 font-medium mb-2">Vista previa:</p>
-                              <img 
-                                src={URL.createObjectURL(imagenSubida)} 
-                                alt="Tu foto para el reto" 
-                                className="max-h-40 mx-auto rounded-lg shadow-md"
-                              />
-                              <p className="text-xs text-gray-500 mt-2">
-                                {imagenSubida.name} - {(imagenSubida.size / 1024 / 1024).toFixed(2)}MB
-                              </p>
-                            </div>
-                          )}
-
-                          {/* Input de archivo */}
-                          <label className="block cursor-pointer">
-                            <span className="sr-only">Seleccionar foto</span>
-                            <input
-                              type="file"
-                              accept="image/*"
-                              onChange={(e) => setImagenSubida(e.target.files[0])}
-                              disabled={subiendoFoto}
-                              className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-green-100 file:text-green-700 hover:file:bg-green-200 disabled:opacity-50"
-                            />
-                          </label>
-
-                          {/* Botón de subida */}
-                          <button
-                            onClick={() => manejarSubidaFoto(reto.id)}
-                            disabled={!imagenSubida || subiendoFoto}
-                            className={`w-full py-3 px-4 rounded-lg font-semibold transition-all ${
-                              !imagenSubida || subiendoFoto
-                                ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                                : 'bg-gradient-to-r from-green-500 to-blue-500 hover:from-green-600 hover:to-blue-600 text-white shadow-lg hover:shadow-xl transform hover:scale-105'
-                            }`}
-                          >
-                            {subiendoFoto ? (
-                              <span className="flex items-center justify-center gap-2">
-                                <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent"></div>
-                                Subiendo a ImgBB...
-                              </span>
-                            ) : (
-                              '📤 Subir a Galería Familiar'
-                            )}
-                          </button>
-                        </div>
-                      )}
 
                       {/* PREGUNTAS SEMANALES - OPCIONES MÚLTIPLES (SOLO UN INTENTO) */}
                       {reto.tipo === "pregunta" && !completado && (
@@ -893,17 +842,6 @@ const completarTesoro = async (retoId) => {
                             }
                           </div>
                           
-                          {reto.tipo === "foto" && completado.imageUrl && (
-                            <div className="mb-3">
-                              <p className="text-sm text-green-600 mb-2">Tu foto aprobada:</p>
-                              <img 
-                                src={completado.imageUrl} 
-                                alt="Foto aprobada" 
-                                className="max-h-32 mx-auto rounded-lg shadow-md"
-                              />
-                            </div>
-                          )}
-                          
                           <div className={`text-lg font-bold ${
                             reto.tipo === "tesoro" || (completado.puntosObtenidos || completado.pointsAwarded) > 0 
                               ? 'text-green-800' 
@@ -924,12 +862,6 @@ const completarTesoro = async (retoId) => {
                                   ? `Respuesta incorrecta. La correcta era: ${reto.respuestaCorrecta}`
                                   : `Respuesta correcta: ${reto.respuestaCorrecta}`
                               }
-                            </p>
-                          )}
-                          
-                          {reto.tipo === "foto" && (
-                            <p className="text-sm text-green-600 mt-1">
-                              Foto aprobada por el admin
                             </p>
                           )}
                         </div>
@@ -1046,14 +978,17 @@ const completarTesoro = async (retoId) => {
         </div>
       </div>
 
-      {/* Navegación */}
-      <div className="text-center mt-12">
+      {/* Navegación MEJORADA - Igual que Perfil */}
+      <div className="mt-8 bg-gradient-to-r from-purple-500 to-pink-500 rounded-2xl p-6 text-center shadow-xl">
         <Link 
           to="/home" 
-          className="inline-block bg-gray-500 hover:bg-gray-600 text-white font-medium py-3 px-8 rounded-lg transition-colors"
+          className="inline-block bg-white text-purple-600 hover:bg-purple-50 font-bold py-4 px-8 rounded-xl transition-all transform hover:scale-105 text-lg"
         >
-          ← Volver al Home
+          🏠 Volver al Home Navideño
         </Link>
+        <p className="text-white text-sm mt-3 opacity-90">
+          Regresa a la diversión familiar
+        </p>
       </div>
     </div>
   );

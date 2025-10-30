@@ -1,3 +1,26 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* 🔥 REDUCE TAMAÑO DE TEXTO GENERAL en móviles */
+@media (max-width: 768px) {
+  html {
+    font-size: 14px; /* Reduce de 16px a 14px en móviles */
+  }
+  
+  /* Opcional: Reduce aún más textos muy grandes */
+  .text-4xl {
+    font-size: 1.75rem; /* 28px en lugar de 36px */
+    line-height: 2.25rem;
+  }
+  
+  .text-3xl {
+    font-size: 1.5rem; /* 24px en lugar de 30px */
+    line-height: 2rem;
+  }
+  
+  .text-2xl {
+    font-size: 1.25rem; /* 20px en lugar de 24px */
+    line-height: 1.75rem;
+  }
+}

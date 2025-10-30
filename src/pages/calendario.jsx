@@ -13,6 +13,9 @@ export default function Calendario() {
   const [eventosFamiliares, setEventosFamiliares] = useState([]);
   const [loading, setLoading] = useState(true);
   const [usuarioActual, setUsuarioActual] = useState(null);
+  const [tooltipVisible, setTooltipVisible] = useState(false);
+  const [tooltipContent, setTooltipContent] = useState({});
+  const [tooltipPosition, setTooltipPosition] = useState({ x: 0, y: 0 });
 
   // Fases GOBA Awards
   const fasesGOBA = [
@@ -60,6 +63,31 @@ export default function Calendario() {
   // 🔧 FUNCIÓN CORREGIDA: Para countdowns (mantiene la hora específica)
   const formatearFechaParaCountdown = (fechaStr, hora = "19:00:00") => {
     return new Date(fechaStr + `T${hora}-06:00`);
+  };
+
+  // Mostrar tooltip al hacer hover
+  const mostrarTooltip = (event, diaInfo) => {
+    if (!diaInfo || !diaInfo.evento) return;
+    
+    const rect = event.currentTarget.getBoundingClientRect();
+    setTooltipPosition({
+      x: rect.left + rect.width / 2,
+      y: rect.top - 10
+    });
+    
+    setTooltipContent({
+      titulo: diaInfo.evento.titulo,
+      descripcion: diaInfo.evento.descripcion,
+      fecha: formatearFechaHonduras(diaInfo.fecha),
+      icono: diaInfo.evento.icono
+    });
+    
+    setTooltipVisible(true);
+  };
+
+  // Ocultar tooltip
+  const ocultarTooltip = () => {
+    setTooltipVisible(false);
   };
 
   // Verificar y preparar usuario actual
@@ -363,28 +391,52 @@ export default function Calendario() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-green-50 via-red-50 to-white py-8 px-4">
+      
+      {/* Tooltip flotante */}
+      {tooltipVisible && (
+        <div 
+          className="fixed z-50 bg-white border-2 border-blue-300 rounded-xl shadow-2xl p-4 max-w-xs transform -translate-x-1/2 -translate-y-full transition-all duration-300 animate-fadeIn"
+          style={{
+            left: `${tooltipPosition.x}px`,
+            top: `${tooltipPosition.y}px`
+          }}
+        >
+          <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 translate-y-1 w-4 h-4 bg-white border-r-2 border-b-2 border-blue-300 rotate-45"></div>
+          <div className="flex items-start gap-3">
+            <div className="text-2xl flex-shrink-0">{tooltipContent.icono}</div>
+            <div>
+              <h4 className="font-bold text-gray-800 text-sm mb-1">{tooltipContent.titulo}</h4>
+              <p className="text-gray-600 text-xs mb-2">{tooltipContent.descripcion}</p>
+              <div className="flex justify-between items-center">
+                <span className="font-semibold text-blue-600 text-xs">{tooltipContent.fecha}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       <div className="max-w-6xl mx-auto">
         
-        {/* Header - SIN COUNTDOWNS FLOTANTES */}
+        {/* Header con animación sutil */}
         <div className="text-center mb-12">
-          <h1 className="text-5xl font-bold text-gray-800 mb-4 bg-gradient-to-r from-green-600 via-red-500 to-green-600 bg-clip-text text-transparent">
+          <h1 className="text-5xl font-bold text-gray-800 mb-4 bg-gradient-to-r from-green-600 via-red-500 to-green-600 bg-clip-text text-transparent animate-pulse">
             🎄 Calendario Navideño 2025
           </h1>
-          <p className="text-xl text-gray-600 mb-8 font-light">Tu guía para la magia navideña familiar</p>
+          <p className="text-xl text-gray-600 mb-8 font-light animate-fadeIn">Tu guía para la magia navideña familiar</p>
         </div>
 
-        {/* Calendarios Noviembre y Diciembre */}
+        {/* Calendarios Noviembre y Diciembre con animaciones balanceadas */}
         <div className="grid grid-cols-1 xl:grid-cols-2 gap-8 mb-12">
           
           {/* Noviembre 2025 */}
-          <div className="bg-white/90 backdrop-blur-sm rounded-2xl p-6 shadow-xl border-2 border-amber-200">
-            <h2 className="text-3xl font-bold text-amber-700 mb-6 text-center flex items-center justify-center gap-3">
+          <div className="bg-white/90 backdrop-blur-sm rounded-2xl p-6 shadow-xl border-2 border-amber-200 hover:shadow-2xl transition-all duration-500 animate-slideInLeft">
+            <h2 className="text-3xl font-bold text-amber-700 mb-6 text-center flex items-center justify-center gap-3 transition-all duration-300 hover:scale-105 hover:text-amber-800">
               🍂 Noviembre 2025
             </h2>
             
             <div className="grid grid-cols-7 gap-2 mb-4 text-center font-bold text-gray-600 text-sm">
               {['LU', 'MA', 'MI', 'JU', 'VI', 'SA', 'DO'].map(dia => (
-                <div key={dia} className="py-3 bg-amber-50 rounded-lg">{dia}</div>
+                <div key={dia} className="py-3 bg-amber-50 rounded-lg hover:bg-amber-100 transition-colors">{dia}</div>
               ))}
             </div>
 
@@ -392,25 +444,37 @@ export default function Calendario() {
               {calendarioNoviembre.map((diaInfo, index) => (
                 <div 
                   key={index}
-                  className={`min-h-16 flex flex-col items-center justify-center rounded-xl border-2 transition-all duration-300 p-2 group ${
+                  onMouseEnter={(e) => mostrarTooltip(e, diaInfo)}
+                  onMouseLeave={ocultarTooltip}
+                  className={`min-h-16 flex flex-col items-center justify-center rounded-xl border-2 transition-all duration-300 p-2 group cursor-pointer ${
                     !diaInfo 
                       ? 'bg-transparent border-transparent' 
                       : diaInfo.evento 
-                      ? 'bg-red-50 border-red-300 text-red-700 hover:bg-red-100 hover:shadow-md' 
+                      ? 'bg-gradient-to-br from-red-50 to-pink-50 border-red-300 text-red-700 hover:from-red-100 hover:to-pink-100 hover:shadow-lg hover:scale-105 transform' 
                       : diaInfo.esHoy
-                      ? 'bg-gradient-to-br from-green-100 to-emerald-100 border-green-400 text-green-800 shadow-lg transform scale-105'
-                      : 'bg-white border-amber-100 text-gray-700 hover:bg-amber-50 hover:border-amber-200'
+                      ? 'bg-gradient-to-br from-green-200 to-emerald-200 border-green-400 text-green-800 shadow-lg transform scale-105'
+                      : 'bg-gradient-to-br from-white to-amber-50 border-amber-100 text-gray-700 hover:bg-amber-100 hover:border-amber-200 hover:shadow-md hover:scale-105 transform'
                   }`}
                 >
                   {diaInfo && (
                     <>
-                      <div className={`font-bold text-lg ${diaInfo.esHoy ? 'text-green-700' : ''}`}>
+                      <div className={`font-bold text-lg transition-all duration-300 ${
+                        diaInfo.esHoy 
+                          ? 'text-green-700' 
+                          : diaInfo.evento 
+                          ? 'text-red-800 group-hover:text-red-900' 
+                          : 'text-gray-700 group-hover:text-gray-900'
+                      }`}>
                         {diaInfo.dia}
                       </div>
                       {diaInfo.evento && (
-                        <div className="text-lg transform group-hover:scale-110 transition-transform" title={diaInfo.evento.titulo}>
+                        <div className="text-lg transform transition-all duration-300 group-hover:scale-125 group-hover:rotate-12" 
+                             title={diaInfo.evento.titulo}>
                           {diaInfo.evento.icono}
                         </div>
+                      )}
+                      {!diaInfo.evento && diaInfo.esHoy && (
+                        <div className="w-2 h-2 bg-green-500 rounded-full mt-1 group-hover:animate-ping"></div>
                       )}
                     </>
                   )}
@@ -420,14 +484,14 @@ export default function Calendario() {
           </div>
 
           {/* Diciembre 2025 */}
-          <div className="bg-white/90 backdrop-blur-sm rounded-2xl p-6 shadow-xl border-2 border-green-200">
-            <h2 className="text-3xl font-bold text-green-700 mb-6 text-center flex items-center justify-center gap-3">
+          <div className="bg-white/90 backdrop-blur-sm rounded-2xl p-6 shadow-xl border-2 border-green-200 hover:shadow-2xl transition-all duration-500 animate-slideInRight">
+            <h2 className="text-3xl font-bold text-green-700 mb-6 text-center flex items-center justify-center gap-3 transition-all duration-300 hover:scale-105 hover:text-green-800">
               ❄️ Diciembre 2025
             </h2>
             
             <div className="grid grid-cols-7 gap-2 mb-4 text-center font-bold text-gray-600 text-sm">
               {['LU', 'MA', 'MI', 'JU', 'VI', 'SA', 'DO'].map(dia => (
-                <div key={dia} className="py-3 bg-green-50 rounded-lg">{dia}</div>
+                <div key={dia} className="py-3 bg-green-50 rounded-lg hover:bg-green-100 transition-colors">{dia}</div>
               ))}
             </div>
 
@@ -435,25 +499,37 @@ export default function Calendario() {
               {calendarioDiciembre.map((diaInfo, index) => (
                 <div 
                   key={index}
-                  className={`min-h-16 flex flex-col items-center justify-center rounded-xl border-2 transition-all duration-300 p-2 group ${
+                  onMouseEnter={(e) => mostrarTooltip(e, diaInfo)}
+                  onMouseLeave={ocultarTooltip}
+                  className={`min-h-16 flex flex-col items-center justify-center rounded-xl border-2 transition-all duration-300 p-2 group cursor-pointer ${
                     !diaInfo 
                       ? 'bg-transparent border-transparent' 
                       : diaInfo.evento 
-                      ? 'bg-red-50 border-red-300 text-red-700 hover:bg-red-100 hover:shadow-md' 
+                      ? 'bg-gradient-to-br from-red-50 to-pink-50 border-red-300 text-red-700 hover:from-red-100 hover:to-pink-100 hover:shadow-lg hover:scale-105 transform' 
                       : diaInfo.esHoy
-                      ? 'bg-gradient-to-br from-green-100 to-emerald-100 border-green-400 text-green-800 shadow-lg transform scale-105'
-                      : 'bg-white border-green-100 text-gray-700 hover:bg-green-50 hover:border-green-200'
+                      ? 'bg-gradient-to-br from-green-200 to-emerald-200 border-green-400 text-green-800 shadow-lg transform scale-105'
+                      : 'bg-gradient-to-br from-white to-green-50 border-green-100 text-gray-700 hover:bg-green-100 hover:border-green-200 hover:shadow-md hover:scale-105 transform'
                   }`}
                 >
                   {diaInfo && (
                     <>
-                      <div className={`font-bold text-lg ${diaInfo.esHoy ? 'text-green-700' : ''}`}>
+                      <div className={`font-bold text-lg transition-all duration-300 ${
+                        diaInfo.esHoy 
+                          ? 'text-green-700' 
+                          : diaInfo.evento 
+                          ? 'text-red-800 group-hover:text-red-900' 
+                          : 'text-gray-700 group-hover:text-gray-900'
+                      }`}>
                         {diaInfo.dia}
                       </div>
                       {diaInfo.evento && (
-                        <div className="text-lg transform group-hover:scale-110 transition-transform" title={diaInfo.evento.titulo}>
+                        <div className="text-lg transform transition-all duration-300 group-hover:scale-125 group-hover:rotate-12" 
+                             title={diaInfo.evento.titulo}>
                           {diaInfo.evento.icono}
                         </div>
+                      )}
+                      {!diaInfo.evento && diaInfo.esHoy && (
+                        <div className="w-2 h-2 bg-green-500 rounded-full mt-1 group-hover:animate-ping"></div>
                       )}
                     </>
                   )}
@@ -463,9 +539,9 @@ export default function Calendario() {
           </div>
         </div>
 
-        {/* Timeline de Eventos - CON FECHAS CORREGIDAS */}
-        <div className="bg-white/90 backdrop-blur-sm rounded-2xl p-8 shadow-xl border-2 border-blue-200 mb-8">
-          <h2 className="text-3xl font-bold text-blue-700 mb-8 text-center flex items-center justify-center gap-3">
+        {/* Timeline de Eventos con animaciones al hover */}
+        <div className="bg-white/90 backdrop-blur-sm rounded-2xl p-8 shadow-xl border-2 border-blue-200 mb-8 hover:shadow-2xl transition-all duration-500">
+          <h2 className="text-3xl font-bold text-blue-700 mb-8 text-center flex items-center justify-center gap-3 animate-fadeIn">
             📅 Timeline de Eventos Importantes
           </h2>
           
@@ -474,18 +550,20 @@ export default function Calendario() {
               .filter(evento => new Date(evento.fecha) >= new Date())
               .sort((a, b) => new Date(a.fecha) - new Date(b.fecha))
               .map((evento, index) => (
-                <div key={index} className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl p-4 border-2 border-blue-200 hover:shadow-lg transition-all duration-300">
+                <div 
+                  key={index} 
+                  className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl p-4 border-2 border-blue-200 hover:shadow-lg transition-all duration-300 hover:scale-105 transform animate-fadeInUp"
+                  style={{ animationDelay: `${index * 100}ms` }}
+                >
                   <div className="flex items-start gap-4">
-                    <div className="text-3xl flex-shrink-0">{evento.icono}</div>
+                    <div className="text-3xl flex-shrink-0 transition-all duration-300 hover:animate-bounce">{evento.icono}</div>
                     <div className="flex-1">
                       <h3 className="font-bold text-gray-800 text-lg mb-1">{evento.titulo}</h3>
                       <p className="text-gray-600 text-sm mb-2">{evento.descripcion}</p>
                       <div className="flex justify-between items-center">
-                        {/* ✅ FECHA CORREGIDA - Usa la función helper */}
                         <span className="font-semibold text-blue-600">
                           {formatearFechaHonduras(evento.fecha)}
                         </span>
-                        {/* ✅ COUNTDOWN CORREGIDO - Usa hora específica de Honduras */}
                         <span className="bg-blue-100 text-blue-700 px-2 py-1 rounded-full text-xs font-medium">
                           {calcularCountdown(formatearFechaParaCountdown(evento.fecha, "19:00:00"))}
                         </span>
@@ -497,35 +575,59 @@ export default function Calendario() {
           </div>
         </div>
 
-        {/* Leyenda Mejorada */}
-        <div className="bg-white/80 backdrop-blur-sm rounded-xl p-6 shadow-lg border border-gray-200 mb-8">
-          <h3 className="font-bold text-gray-800 mb-4 text-center">📋 Leyenda del Calendario</h3>
+        {/* Leyenda Mejorada con animaciones al hover */}
+        <div className="bg-white/80 backdrop-blur-sm rounded-xl p-6 shadow-lg border border-gray-200 mb-8 hover:shadow-xl transition-all duration-300">
+          <h3 className="font-bold text-gray-800 mb-4 text-center animate-fadeIn">📋 Leyenda del Calendario</h3>
           <div className="flex justify-center gap-8 text-sm flex-wrap">
-            <div className="flex items-center gap-3 bg-red-50 px-4 py-2 rounded-lg">
-              <div className="w-6 h-6 bg-red-300 rounded-full flex items-center justify-center text-xs">🎂</div>
+            <div className="flex items-center gap-3 bg-red-50 px-4 py-2 rounded-lg hover:scale-105 transform transition-all duration-300">
+              <div className="w-6 h-6 bg-red-300 rounded-full flex items-center justify-center text-xs transition-all duration-300 hover:animate-pulse">🎂</div>
               <span className="font-medium text-red-700">Evento Familiar</span>
             </div>
-            <div className="flex items-center gap-3 bg-green-50 px-4 py-2 rounded-lg">
+            <div className="flex items-center gap-3 bg-green-50 px-4 py-2 rounded-lg hover:scale-105 transform transition-all duration-300">
               <div className="w-6 h-6 bg-green-400 rounded-full"></div>
               <span className="font-medium text-green-700">Hoy</span>
             </div>
-            <div className="flex items-center gap-3 bg-amber-50 px-4 py-2 rounded-lg">
-              <div className="w-6 h-6 bg-amber-200 rounded-full"></div>
+            <div className="flex items-center gap-3 bg-amber-50 px-4 py-2 rounded-lg hover:scale-105 transform transition-all duration-300">
+              <div className="w-6 h-6 bg-amber-200 rounded-full hover:bg-amber-300 transition-colors"></div>
               <span className="font-medium text-amber-700">Día normal</span>
             </div>
           </div>
         </div>
 
-        {/* Navegación */}
+        {/* Navegación con animación al hover */}
         <div className="text-center">
           <Link 
             to="/home" 
-            className="inline-flex items-center gap-2 bg-gradient-to-r from-green-500 to-red-500 hover:from-green-600 hover:to-red-600 text-white font-semibold py-4 px-8 rounded-2xl transition-all duration-300 transform hover:scale-105 shadow-lg"
+            className="inline-flex items-center gap-2 bg-gradient-to-r from-green-500 to-red-500 hover:from-green-600 hover:to-red-600 text-white font-semibold py-4 px-8 rounded-2xl transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl hover:animate-bounce"
           >
             ← Volver al Home
           </Link>
         </div>
       </div>
+
+      {/* Estilos CSS para animaciones personalizadas */}
+      <style jsx>{`
+        @keyframes fadeIn {
+          from { opacity: 0; transform: translateY(-10px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes fadeInUp {
+          from { opacity: 0; transform: translateY(20px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes slideInLeft {
+          from { opacity: 0; transform: translateX(-50px); }
+          to { opacity: 1; transform: translateX(0); }
+        }
+        @keyframes slideInRight {
+          from { opacity: 0; transform: translateX(50px); }
+          to { opacity: 1; transform: translateX(0); }
+        }
+        .animate-fadeIn { animation: fadeIn 0.6s ease-out; }
+        .animate-fadeInUp { animation: fadeInUp 0.6s ease-out; }
+        .animate-slideInLeft { animation: slideInLeft 0.6s ease-out; }
+        .animate-slideInRight { animation: slideInRight 0.6s ease-out; }
+      `}</style>
     </div>
   );
 }

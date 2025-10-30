@@ -10,6 +10,8 @@ export default function Navidad() {
   const [loading, setLoading] = useState(true);
   const [contenidoAdviento, setContenidoAdviento] = useState([]);
   const [reflexionesAdviento, setReflexionesAdviento] = useState([]);
+  const [diaExpandido, setDiaExpandido] = useState(null);
+  const [mostrarCalendarioCompleto, setMostrarCalendarioCompleto] = useState(false);
 
   // Villancicos con acordes (siempre disponibles)
   const villancicos = [
@@ -23,7 +25,9 @@ Entre los astros que esparcen su luz
 Bella anunciando al niñito Jesús
 Brilla la estrella de paz
 Brilla la estrella de paz`,
-      nivel: "Fácil"
+      nivel: "Fácil",
+      color: "blue",
+      icono: "⭐"
     },
     {
       id: 2,
@@ -38,7 +42,9 @@ Belén, campanas de Belén
 Que los pastores quieren oír
 Belén, campanas de Belén
 Que los pastores quieren oír`,
-      nivel: "Intermedio"
+      nivel: "Intermedio",
+      color: "green",
+      icono: "🔔"
     },
     {
       id: 3,
@@ -53,7 +59,9 @@ Beben y beben
 Y vuelven a beber
 Los peces en el río
 Por ver a Dios nacer`,
-      nivel: "Fácil"
+      nivel: "Fácil",
+      color: "teal",
+      icono: "🐟"
     },
     {
       id: 4,
@@ -68,7 +76,9 @@ Arre borriquito
 Vamos a Belén
 Que mañana es fiesta
 Y al otro también`,
-      nivel: "Muy Fácil"
+      nivel: "Muy Fácil",
+      color: "orange",
+      icono: "🐴"
     },
     {
       id: 5,
@@ -81,51 +91,45 @@ Le traen regalos en su humilde zurrón
 
 Ropompom pom pom, ropompom pom pom
 Ha nacido en un portal de Belén el Niño Dios`,
-      nivel: "Intermedio"
+      nivel: "Intermedio",
+      color: "red",
+      icono: "🥁"
     }
   ];
 
   // FUNCIÓN CORREGIDA: Crear fecha en zona horaria local
   const crearFechaLocal = (año, mes, dia) => {
-    // Crear fecha en zona horaria local (sin UTC)
-    return new Date(año, mes, dia, 12, 0, 0); // Usar mediodía para evitar problemas de zona horaria
+    return new Date(año, mes, dia, 12, 0, 0);
   };
 
   // GENERAR LAS FECHAS REALES DEL ADVIENTO (30 Nov - 25 Dic) CORREGIDO
   const generarFechasAdviento = () => {
     const fechas = [];
     
-    // Crear fechas en zona horaria local
-    const inicio = crearFechaLocal(2025, 10, 30); // Noviembre es 10 (0-indexed)
-    const fin = crearFechaLocal(2025, 11, 25);    // Diciembre es 11
+    const inicio = crearFechaLocal(2025, 10, 30);
+    const fin = crearFechaLocal(2025, 11, 25);
     
     const fechaActual = new Date(inicio);
     
     while (fechaActual <= fin) {
-      // Crear copia de la fecha para no modificar la original
       const fechaCopia = new Date(fechaActual);
       fechas.push(fechaCopia);
       fechaActual.setDate(fechaActual.getDate() + 1);
     }
-    
-    console.log("🌍 Zona horaria:", Intl.DateTimeFormat().resolvedOptions().timeZone);
-    console.log("📅 Fechas generadas:", fechas.map(f => f.toISOString().split('T')[0]));
-    console.log("📅 Primera fecha:", fechas[0]?.toLocaleDateString('es-ES'));
-    console.log("📅 Última fecha:", fechas[fechas.length - 1]?.toLocaleDateString('es-ES'));
     
     return fechas;
   };
 
   // Eventos litúrgicos importantes
   const eventosLiturgicosAdviento = {
-    "2025-11-30": "🕯️ 1er Domingo de Adviento - Esperanza",
-    "2025-12-07": "🕯️ 2do Domingo de Adviento - Paz", 
-    "2025-12-08": "🌟 Inmaculada Concepción de María",
-    "2025-12-12": "🇲🇽 Nuestra Señora de Guadalupe",
-    "2025-12-14": "🕯️ 3er Domingo de Adviento - Gozo",
-    "2025-12-21": "🕯️ 4to Domingo de Adviento - Amor",
-    "2025-12-24": "🎉 Nochebuena - Misa de Gallo",
-    "2025-12-25": "👶 Navidad del Señor"
+    "2025-11-30": "1er Domingo de Adviento - Esperanza",
+    "2025-12-07": "2do Domingo de Adviento - Paz", 
+    "2025-12-08": "Inmaculada Concepción de María",
+    "2025-12-12": "Nuestra Señora de Guadalupe",
+    "2025-12-14": "3er Domingo de Adviento - Gozo",
+    "2025-12-21": "4to Domingo de Adviento - Amor",
+    "2025-12-24": "Nochebuena - Misa de Gallo",
+    "2025-12-25": "Navidad del Señor"
   };
 
   useEffect(() => {
@@ -156,32 +160,23 @@ Ha nacido en un portal de Belén el Niño Dios`,
 
         setUsuarioActual(usuario);
         
-        // Calcular día actual de Adviento CORREGIDO (con zona horaria local)
+        // Calcular día actual de Adviento
         const hoy = new Date();
         const hoyNormalizado = crearFechaLocal(hoy.getFullYear(), hoy.getMonth(), hoy.getDate());
         
-        const inicioAdviento = crearFechaLocal(2025, 10, 30); // 30 Nov 2025
-        const finAdviento = crearFechaLocal(2025, 11, 25);    // 25 Dic 2025
-        
-        console.log("🌍 Zona horaria del usuario:", Intl.DateTimeFormat().resolvedOptions().timeZone);
-        console.log("📅 Fechas calculadas CORREGIDAS:", {
-          hoy: hoyNormalizado.toLocaleDateString('es-ES'),
-          inicio: inicioAdviento.toLocaleDateString('es-ES'),
-          fin: finAdviento.toLocaleDateString('es-ES')
-        });
+        const inicioAdviento = crearFechaLocal(2025, 10, 30);
+        const finAdviento = crearFechaLocal(2025, 11, 25);
         
         // Si hoy es antes del 30 de Nov, no mostrar día actual
         if (hoyNormalizado < inicioAdviento) {
           setDiaAdvientoActual(null);
-          console.log("⏳ Aún no es Adviento");
         } else if (hoyNormalizado > finAdviento) {
-          setDiaAdvientoActual(26); // Navidad
-          console.log("🎄 Después de Navidad");
+          setDiaAdvientoActual(26);
         } else {
           const diffTiempo = hoyNormalizado - inicioAdviento;
           const diffDias = Math.floor(diffTiempo / (1000 * 60 * 60 * 24)) + 1;
           setDiaAdvientoActual(diffDias);
-          console.log("📆 Día actual de Adviento:", diffDias);
+          setDiaExpandido(diffDias); // Expandir el día actual automáticamente
         }
         
         // Cargar contenido automático
@@ -227,9 +222,9 @@ Ha nacido en un portal de Belén el Niño Dios`,
       "Sagrada Familia",
       "Los Regalos de los Magos", 
       "Esperanza Cumplida",
-      "¡Nochebuena!", 
+      "Nochebuena", 
       "El Salvador Nace",
-      "¡Feliz Navidad!"
+      "Feliz Navidad"
     ];
     
     // Acciones para cada día
@@ -258,8 +253,8 @@ Ha nacido en un portal de Belén el Niño Dios`,
       "Ofrece a Jesús un don espiritual hoy",
       "Renueva tu esperanza en las promesas de Dios",
       "Asiste a Misa de Gallo y recibe a Jesús en tu corazón",
-      "¡Celebra el nacimiento de nuestro Salvador!",
-      "¡Da gracias a Dios por el don de su Hijo!"
+      "Celebra el nacimiento de nuestro Salvador",
+      "Da gracias a Dios por el don de su Hijo"
     ];
 
     fechas.forEach((fecha, index) => {
@@ -267,14 +262,12 @@ Ha nacido en un portal de Belén el Niño Dios`,
       const diaNumero = index + 1;
       const esHoy = diaAdvientoActual === diaNumero;
       
-      // Usar Evangelio real para el día actual, contenido por defecto para otros días
       const contenidoDia = esHoy && evangelioHoy ? evangelioHoy : {
         lectura: "Velad, pues, porque no sabéis el día ni la hora.",
         reflexion: "El Adviento nos invita a preparar nuestros corazones para la venida del Salvador.",
         referencia: "Mateo 25, 13"
       };
 
-      // Determinar si es domingo
       const esDomingo = fecha.getDay() === 0;
       
       diasAdviento.push({
@@ -294,26 +287,15 @@ Ha nacido en un portal de Belén el Niño Dios`,
       });
     });
     
-    console.log("📋 Contenido generado:", diasAdviento.map(d => ({
-      dia: d.dia,
-      fecha: d.fecha,
-      fechaLocal: d.fechaObj.toLocaleDateString('es-ES'),
-      mensaje: d.mensaje,
-      esDomingo: d.esDomingo
-    })));
-    
     return diasAdviento;
   };
 
   // CARGAR CONTENIDO AUTOMÁTICO
   const cargarContenidoAutomatico = async () => {
     try {
-      console.log("🕯️ Cargando contenido automático de Adviento...");
-      
       let evangelioHoy = null;
       if (diaAdvientoActual) {
         evangelioHoy = await gobaService.obtenerEvangelioDelDia();
-        console.log("✅ Evangelio obtenido:", evangelioHoy);
       }
       
       const contenidoGenerado = generarContenidoAdviento(evangelioHoy);
@@ -332,17 +314,17 @@ Ha nacido en un portal de Belén el Niño Dios`,
     try {
       const reflexionesPorDefecto = [
         {
-          titulo: "🎄 El Verdadero Sentido del Adviento",
+          titulo: "El Verdadero Sentido del Adviento",
           contenido: "El Adviento es tiempo de espera gozosa. Preparamos nuestros corazones no solo para recordar el nacimiento de Jesús, sino para recibirlo en nuestro presente.",
           referencia: "Isaías 9:6"
         },
         {
-          titulo: "🕯️ Espera Activa",
+          titulo: "Espera Activa",
           contenido: "La espera del Adviento no es pasiva. Es un tiempo de conversión, de preparación interior, de renovar nuestro encuentro con Cristo.",
           referencia: "Mateo 3:3"
         },
         {
-          titulo: "🌟 María en el Adviento",
+          titulo: "María en el Adviento",
           contenido: "María es modelo de espera y disponibilidad. Su 'sí' a Dios nos enseña a abrir nuestros corazones al Salvador.",
           referencia: "Lucas 1:38"
         }
@@ -359,7 +341,7 @@ Ha nacido en un portal de Belén el Niño Dios`,
     return fecha.getDate();
   };
 
-  // OBTENER TEXTO PARA TOOLTIP
+  // OBTENER TEXTO PARA TOOLTIP - VERSIÓN SIN DÍA DE ADVIENTO
   const getTooltipText = (dia) => {
     const fecha = dia.fechaObj;
     const diaSemana = fecha.toLocaleDateString('es-ES', { weekday: 'long' });
@@ -371,7 +353,7 @@ Ha nacido en un portal de Belén el Niño Dios`,
     } else if (dia.esDomingo) {
       return `${diaSemana} ${diaMes} de ${mes}\nDomingo de Adviento`;
     } else {
-      return `${diaSemana} ${diaMes} de ${mes}\nDía ${dia.dia} de Adviento`;
+      return `${diaSemana} ${diaMes} de ${mes}`;
     }
   };
 
@@ -384,8 +366,28 @@ Ha nacido en un portal de Belén el Niño Dios`,
     return `${diaSemana} ${diaMes} de ${mes}`;
   };
 
+  // Función para expandir/contraer día
+  const toggleDiaExpandido = (diaNumero) => {
+    if (diaExpandido === diaNumero) {
+      setDiaExpandido(null);
+    } else {
+      setDiaExpandido(diaNumero);
+    }
+  };
+
   // Obtener el día actual del Adviento
   const diaActual = contenidoAdviento.find(dia => dia.dia === diaAdvientoActual);
+
+  // Función para obtener clase de color según el día
+  const getColorClase = (dia) => {
+    if (dia.dia === diaAdvientoActual) return 'from-purple-500 to-blue-500';
+    if (dia.dia < diaAdvientoActual) {
+      if (dia.esDomingo) return 'from-yellow-400 to-orange-400';
+      if (dia.esFestividad) return 'from-red-400 to-pink-400';
+      return 'from-green-400 to-emerald-400';
+    }
+    return 'from-gray-300 to-gray-400';
+  };
 
   if (loading) {
     return (
@@ -402,7 +404,7 @@ Ha nacido en un portal de Belén el Niño Dios`,
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-purple-50 via-blue-50 to-green-50">
         <div className="text-center">
-          <h2 className="text-2xl font-bold text-red-600 mb-4">❌ Error de acceso</h2>
+          <h2 className="text-2xl font-bold text-red-600 mb-4">Error de acceso</h2>
           <p className="text-gray-600 mb-4">No tienes permisos para acceder al Adviento</p>
           <Link 
             to="/login" 
@@ -417,122 +419,157 @@ Ha nacido en un portal de Belén el Niño Dios`,
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-50 via-blue-50 to-green-50 py-8 px-4">
-      <div className="max-w-6xl mx-auto">
+      <div className="max-w-7xl mx-auto">
         
-        {/* Header */}
+        {/* Header Mejorado */}
         <div className="text-center mb-12">
-          <h1 className="text-5xl font-bold text-gray-800 mb-4 bg-gradient-to-r from-purple-600 via-blue-500 to-green-600 bg-clip-text text-transparent">
-            🕯️ Adviento 2025
+          <h1 className="text-6xl font-bold text-gray-800 mb-4 bg-gradient-to-r from-purple-600 via-blue-500 to-green-600 bg-clip-text text-transparent">
+            Adviento 2025
           </h1>
-          <p className="text-xl text-gray-600 mb-8 font-light">Del 30 de Noviembre al 25 de Diciembre</p>
+          <p className="text-xl text-gray-600 mb-2 font-light">Del 30 de Noviembre al 25 de Diciembre</p>
+          {diaAdvientoActual && (
+            <div className="inline-flex items-center gap-2 bg-white/80 backdrop-blur-sm px-4 py-2 rounded-full shadow-lg border border-purple-200">
+              <span className="w-3 h-3 bg-green-500 rounded-full animate-pulse"></span>
+              <span className="text-purple-700 font-medium">
+                {getFechaFormateada(diaActual.fecha)} - Día {diaAdvientoActual} de 26
+              </span>
+            </div>
+          )}
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-12">
+        <div className="grid grid-cols-1 xl:grid-cols-4 gap-8 mb-12">
           
-          {/* Calendario de Adviento */}
-          <div className="lg:col-span-2">
-            <div className="bg-white/90 backdrop-blur-sm rounded-2xl p-6 shadow-xl border-2 border-purple-200">
+          {/* Calendario de Adviento - Ocupa 3 columnas */}
+          <div className="xl:col-span-3">
+            <div className="bg-white/90 backdrop-blur-sm rounded-2xl p-6 shadow-2xl border-2 border-purple-200 hover:shadow-3xl transition-all duration-300">
               <div className="flex justify-between items-center mb-6">
-                <h2 className="text-3xl font-bold text-purple-700 flex items-center gap-3">
-                  📅 Calendario de Adviento
+                <h2 className="text-3xl font-bold text-purple-700">
+                  Calendario de Adviento
                 </h2>
-                {diaAdvientoActual && (
-                  <span className="text-sm bg-purple-500 text-white px-3 py-1 rounded-full">
-                    {getFechaFormateada(diaActual.fecha)} - Día {diaAdvientoActual} de 26
-                  </span>
-                )}
+                <button 
+                  onClick={() => setMostrarCalendarioCompleto(!mostrarCalendarioCompleto)}
+                  className="bg-purple-500 hover:bg-purple-600 text-white px-4 py-2 rounded-full transition-all duration-300 transform hover:scale-105"
+                >
+                  {mostrarCalendarioCompleto ? "Ocultar" : "Ver Todos los Días"}
+                </button>
               </div>
               
-              {diaActual ? (
-                <div className={`bg-gradient-to-br rounded-xl p-6 mb-6 border-2 ${
+              {/* Día Actual Expandido */}
+              {diaActual && (
+                <div className={`bg-gradient-to-br rounded-2xl p-6 mb-6 border-2 transform transition-all duration-500 ${
                   diaActual.esDomingo 
-                    ? 'from-yellow-100 to-orange-100 border-yellow-300' 
+                    ? 'from-yellow-200 to-orange-200 border-yellow-400 hover:shadow-lg' 
                     : diaActual.esFestividad
-                    ? 'from-red-100 to-pink-100 border-red-300'
-                    : 'from-blue-100 to-purple-100 border-blue-300'
+                    ? 'from-red-200 to-pink-200 border-red-400 hover:shadow-lg'
+                    : 'from-blue-200 to-purple-200 border-blue-400 hover:shadow-lg'
                 }`}>
                   <div className="flex justify-between items-start mb-4">
                     <div>
-                      <h3 className="text-xl font-bold text-gray-800">{diaActual.mensaje}</h3>
-                      {diaActual.esDomingo && (
-                        <span className="inline-block mt-1 bg-yellow-500 text-white px-2 py-1 rounded-full text-sm">
-                          🕯️ Domingo de Adviento
-                        </span>
-                      )}
-                      {diaActual.esFestividad && (
-                        <span className="inline-block mt-1 bg-red-500 text-white px-2 py-1 rounded-full text-sm">
-                          🎉 {diaActual.esFestividad}
-                        </span>
-                      )}
+                      <h3 className="text-2xl font-bold text-gray-800 mb-3">{diaActual.mensaje}</h3>
+                      <div className="flex gap-2">
+                        {diaActual.esDomingo && (
+                          <span className="inline-block bg-yellow-500 text-white px-3 py-1 rounded-full text-sm font-medium">
+                            Domingo de Adviento
+                          </span>
+                        )}
+                        {diaActual.esFestividad && (
+                          <span className="inline-block bg-red-500 text-white px-3 py-1 rounded-full text-sm font-medium">
+                            {diaActual.esFestividad.split(' - ')[0]}
+                          </span>
+                        )}
+                      </div>
                     </div>
-                    <span className="bg-white px-3 py-1 rounded-full text-sm font-medium text-purple-700">
+                    <span className="bg-white/90 backdrop-blur-sm px-4 py-2 rounded-full text-sm font-medium text-purple-700 border border-purple-300">
                       {getFechaFormateada(diaActual.fecha)}
                     </span>
                   </div>
                   
-                  <div className="space-y-4">
-                    <div className="bg-white rounded-lg p-4 border-l-4 border-blue-500">
-                      <h4 className="font-bold text-blue-700 mb-2">📖 {diaActual.versiculo}</h4>
-                      <p className="text-gray-700 italic">"{diaActual.textoVersiculo}"</p>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div className="bg-white/80 backdrop-blur-sm rounded-xl p-4 border-l-4 border-blue-500 hover:scale-105 transition-transform duration-300">
+                      <h4 className="font-bold text-blue-700 mb-2">{diaActual.versiculo}</h4>
+                      <p className="text-gray-700 italic text-sm">"{diaActual.textoVersiculo}"</p>
                     </div>
                     
-                    <div className="bg-white rounded-lg p-4 border-l-4 border-green-500">
-                      <h4 className="font-bold text-green-700 mb-2">💭 Reflexión</h4>
-                      <p className="text-gray-700">{diaActual.reflexion}</p>
+                    <div className="bg-white/80 backdrop-blur-sm rounded-xl p-4 border-l-4 border-green-500 hover:scale-105 transition-transform duration-300">
+                      <h4 className="font-bold text-green-700 mb-2">Reflexión</h4>
+                      <p className="text-gray-700 text-sm">{diaActual.reflexion}</p>
                     </div>
                     
-                    <div className="bg-white rounded-lg p-4 border-l-4 border-orange-500">
-                      <h4 className="font-bold text-orange-700 mb-2">✨ Acción del Día</h4>
-                      <p className="text-gray-700">{diaActual.accion}</p>
+                    <div className="bg-white/80 backdrop-blur-sm rounded-xl p-4 border-l-4 border-orange-500 hover:scale-105 transition-transform duration-300">
+                      <h4 className="font-bold text-orange-700 mb-2">Acción del Día</h4>
+                      <p className="text-gray-700 text-sm">{diaActual.accion}</p>
                     </div>
                   </div>
                 </div>
-              ) : (
-                <div className="bg-yellow-50 rounded-xl p-6 mb-6 border-2 border-yellow-300 text-center">
-                  <h3 className="text-xl font-bold text-yellow-700 mb-2">⏳ El Adviento aún no comienza</h3>
-                  <p className="text-yellow-600">
-                    El tiempo de Adviento comenzará el <strong>domingo 30 de Noviembre de 2025</strong>. 
-                    Mientras tanto, puedes preparar tu corazón rezando y reflexionando.
+              )}
+
+              {!diaActual && (
+                <div className="bg-gradient-to-r from-yellow-100 to-orange-100 rounded-2xl p-8 border-2 border-yellow-300 text-center mb-6 transform hover:scale-105 transition-all duration-300">
+                  <h3 className="text-2xl font-bold text-yellow-700 mb-3">El Adviento aún no comienza</h3>
+                  <p className="text-yellow-600 text-lg">
+                    El tiempo de Adviento comenzará el <strong className="text-yellow-800">domingo 30 de Noviembre de 2025</strong>. 
+                    <br />Mientras tanto, puedes preparar tu corazón rezando y reflexionando.
                   </p>
                 </div>
               )}
 
-              {/* Grid de días del Adviento CON FECHAS REALES */}
-              <div className="grid grid-cols-6 gap-3">
-                {contenidoAdviento.map((dia) => (
+              {/* Grid de días del Adviento - SOLO FECHAS DEL MES */}
+              <div className={`grid gap-3 transition-all duration-500 ${
+                mostrarCalendarioCompleto ? 'grid-cols-6' : 'grid-cols-6'
+              }`}>
+                {contenidoAdviento.slice(0, mostrarCalendarioCompleto ? 26 : 24).map((dia) => (
                   <div
                     key={dia.dia}
-                    className={`aspect-square rounded-xl border-2 flex flex-col items-center justify-center p-1 text-center transition-all cursor-pointer ${
+                    onClick={() => toggleDiaExpandido(dia.dia)}
+                    className={`aspect-square rounded-2xl border-2 flex flex-col items-center justify-center p-2 text-center transition-all duration-300 cursor-pointer group relative overflow-hidden ${
                       dia.dia === diaAdvientoActual
-                        ? 'bg-gradient-to-br from-purple-500 to-blue-500 text-white border-purple-600 scale-105 shadow-lg'
+                        ? `bg-gradient-to-br ${getColorClase(dia)} text-white border-white shadow-2xl transform scale-105 hover:scale-110`
                         : dia.dia < diaAdvientoActual
-                        ? dia.esDomingo
-                          ? 'bg-yellow-100 border-yellow-300 text-yellow-700'
-                          : dia.esFestividad
-                          ? 'bg-red-100 border-red-300 text-red-700'
-                          : 'bg-green-100 border-green-300 text-green-700'
-                        : 'bg-gray-100 border-gray-300 text-gray-400'
+                        ? `bg-gradient-to-br ${getColorClase(dia)} text-white border-white shadow-lg hover:shadow-xl hover:scale-105`
+                        : 'bg-gradient-to-br from-gray-100 to-gray-200 border-gray-300 text-gray-400 hover:bg-gray-200'
                     }`}
                     title={getTooltipText(dia)}
                   >
-                    <span className="text-lg font-bold">{getDiaDelMes(dia.fechaObj)}</span>
-                    <div className="text-xs mt-1 flex flex-col gap-0.5">
-                      {dia.esDomingo && <span>🕯️</span>}
-                      {dia.eventoLiturgico && !dia.esDomingo && <span>⭐</span>}
-                      {dia.dia === diaAdvientoActual && <span>Hoy</span>}
+                    {/* SOLO FECHA DEL MES - Sin número de día de Adviento */}
+                    <span className="text-xl font-bold transform group-hover:scale-125 transition-transform duration-300">
+                      {getDiaDelMes(dia.fechaObj)}
+                    </span>
+                    
+                    {/* Indicadores con puntos de color */}
+                    <div className="absolute bottom-1 right-1 flex gap-1">
+                      {dia.esDomingo && <span className="w-2 h-2 bg-yellow-400 rounded-full"></span>}
+                      {dia.eventoLiturgico && !dia.esDomingo && <span className="w-2 h-2 bg-red-500 rounded-full"></span>}
+                      {dia.dia === diaAdvientoActual && (
+                        <span className="w-2 h-2 bg-white rounded-full animate-ping absolute -top-1 -right-1"></span>
+                      )}
                     </div>
+
+                    {/* Efecto de brillo al hover */}
+                    <div className="absolute inset-0 bg-white opacity-0 group-hover:opacity-20 transition-opacity duration-300 rounded-2xl"></div>
                   </div>
                 ))}
               </div>
+
+              {/* Botón para mostrar más/menos */}
+              {!mostrarCalendarioCompleto && contenidoAdviento.length > 24 && (
+                <div className="text-center mt-6">
+                  <button 
+                    onClick={() => setMostrarCalendarioCompleto(true)}
+                    className="bg-purple-500 hover:bg-purple-600 text-white px-6 py-3 rounded-full transition-all duration-300 transform hover:scale-105 shadow-lg"
+                  >
+                    Ver días 25-26 (Navidad) ↓
+                  </button>
+                </div>
+              )}
             </div>
           </div>
 
-          {/* Sidebar - Villancicos y Reflexiones */}
+          {/* Sidebar - Ocupa 1 columna */}
           <div className="space-y-6">
-            {/* Villancicos */}
-            <div className="bg-white/90 backdrop-blur-sm rounded-2xl p-6 shadow-xl border-2 border-red-200">
-              <h2 className="text-2xl font-bold text-red-700 mb-4 flex items-center gap-2">
-                🎵 Villancicos
+            {/* Villancicos Mejorados */}
+            <div className="bg-white/90 backdrop-blur-sm rounded-2xl p-6 shadow-2xl border-2 border-red-200 hover:shadow-3xl transition-all duration-300">
+              <h2 className="text-2xl font-bold text-red-700 mb-4">
+                Villancicos Navideños
               </h2>
               
               <div className="space-y-3">
@@ -540,73 +577,125 @@ Ha nacido en un portal de Belén el Niño Dios`,
                   <button
                     key={villancico.id}
                     onClick={() => setVillancicoSeleccionado(villancico)}
-                    className="w-full text-left bg-red-50 hover:bg-red-100 rounded-lg p-3 transition-all border border-red-200 hover:border-red-300"
+                    className="w-full text-left bg-gradient-to-r from-red-50 to-orange-50 hover:from-red-100 hover:to-orange-100 rounded-xl p-4 transition-all duration-300 border border-red-200 hover:border-red-300 transform hover:scale-105 group"
                   >
-                    <div className="flex justify-between items-center">
-                      <span className="font-medium text-red-800">{villancico.titulo}</span>
-                      <span className="text-xs bg-red-200 text-red-700 px-2 py-1 rounded-full">
-                        {villancico.nivel}
-                      </span>
+                    <div className="flex items-center gap-3">
+                      <div className="text-2xl transform group-hover:scale-110 transition-transform duration-300">
+                        {villancico.icono}
+                      </div>
+                      <div className="flex-1">
+                        <div className="flex justify-between items-center mb-1">
+                          <span className="font-bold text-red-800">{villancico.titulo}</span>
+                          <span className={`text-xs px-2 py-1 rounded-full ${
+                            villancico.nivel === "Muy Fácil" ? "bg-green-100 text-green-700" :
+                            villancico.nivel === "Fácil" ? "bg-blue-100 text-blue-700" :
+                            "bg-orange-100 text-orange-700"
+                          }`}>
+                            {villancico.nivel}
+                          </span>
+                        </div>
+                        <div className="text-xs text-red-600 opacity-75">
+                          Haz clic para ver acordes y letra
+                        </div>
+                      </div>
                     </div>
                   </button>
                 ))}
               </div>
             </div>
 
-            {/* Reflexiones del Adviento */}
-            <div className="bg-white/90 backdrop-blur-sm rounded-2xl p-6 shadow-xl border-2 border-green-200">
-              <h2 className="text-2xl font-bold text-green-700 mb-4 flex items-center gap-2">
-                💭 Reflexiones del Adviento
+            {/* Reflexiones del Adviento Mejoradas */}
+            <div className="bg-white/90 backdrop-blur-sm rounded-2xl p-6 shadow-2xl border-2 border-green-200 hover:shadow-3xl transition-all duration-300">
+              <h2 className="text-2xl font-bold text-green-700 mb-4">
+                Reflexiones del Adviento
               </h2>
               
               <div className="space-y-4">
                 {reflexionesAdviento.map((reflexion, index) => (
-                  <div key={index} className="bg-green-50 rounded-lg p-4 border-l-4 border-green-400">
+                  <div 
+                    key={index} 
+                    className="bg-gradient-to-r from-green-50 to-emerald-50 rounded-xl p-4 border-l-4 border-green-400 hover:shadow-lg transition-all duration-300 transform hover:scale-105 cursor-pointer"
+                  >
                     <h3 className="font-bold text-green-800 mb-2">{reflexion.titulo}</h3>
-                    <p className="text-sm text-gray-700 mb-2">{reflexion.contenido}</p>
-                    <span className="text-xs text-green-600">{reflexion.referencia}</span>
+                    <p className="text-sm text-gray-700 mb-2 leading-relaxed">{reflexion.contenido}</p>
+                    <span className="text-xs text-green-600 font-medium">{reflexion.referencia}</span>
                   </div>
                 ))}
               </div>
             </div>
+
+            {/* Progreso del Adviento */}
+            {diaAdvientoActual && (
+              <div className="bg-gradient-to-r from-purple-500 to-blue-600 rounded-2xl p-6 text-white shadow-2xl">
+                <h3 className="text-lg font-bold mb-3 text-center">Progreso del Adviento</h3>
+                <div className="space-y-2">
+                  <div className="flex justify-between text-sm">
+                    <span>Días completados</span>
+                    <span>{diaAdvientoActual - 1}/26</span>
+                  </div>
+                  <div className="w-full bg-purple-300 rounded-full h-3">
+                    <div 
+                      className="bg-white h-3 rounded-full transition-all duration-1000 ease-out"
+                      style={{ width: `${((diaAdvientoActual - 1) / 26) * 100}%` }}
+                    ></div>
+                  </div>
+                  <div className="text-center text-sm opacity-90 mt-2">
+                    {26 - (diaAdvientoActual - 1)} días restantes
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
         </div>
 
-        {/* Modal Villancico */}
+        {/* Modal Villancico MEJORADO */}
         {villancicoSeleccionado && (
-          <div className="fixed inset-0 bg-black/90 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-            <div className="bg-white rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-auto">
-              <div className="p-6">
-                <div className="flex justify-between items-start mb-6">
-                  <h2 className="text-2xl font-bold text-gray-800">{villancicoSeleccionado.titulo}</h2>
+          <div className="fixed inset-0 bg-black/90 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-fadeIn">
+            <div className="bg-white rounded-3xl max-w-4xl w-full max-h-[90vh] overflow-hidden shadow-2xl transform animate-scaleIn">
+              <div className="p-8">
+                <div className="flex justify-between items-start mb-8">
+                  <div className="flex items-center gap-4">
+                    <div className="text-4xl">{villancicoSeleccionado.icono}</div>
+                    <div>
+                      <h2 className="text-3xl font-bold text-gray-800">{villancicoSeleccionado.titulo}</h2>
+                      <span className={`inline-block mt-1 px-3 py-1 rounded-full text-sm font-medium ${
+                        villancicoSeleccionado.nivel === "Muy Fácil" ? "bg-green-100 text-green-700" :
+                        villancicoSeleccionado.nivel === "Fácil" ? "bg-blue-100 text-blue-700" :
+                        "bg-orange-100 text-orange-700"
+                      }`}>
+                        Nivel: {villancicoSeleccionado.nivel}
+                      </span>
+                    </div>
+                  </div>
                   <button 
                     onClick={() => setVillancicoSeleccionado(null)}
-                    className="bg-gray-100 hover:bg-gray-200 rounded-full p-2 transition-all"
+                    className="bg-gray-100 hover:bg-gray-200 rounded-full p-3 transition-all duration-300 transform hover:scale-110 hover:rotate-90"
                   >
-                    ✕
+                    <span className="text-xl">✕</span>
                   </button>
                 </div>
                 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div>
-                    <h3 className="font-bold text-gray-700 mb-3">🎶 Acordes</h3>
-                    <div className="bg-gray-100 rounded-lg p-4 font-mono text-sm whitespace-pre-line">
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                  <div className="space-y-4">
+                    <h3 className="text-xl font-bold text-gray-700">Acordes</h3>
+                    <div className="bg-gray-100 rounded-xl p-6 font-mono text-lg leading-relaxed whitespace-pre-line border-2 border-gray-200">
                       {villancicoSeleccionado.acordes}
                     </div>
                   </div>
                   
-                  <div>
-                    <h3 className="font-bold text-gray-700 mb-3">📝 Letra</h3>
-                    <div className="bg-gray-100 rounded-lg p-4 text-sm whitespace-pre-line">
+                  <div className="space-y-4">
+                    <h3 className="text-xl font-bold text-gray-700">Letra</h3>
+                    <div className="bg-gray-100 rounded-xl p-6 text-lg leading-relaxed whitespace-pre-line border-2 border-gray-200">
                       {villancicoSeleccionado.letra}
                     </div>
                   </div>
                 </div>
                 
-                <div className="mt-6 p-4 bg-yellow-50 rounded-lg border border-yellow-200">
-                  <p className="text-sm text-yellow-800">
-                    <span className="font-bold">Tip:</span> Practica los acordes lentamente y canta con el corazón. 
-                    ¡La música es una hermosa forma de alabar a Dios!
+                <div className="mt-8 p-6 bg-gradient-to-r from-yellow-50 to-orange-50 rounded-xl border-2 border-yellow-200">
+                  <h4 className="font-bold text-yellow-800 mb-1">Tip para practicar</h4>
+                  <p className="text-yellow-700">
+                    Practica los acordes lentamente y canta con el corazón. 
+                    ¡La música es una hermosa forma de alabar a Dios en esta Navidad!
                   </p>
                 </div>
               </div>
@@ -614,25 +703,46 @@ Ha nacido en un portal de Belén el Niño Dios`,
           </div>
         )}
 
-        {/* Información adicional */}
-        <div className="bg-gradient-to-r from-purple-500 to-blue-600 rounded-2xl p-8 text-white text-center shadow-2xl mb-8">
-          <h2 className="text-2xl font-bold mb-3">🕯️ El Sentido del Adviento</h2>
-          <p className="text-lg opacity-90 mb-4">
-            Del 30 de Noviembre al 24 de Diciembre preparamos nuestros corazones para recibir a Jesús, 
-            recordando su venida histórica, esperando su venida gloriosa y acogiéndolo en nuestro presente.
-          </p>
+        {/* Información adicional MEJORADA */}
+        <div className="bg-gradient-to-r from-purple-500 via-blue-500 to-green-600 rounded-3xl p-10 text-white text-center shadow-2xl mb-8 transform hover:scale-105 transition-all duration-500">
+          <div className="max-w-4xl mx-auto">
+            <h2 className="text-3xl font-bold mb-4">El Sentido del Adviento</h2>
+            <p className="text-xl opacity-95 leading-relaxed">
+              Del 30 de Noviembre al 25 de Diciembre preparamos nuestros corazones para recibir a Jesús, 
+              recordando su venida histórica en Belén, esperando su venida gloriosa al final de los tiempos, 
+              y acogiéndolo en nuestro presente a través de los sacramentos y la caridad.
+            </p>
+          </div>
         </div>
 
-        {/* Navegación */}
+        {/* Navegación MEJORADA */}
         <div className="text-center">
           <Link 
             to="/home" 
-            className="inline-flex items-center gap-2 bg-gradient-to-r from-purple-500 to-blue-500 hover:from-purple-600 hover:to-blue-600 text-white font-semibold py-4 px-8 rounded-2xl transition-all duration-300 transform hover:scale-105 shadow-lg"
+            className="inline-flex items-center gap-3 bg-gradient-to-r from-purple-500 to-blue-500 hover:from-purple-600 hover:to-blue-600 text-white font-bold py-4 px-10 rounded-2xl transition-all duration-300 transform hover:scale-105 shadow-2xl hover:shadow-3xl"
           >
-            ← Volver al Home 
+            <span>←</span>
+            Volver al Home Familiar
           </Link>
         </div>
       </div>
+
+      {/* Estilos CSS para animaciones personalizadas */}
+      <style jsx>{`
+        @keyframes fadeIn {
+          from { opacity: 0; transform: translateY(-20px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes scaleIn {
+          from { opacity: 0; transform: scale(0.9); }
+          to { opacity: 1; transform: scale(1); }
+        }
+        .animate-fadeIn { animation: fadeIn 0.5s ease-out; }
+        .animate-scaleIn { animation: scaleIn 0.3s ease-out; }
+        .hover-shadow-3xl:hover {
+          box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+        }
+      `}</style>
     </div>
   );
 }
