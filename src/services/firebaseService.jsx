@@ -1372,6 +1372,408 @@ export const gobaService = {
       console.error("Error en listener de galería:", error);
     });
   },
+// =============================================
+// 🆕 NAVIVIBES - MURO NAVIDEÑO INTERACTIVO
+// =============================================
+
+// 🎄 OBTENER TODOS LOS POSTS DE NAVIVIBES
+async getNaviVibesPosts() {
+  try {
+    console.log("📝 Obteniendo posts de NaviVibes...");
+    
+    const q = query(
+      collection(db, 'navivibes_posts'),
+      orderBy('fecha', 'desc')
+    );
+    
+    const querySnapshot = await getDocs(q);
+    const posts = [];
+    
+    querySnapshot.forEach((doc) => {
+      posts.push({ 
+        id: doc.id, 
+        ...doc.data() 
+      });
+    });
+    
+    console.log("✅ Posts de NaviVibes obtenidos:", posts.length);
+    return posts;
+  } catch (error) {
+    console.error("❌ Error obteniendo posts de NaviVibes:", error);
+    return [];
+  }
+},
+
+// 🎄 ESCUCHAR CAMBIOS EN TIEMPO REAL DE NAVIVIBES
+escucharNaviVibesPosts(callback) {
+  if (!db) {
+    console.error("❌ DB no inicializado para escuchar NaviVibes");
+    return () => {};
+  }
+  
+  const q = query(
+    collection(db, 'navivibes_posts'),
+    orderBy('fecha', 'desc')
+  );
+  
+  return onSnapshot(q, (snapshot) => {
+    const posts = [];
+    snapshot.forEach((doc) => {
+      posts.push({
+        id: doc.id,
+        ...doc.data()
+      });
+    });
+    callback(posts);
+  }, (error) => {
+    console.error("Error en listener de NaviVibes:", error);
+  });
+},
+
+// 🎄 CREAR POST DE TEXTO
+async crearPostTexto(usuarioId, titulo, contenido, categoria) {
+  try {
+    console.log("📝 Creando post de texto en NaviVibes...", { 
+      usuarioId, 
+      titulo,
+      categoria 
+    });
+    
+    const postsRef = collection(db, 'navivibes_posts');
+    const nuevoPost = {
+      tipo: 'texto',
+      usuarioId: usuarioId,
+      usuario: await this.getUserName(usuarioId),
+      titulo: titulo.trim(),
+      contenido: contenido?.trim() || "",
+      categoria: categoria || 'general',
+      fecha: new Date().toISOString(),
+      fechaFormateada: new Date().toLocaleDateString('es-ES', { 
+        day: '2-digit', 
+        month: 'short', 
+        year: 'numeric' 
+      }),
+      reacciones: {},
+      comentarios: [],
+      createdAt: new Date()
+    };
+    
+    const docRef = await addDoc(postsRef, nuevoPost);
+    console.log("✅ Post de texto creado:", docRef.id);
+    
+    return {
+      success: true,
+      message: "✅ Publicación creada exitosamente",
+      postId: docRef.id
+    };
+    
+  } catch (error) {
+    console.error("❌ Error creando post de texto:", error);
+    throw new Error(`Error al crear publicación: ${error.message}`);
+  }
+},
+
+// 🎄 CREAR POST CON IMAGEN
+async crearPostImagen(usuarioId, titulo, contenido, categoria, imagenFile) {
+  try {
+    console.log("🖼️ Creando post con imagen en NaviVibes...");
+    
+    // 1. Subir imagen a ImgBB (usando la misma función de galería)
+    const imageUrl = await this.uploadToImgBB(imagenFile);
+    
+    // 2. Guardar en Firestore
+    const postsRef = collection(db, 'navivibes_posts');
+    const nuevoPost = {
+      tipo: 'imagen',
+      usuarioId: usuarioId,
+      usuario: await this.getUserName(usuarioId),
+      titulo: titulo.trim(),
+      contenido: contenido?.trim() || "",
+      categoria: categoria || 'general',
+      imagenUrl: imageUrl,
+      fecha: new Date().toISOString(),
+      fechaFormateada: new Date().toLocaleDateString('es-ES', { 
+        day: '2-digit', 
+        month: 'short', 
+        year: 'numeric' 
+      }),
+      reacciones: {},
+      comentarios: [],
+      createdAt: new Date()
+    };
+    
+    await addDoc(postsRef, nuevoPost);
+    console.log("✅ Post con imagen creado");
+    
+    return {
+      success: true,
+      message: "✅ Publicación con imagen creada exitosamente"
+    };
+    
+  } catch (error) {
+    console.error("❌ Error creando post con imagen:", error);
+    throw new Error(`Error al crear publicación con imagen: ${error.message}`);
+  }
+},
+
+// 🎄 CREAR POST DE PELÍCULA
+async crearPostPelicula(usuarioId, titulo, contenido, categoria, pelicula) {
+  try {
+    console.log("🎬 Creando post de película en NaviVibes...");
+    
+    const postsRef = collection(db, 'navivibes_posts');
+    const nuevoPost = {
+      tipo: 'pelicula',
+      usuarioId: usuarioId,
+      usuario: await this.getUserName(usuarioId),
+      titulo: titulo.trim(),
+      contenido: contenido?.trim() || "",
+      categoria: categoria || 'peliculas',
+      pelicula: pelicula?.trim() || "",
+      fecha: new Date().toISOString(),
+      fechaFormateada: new Date().toLocaleDateString('es-ES', { 
+        day: '2-digit', 
+        month: 'short', 
+        year: 'numeric' 
+      }),
+      reacciones: {},
+      comentarios: [],
+      createdAt: new Date()
+    };
+    
+    await addDoc(postsRef, nuevoPost);
+    console.log("✅ Post de película creado");
+    
+    return {
+      success: true,
+      message: "✅ Recomendación de película publicada"
+    };
+    
+  } catch (error) {
+    console.error("❌ Error creando post de película:", error);
+    throw new Error(`Error al publicar recomendación: ${error.message}`);
+  }
+},
+
+// 🎄 CREAR ENCUESTA (POLL)
+async crearPostPoll(usuarioId, titulo, contenido, categoria, opciones) {
+  try {
+    console.log("📊 Creando encuesta en NaviVibes...");
+    
+    const postsRef = collection(db, 'navivibes_posts');
+    const nuevoPost = {
+      tipo: 'poll',
+      usuarioId: usuarioId,
+      usuario: await this.getUserName(usuarioId),
+      titulo: titulo.trim(),
+      contenido: contenido?.trim() || "",
+      categoria: categoria || 'general',
+      opciones: opciones.map(opcion => ({ 
+        texto: opcion.trim(), 
+        votos: 0 
+      })),
+      fecha: new Date().toISOString(),
+      fechaFormateada: new Date().toLocaleDateString('es-ES', { 
+        day: '2-digit', 
+        month: 'short', 
+        year: 'numeric' 
+      }),
+      reacciones: {},
+      comentarios: [],
+      createdAt: new Date()
+    };
+    
+    await addDoc(postsRef, nuevoPost);
+    console.log("✅ Encuesta creada");
+    
+    return {
+      success: true,
+      message: "✅ Encuesta creada exitosamente"
+    };
+    
+  } catch (error) {
+    console.error("❌ Error creando encuesta:", error);
+    throw new Error(`Error al crear encuesta: ${error.message}`);
+  }
+},
+
+// 🎄 AGREGAR REACCIÓN A POST
+async addNaviVibesReaction(postId, usuarioId, reaccion) {
+  try {
+    console.log("❤️ Agregando reacción a post:", { postId, usuarioId, reaccion });
+    
+    const postRef = doc(db, 'navivibes_posts', postId);
+    const postDoc = await getDoc(postRef);
+    
+    if (!postDoc.exists()) {
+      throw new Error('Post no encontrado');
+    }
+    
+    const postData = postDoc.data();
+    const nuevasReacciones = { ...postData.reacciones };
+    nuevasReacciones[reaccion] = (nuevasReacciones[reaccion] || 0) + 1;
+    
+    await updateDoc(postRef, {
+      reacciones: nuevasReacciones
+    });
+    
+    console.log("✅ Reacción agregada:", nuevasReacciones);
+    return nuevasReacciones;
+    
+  } catch (error) {
+    console.error("❌ Error agregando reacción:", error);
+    throw new Error(`Error al reaccionar: ${error.message}`);
+  }
+},
+
+// 🎄 AGREGAR COMENTARIO A POST
+async addNaviVibesComment(postId, usuarioId, comentarioTexto) {
+  try {
+    console.log("💬 Agregando comentario a post:", { postId, usuarioId });
+    
+    const postRef = doc(db, 'navivibes_posts', postId);
+    const postDoc = await getDoc(postRef);
+    
+    if (!postDoc.exists()) {
+      throw new Error('Post no encontrado');
+    }
+    
+    const postData = postDoc.data();
+    const userName = await this.getUserName(usuarioId);
+    
+    const nuevoComentario = {
+      usuarioId: usuarioId,
+      usuario: userName,
+      texto: comentarioTexto.trim(),
+      fecha: new Date().toISOString(),
+      fechaFormateada: new Date().toLocaleDateString('es-ES', { 
+        day: '2-digit', 
+        month: 'short', 
+        year: 'numeric' 
+      })
+    };
+    
+    const comentariosActualizados = [...(postData.comentarios || []), nuevoComentario];
+    
+    await updateDoc(postRef, {
+      comentarios: comentariosActualizados
+    });
+    
+    console.log("✅ Comentario agregado. Total:", comentariosActualizados.length);
+    return comentariosActualizados;
+    
+  } catch (error) {
+    console.error("❌ Error agregando comentario:", error);
+    throw new Error(`Error al comentar: ${error.message}`);
+  }
+},
+
+// 🎄 VOTAR EN ENCUESTA
+async votarEnPoll(postId, usuarioId, opcionIndex) {
+  try {
+    console.log("🗳️ Votando en encuesta:", { postId, usuarioId, opcionIndex });
+    
+    const postRef = doc(db, 'navivibes_posts', postId);
+    const postDoc = await getDoc(postRef);
+    
+    if (!postDoc.exists() || postDoc.data().tipo !== 'poll') {
+      throw new Error('Encuesta no encontrada');
+    }
+    
+    const postData = postDoc.data();
+    const opcionesActualizadas = [...postData.opciones];
+    
+    // Verificar que el índice sea válido
+    if (opcionIndex < 0 || opcionIndex >= opcionesActualizadas.length) {
+      throw new Error('Opción de encuesta no válida');
+    }
+    
+    // Incrementar votos
+    opcionesActualizadas[opcionIndex].votos += 1;
+    
+    await updateDoc(postRef, {
+      opciones: opcionesActualizadas
+    });
+    
+    console.log("✅ Voto registrado en opción:", opcionIndex);
+    return opcionesActualizadas;
+    
+  } catch (error) {
+    console.error("❌ Error votando en encuesta:", error);
+    throw new Error(`Error al votar: ${error.message}`);
+  }
+},
+
+// 🎄 ELIMINAR POST (ADMIN)
+async eliminarPostNaviVibes(postId) {
+  try {
+    console.log("🗑️ Eliminando post de NaviVibes:", postId);
+    
+    await deleteDoc(doc(db, 'navivibes_posts', postId));
+    console.log("✅ Post eliminado:", postId);
+    
+    return {
+      success: true,
+      message: "✅ Publicación eliminada exitosamente"
+    };
+    
+  } catch (error) {
+    console.error("❌ Error eliminando post:", error);
+    throw new Error(`Error al eliminar publicación: ${error.message}`);
+  }
+},
+
+// 🎄 OBTENER ESTADÍSTICAS DE NAVIVIBES
+async obtenerEstadisticasNaviVibes() {
+  try {
+    console.log("📊 Obteniendo estadísticas de NaviVibes...");
+    
+    const [postsSnapshot, usuariosSnapshot] = await Promise.all([
+      getDocs(collection(db, 'navivibes_posts')),
+      getDocs(collection(db, 'usuarios'))
+    ]);
+    
+    const totalPosts = postsSnapshot.size;
+    const totalUsuarios = usuariosSnapshot.size;
+    
+    // Contar por tipo de post
+    const tiposCount = {};
+    postsSnapshot.forEach(doc => {
+      const data = doc.data();
+      const tipo = data.tipo || 'texto';
+      tiposCount[tipo] = (tiposCount[tipo] || 0) + 1;
+    });
+    
+    // Contar por categoría
+    const categoriasCount = {};
+    postsSnapshot.forEach(doc => {
+      const data = doc.data();
+      const categoria = data.categoria || 'general';
+      categoriasCount[categoria] = (categoriasCount[categoria] || 0) + 1;
+    });
+    
+    const estadisticas = {
+      totalPosts,
+      totalUsuarios,
+      porTipo: tiposCount,
+      porCategoria: categoriasCount,
+      postsPorUsuario: totalUsuarios > 0 ? (totalPosts / totalUsuarios).toFixed(1) : 0
+    };
+    
+    console.log("✅ Estadísticas de NaviVibes:", estadisticas);
+    return estadisticas;
+    
+  } catch (error) {
+    console.error("❌ Error obteniendo estadísticas:", error);
+    return {
+      totalPosts: 0,
+      totalUsuarios: 0,
+      porTipo: {},
+      porCategoria: {},
+      postsPorUsuario: 0
+    };
+  }
+},
 
   // =============================================
   // 🎮 SISTEMA DE JUEGOS - FUNCIONES CORREGIDAS
@@ -1616,96 +2018,205 @@ export const gobaService = {
       console.error("Error en listener de ranking:", error);
     });
   },
+// =============================================
+// 🏆 SISTEMA DE CONCURSOS EN TIEMPO REAL - CON PREGUNTAS
+// =============================================
 
-  // =============================================
-  // 🏆 SISTEMA DE CONCURSOS EN TIEMPO REAL - MÓDULO SEPARADO
-  // =============================================
-
-  async crearConcursoRapido(concursoId, nombre = "Concurso Navideño") {
-    try {
-      await setDoc(doc(db, 'concursos', concursoId), {
-        nombre: nombre,
-        estado: 'esperando',
-        participantes: {},
-        timestampCreacion: new Date(),
-        tipo: 'rapido'
-      });
-      console.log('✅ Concurso rápido creado:', concursoId);
-      return true;
-    } catch (error) {
-      console.error('❌ Error creando concurso:', error);
-      throw error;
-    }
-  },
-
-  async iniciarConcurso(concursoId) {
-    try {
-      await updateDoc(doc(db, 'concursos', concursoId), {
-        estado: 'activo',
-        timestampInicio: new Date(),
-        timestampFin: null,
-        ganador: null
-      });
-      console.log('✅ Concurso iniciado:', concursoId);
-      return true;
-    } catch (error) {
-      console.error('❌ Error iniciando concurso:', error);
-      throw error;
-    }
-  },
-
-  async participarEnConcurso(concursoId, usuario, tiempoReaccion) {
-    try {
-      const participanteData = {
-        usuarioId: usuario.id,
-        nombre: usuario.nombre,
-        avatar: usuario.avatar || '👤',
-        timestamp: new Date(),
-        tiempoReaccion: tiempoReaccion
-      };
-
-      await updateDoc(doc(db, 'concursos', concursoId), {
-        [`participantes.${usuario.id}`]: participanteData
-      });
-
-      console.log('✅ Participación registrada:', usuario.nombre, tiempoReaccion + 'ms');
-      return true;
-    } catch (error) {
-      console.error('❌ Error registrando participación:', error);
-      throw error;
-    }
-  },
-
-  async reiniciarConcurso(concursoId) {
-    try {
-      await updateDoc(doc(db, 'concursos', concursoId), {
-        estado: 'esperando',
-        participantes: {},
-        timestampInicio: null,
-        timestampFin: null,
-        ganador: null
-      });
-      console.log('✅ Concurso reiniciado:', concursoId);
-      return true;
-    } catch (error) {
-      console.error('❌ Error reiniciando concurso:', error);
-      throw error;
-    }
-  },
-
-  escucharConcurso(concursoId, callback) {
-    return onSnapshot(doc(db, 'concursos', concursoId), (doc) => {
-      if (doc.exists()) {
-        callback({ id: doc.id, ...doc.data() });
-      } else {
-        // Si no existe, crearlo automáticamente
-        this.crearConcursoRapido(concursoId);
-        callback(null);
-      }
-    }, (error) => {
-      console.error('❌ Error escuchando concurso:', error);
+async crearConcursoRapido(concursoId, nombre = "Concurso Navideño") {
+  try {
+    await setDoc(doc(db, 'concursos', concursoId), {
+      nombre: nombre,
+      estado: 'esperando',
+      participantes: {},
+      timestampCreacion: new Date(),
+      tipo: 'rapido',
+      preguntaActual: '', // NUEVO: Para almacenar la pregunta
+      rondaActiva: false, // NUEVO: Control de ronda
+      timestampInicioRonda: null // NUEVO: Para calcular tiempos
     });
-  },
+    console.log('✅ Concurso rápido creado:', concursoId);
+    return true;
+  } catch (error) {
+    console.error('❌ Error creando concurso:', error);
+    throw error;
+  }
+},
+
+// 🆕 INICIAR CONCURSO CON PREGUNTA
+async iniciarConcursoConPregunta(concursoId, pregunta = '') {
+  try {
+    await updateDoc(doc(db, 'concursos', concursoId), {
+      estado: 'contando', // NUEVO ESTADO: contando -> activo
+      preguntaActual: pregunta,
+      participantes: {}, // LIMPIAR participantes anteriores
+      timestampInicioRonda: new Date(), // NUEVO: Marcar inicio de ronda
+      rondaActiva: true,
+      timestampInicio: new Date(),
+      timestampFin: null,
+      ganador: null
+    });
+    console.log('✅ Concurso con pregunta iniciado:', concursoId, pregunta);
+    return true;
+  } catch (error) {
+    console.error('❌ Error iniciando concurso con pregunta:', error);
+    throw error;
+  }
+},
+
+// 🆕 ACTIVAR CONCURSO (después de cuenta regresiva)
+async activarConcurso(concursoId) {
+  try {
+    await updateDoc(doc(db, 'concursos', concursoId), {
+      estado: 'activo',
+      timestampInicioRonda: new Date() // Reiniciar timestamp para nueva ronda
+    });
+    console.log('✅ Concurso activado para respuestas:', concursoId);
+    return true;
+  } catch (error) {
+    console.error('❌ Error activando concurso:', error);
+    throw error;
+  }
+},
+
+async participarEnConcurso(concursoId, usuario, tiempoReaccion) {
+  try {
+    // VERIFICAR que el concurso esté activo
+    const concursoDoc = await getDoc(doc(db, 'concursos', concursoId));
+    if (!concursoDoc.exists() || concursoDoc.data().estado !== 'activo') {
+      throw new Error('El concurso no está activo');
+    }
+
+    const participanteData = {
+      usuarioId: usuario.id,
+      nombre: usuario.nombre,
+      avatar: usuario.avatar || '👤',
+      timestamp: new Date(),
+      tiempoReaccion: tiempoReaccion,
+      preguntaActual: concursoDoc.data().preguntaActual // NUEVO: Guardar pregunta
+    };
+
+    await updateDoc(doc(db, 'concursos', concursoId), {
+      [`participantes.${usuario.id}`]: participanteData
+    });
+
+    console.log('✅ Participación registrada:', usuario.nombre, tiempoReaccion + 'ms');
+    return true;
+  } catch (error) {
+    console.error('❌ Error registrando participación:', error);
+    throw error;
+  }
+},
+
+// 🆕 REINICIAR SOLO LA RONDA ACTUAL
+async reiniciarRonda(concursoId) {
+  try {
+    await updateDoc(doc(db, 'concursos', concursoId), {
+      estado: 'esperando',
+      participantes: {},
+      preguntaActual: '', // Limpiar pregunta
+      rondaActiva: false,
+      timestampInicioRonda: null
+    });
+    console.log('✅ Ronda reiniciada:', concursoId);
+    return true;
+  } catch (error) {
+    console.error('❌ Error reiniciando ronda:', error);
+    throw error;
+  }
+},
+
+async reiniciarConcurso(concursoId) {
+  try {
+    await updateDoc(doc(db, 'concursos', concursoId), {
+      estado: 'esperando',
+      participantes: {},
+      preguntaActual: '', // NUEVO: Limpiar pregunta también
+      rondaActiva: false, // NUEVO: Desactivar ronda
+      timestampInicio: null,
+      timestampFin: null,
+      ganador: null
+    });
+    console.log('✅ Concurso completamente reiniciado:', concursoId);
+    return true;
+  } catch (error) {
+    console.error('❌ Error reiniciando concurso:', error);
+    throw error;
+  }
+},
+
+// 🆕 FINALIZAR RONDA AUTOMÁTICAMENTE
+async finalizarRonda(concursoId) {
+  try {
+    const concursoDoc = await getDoc(doc(db, 'concursos', concursoId));
+    const concursoData = concursoDoc.data();
+    
+    // Encontrar ganador
+    const participantes = Object.values(concursoData.participantes || {});
+    const ganador = participantes.sort((a, b) => a.tiempoReaccion - b.tiempoReaccion)[0];
+    
+    await updateDoc(doc(db, 'concursos', concursoId), {
+      estado: 'mostrando_resultados',
+      ganador: ganador || null,
+      timestampFin: new Date()
+    });
+    
+    console.log('✅ Ronda finalizada. Ganador:', ganador?.nombre);
+    return true;
+  } catch (error) {
+    console.error('❌ Error finalizando ronda:', error);
+    throw error;
+  }
+},
+
+escucharConcurso(concursoId, callback) {
+  return onSnapshot(doc(db, 'concursos', concursoId), (doc) => {
+    if (doc.exists()) {
+      const data = doc.data();
+      
+      // Lógica automática: Si hay participantes y está activo, programar finalización
+      if (data.estado === 'activo' && Object.keys(data.participantes || {}).length > 0) {
+        // Programar finalización automática en 15 segundos
+        setTimeout(async () => {
+          try {
+            await this.finalizarRonda(concursoId);
+            
+            // Programar reinicio automático después de mostrar resultados
+            setTimeout(async () => {
+              await this.reiniciarRonda(concursoId);
+            }, 5000); // 5 segundos para mostrar resultados
+            
+          } catch (error) {
+            console.error('Error en finalización automática:', error);
+          }
+        }, 15000); // 15 segundos para responder
+      }
+      
+      callback({ id: doc.id, ...data });
+    } else {
+      // Si no existe, crearlo automáticamente
+      this.crearConcursoRapido(concursoId);
+      callback(null);
+    }
+  }, (error) => {
+    console.error('❌ Error escuchando concurso:', error);
+  });
+},
+
+// 🆕 OBTENER HISTORIAL DE PREGUNTAS
+async obtenerHistorialPreguntas(concursoId, limite = 10) {
+  try {
+    // Podrías crear una subcolección para el historial si lo necesitas
+    const concursoDoc = await getDoc(doc(db, 'concursos', concursoId));
+    if (concursoDoc.exists()) {
+      return concursoDoc.data().preguntaActual ? [concursoDoc.data().preguntaActual] : [];
+    }
+    return [];
+  } catch (error) {
+    console.error('❌ Error obteniendo historial:', error);
+    return [];
+  }
+},
+ 
    async reiniciarTodosLosPuntajes() {
     try {
       console.log('🗑️ Iniciando reinicio de todos los puntajes...');
@@ -1772,6 +2283,59 @@ export const gobaService = {
       throw error;
     }
   },
+// INICIAR CONCURSO (sin pregunta específica)
+async iniciarConcurso(concursoId = 'navidad_rapido') {
+  try {
+    const concursoRef = doc(db, 'concursos', concursoId);
+    
+    await updateDoc(concursoRef, {
+      estado: 'contando',
+      timestampInicio: serverTimestamp(),
+      participantes: {}, // Reiniciar participantes
+      preguntaActual: '' // Limpiar pregunta anterior
+    });
+    
+    console.log('✅ Concurso iniciado en estado contando');
+  } catch (error) {
+    console.error('❌ Error iniciando concurso:', error);
+    throw error;
+  }
+},
+// CONCURSO RÁPIDO - VERSIÓN SIMPLE Y FUNCIONAL
+async iniciarConcursoSimple(concursoId = 'navidad_rapido') {
+  try {
+    const concursoRef = doc(db, 'concursos', concursoId);
+    
+    // 1. Primero poner en "contando" 
+    await updateDoc(concursoRef, {
+      estado: 'contando',
+      participantes: {},
+      preguntaActual: '', // Limpiar pregunta anterior
+      timestampInicio: serverTimestamp(),
+      rondaActiva: true
+    });
+    
+    console.log('✅ Concurso en modo contando - countdown empezó');
+    
+    // 2. Después de 5 segundos, poner en "activo" automáticamente
+    setTimeout(async () => {
+      try {
+        await updateDoc(concursoRef, {
+          estado: 'activo',
+          timestampInicioRonda: new Date()
+        });
+        console.log('✅ Concurso activado - listo para participar');
+      } catch (error) {
+        console.error('❌ Error activando concurso:', error);
+      }
+    }, 5000);
+    
+  } catch (error) {
+    console.error('❌ Error iniciando concurso:', error);
+    throw error;
+  }
+},
+
   // OBTENER ESTADÍSTICAS DE JUEGOS
   async obtenerEstadisticasJuegos() {
     try {

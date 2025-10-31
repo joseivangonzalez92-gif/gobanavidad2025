@@ -1,54 +1,32 @@
 import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
+import { gobaService } from "../services/firebaseService";
 
 export default function Rankings() {
   const [usuarioActual, setUsuarioActual] = useState(null);
-  const [rankingActivo, setRankingActivo] = useState("general");
-  const [usuarios, setUsuarios] = useState([]);
+  const [posts, setPosts] = useState([]);
+  const [postSeleccionado, setPostSeleccionado] = useState(null);
+  const [mostrarReacciones, setMostrarReacciones] = useState(null);
+  const [comentarios, setComentarios] = useState({}); // 🆕 Cambiado a objeto para comentarios individuales
+  const [tipoPost, setTipoPost] = useState("texto");
+  const [cargando, setCargando] = useState(true);
+  
+  // Estados para crear posts
+  const [mostrarFormPost, setMostrarFormPost] = useState(false);
+  const [subiendoContenido, setSubiendoContenido] = useState(false);
+  const [imagenSubida, setImagenSubida] = useState(null);
+  const [formData, setFormData] = useState({
+    titulo: "",
+    contenido: "",
+    categoria: "general"
+  });
+  
+  // Estados específicos para polls
+  const [opcionesPoll, setOpcionesPoll] = useState(["", ""]);
+  const [peliculaSugerida, setPeliculaSugerida] = useState("");
 
-  // Categorías de ranking (sin GOBA)
-  const categoriasRanking = [
-    {
-      id: "general",
-      nombre: "🏆 Ranking General",
-      descripcion: "Puntuación total en toda la plataforma",
-      icono: "🏆",
-      color: "from-yellow-500 to-amber-500"
-    },
-    {
-      id: "retos",
-      nombre: "🎮 Rey de los Retos", 
-      descripcion: "Más puntos en retos familiares",
-      icono: "🎮",
-      color: "from-green-500 to-emerald-500"
-    },
-    {
-      id: "juegos",
-      nombre: "🎯 Máster de Juegos",
-      descripcion: "Mejores puntuaciones en juegos",
-      icono: "🎯",
-      color: "from-purple-500 to-pink-500"
-    },
-    {
-      id: "actividad",
-      nombre: "⭐ Más Activo",
-      descripcion: "Mayor participación en la plataforma",
-      icono: "⭐",
-      color: "from-blue-500 to-cyan-500"
-    }
-  ];
-
-  // Badges y premios disponibles (sin premios GOBA)
-  const badges = [
-    { id: "rey_retos", nombre: "👑 Rey de los Retos", descripcion: "Top 1 en retos familiares", rareza: "legendario" },
-    { id: "master_juegos", nombre: "🎯 Máster de Juegos", descripcion: "Top 1 en juegos navideños", rareza: "legendario" },
-    { id: "activo", nombre: "⚡ Más Activo", descripcion: "Mayor participación general", rareza: "épico" },
-    { id: "memory", nombre: "🧠 Memory Master", descripcion: "Completó memory en menos de 12 movimientos", rareza: "raro" },
-    { id: "villancico", nombre: "🎵 Rey del Villancico", descripcion: "100% en completar canciones", rareza: "raro" },
-    { id: "cinéfilo", nombre: "🎬 Cinéfilo Navideño", descripcion: "Adivinó todas las películas", rareza: "raro" },
-    { id: "iniciador", nombre: "🚀 Iniciador", descripcion: "Primer usuario en registrarse", rareza: "común" },
-    { id: "participante", nombre: "👍 Participante", descripcion: "Completó al menos 5 retos", rareza: "común" }
-  ];
+  const reaccionesDisponibles = ["❤️", "😂", "😮", "🎄", "✨", "👏", "🔥", "🎁"];
+  const categorias = ["general", "peliculas", "musica", "recuerdos", "divertido", "reflexiones"];
 
   useEffect(() => {
     const usuario = JSON.parse(localStorage.getItem('usuarioActual'));
@@ -57,316 +35,875 @@ export default function Rankings() {
       return;
     }
     setUsuarioActual(usuario);
-    cargarRankings();
+    cargarPosts();
   }, []);
 
-  const cargarRankings = () => {
-    // Cargar usuarios desde localStorage
-    const usuariosGuardados = JSON.parse(localStorage.getItem('usuarios') || '[]');
-    
-    // Simular datos de ranking (sin puntosVotaciones)
-    const usuariosConPuntos = usuariosGuardados.map(usuario => ({
-      ...usuario,
-      puntosRetos: Math.floor(Math.random() * 200) + 50,
-      puntosJuegos: Math.floor(Math.random() * 150) + 30,
-      actividad: Math.floor(Math.random() * 50) + 5,
-      badges: generarBadgesAleatorios()
-    }));
-
-    setUsuarios(usuariosConPuntos);
+  const cargarPosts = async () => {
+    try {
+      setCargando(true);
+      console.log("📝 Cargando posts de Firebase...");
+      const postsFirebase = await gobaService.getNaviVibesPosts();
+      
+      if (postsFirebase && postsFirebase.length > 0) {
+        console.log(`✅ ${postsFirebase.length} posts cargados desde Firebase`);
+        setPosts(postsFirebase);
+      } else {
+        console.log("ℹ️ No hay posts en Firebase");
+        setPosts([]);
+      }
+    } catch (error) {
+      console.error("❌ Error cargando posts:", error);
+      setPosts([]);
+    } finally {
+      setCargando(false);
+    }
   };
 
-  const generarBadgesAleatorios = () => {
-    const numBadges = Math.floor(Math.random() * 3) + 1;
-    const badgesUsuario = [];
-    const disponibles = [...badges];
+  // FUNCIÓN PARA CREAR POST
+  const crearPost = async (e) => {
+    e.preventDefault();
     
-    for (let i = 0; i < numBadges; i++) {
-      if (disponibles.length > 0) {
-        const randomIndex = Math.floor(Math.random() * disponibles.length);
-        badgesUsuario.push(disponibles[randomIndex]);
-        disponibles.splice(randomIndex, 1);
+    if (!formData.titulo.trim()) {
+      alert("❌ Por favor agrega un título a tu publicación");
+      return;
+    }
+
+    if (tipoPost === "poll") {
+      const opcionesValidas = opcionesPoll.filter(op => op.trim() !== "");
+      if (opcionesValidas.length < 2) {
+        alert("❌ La encuesta necesita al menos 2 opciones");
+        return;
       }
     }
+
+    setSubiendoContenido(true);
     
-    return badgesUsuario;
-  };
+    try {
+      let resultado;
+      
+      switch (tipoPost) {
+        case "texto":
+          resultado = await gobaService.crearPostTexto(
+            usuarioActual.id,
+            formData.titulo,
+            formData.contenido,
+            formData.categoria
+          );
+          break;
+          
+        case "imagen":
+          if (!imagenSubida) {
+            alert("❌ Por favor selecciona una imagen");
+            setSubiendoContenido(false);
+            return;
+          }
+          resultado = await gobaService.crearPostImagen(
+            usuarioActual.id,
+            formData.titulo,
+            formData.contenido,
+            formData.categoria,
+            imagenSubida
+          );
+          break;
+          
+        case "pelicula":
+          resultado = await gobaService.crearPostPelicula(
+            usuarioActual.id,
+            formData.titulo,
+            formData.contenido,
+            formData.categoria,
+            peliculaSugerida
+          );
+          break;
+          
+        case "poll":
+          const opcionesValidas = opcionesPoll.filter(op => op.trim() !== "");
+          resultado = await gobaService.crearPostPoll(
+            usuarioActual.id,
+            formData.titulo,
+            formData.contenido,
+            formData.categoria,
+            opcionesValidas
+          );
+          break;
+          
+        default:
+          throw new Error("Tipo de post no válido");
+      }
 
-  const getRankingData = () => {
-    switch (rankingActivo) {
-      case "retos":
-        return usuarios.sort((a, b) => b.puntosRetos - a.puntosRetos);
-      case "juegos":
-        return usuarios.sort((a, b) => b.puntosJuegos - a.puntosJuegos);
-      case "actividad":
-        return usuarios.sort((a, b) => b.actividad - a.actividad);
-      case "general":
-      default:
-        return usuarios.sort((a, b) => 
-          (b.puntosRetos + b.puntosJuegos) - 
-          (a.puntosRetos + a.puntosJuegos)
-        );
+      alert(resultado.message || "✅ ¡Publicación creada exitosamente!");
+      
+      // Recargar posts
+      await cargarPosts();
+      
+      // Limpiar formulario
+      setFormData({ titulo: "", contenido: "", categoria: "general" });
+      setImagenSubida(null);
+      setPeliculaSugerida("");
+      setOpcionesPoll(["", ""]);
+      setMostrarFormPost(false);
+      
+    } catch (error) {
+      console.error("Error:", error);
+      alert("❌ Error al crear publicación: " + error.message);
+    } finally {
+      setSubiendoContenido(false);
     }
   };
 
-  const getPuntosUsuario = (usuario) => {
-    switch (rankingActivo) {
-      case "retos": return usuario.puntosRetos;
-      case "juegos": return usuario.puntosJuegos;
-      case "actividad": return usuario.actividad;
-      case "general": 
-      default:
-        return usuario.puntosRetos + usuario.puntosJuegos;
+  // FUNCIONES PARA INTERACTUAR
+  const agregarReaccion = async (postId, reaccion) => {
+    try {
+      await gobaService.addNaviVibesReaction(postId, usuarioActual.id, reaccion);
+      
+      // Actualizar localmente
+      const postsActualizados = posts.map(post => {
+        if (post.id === postId) {
+          const nuevasReacciones = { ...post.reacciones };
+          nuevasReacciones[reaccion] = (nuevasReacciones[reaccion] || 0) + 1;
+          return { ...post, reacciones: nuevasReacciones };
+        }
+        return post;
+      });
+      setPosts(postsActualizados);
+      
+    } catch (error) {
+      console.error("Error al reaccionar:", error);
     }
   };
 
-  const getIconoPuesto = (puesto) => {
-    switch (puesto) {
-      case 1: return "🥇";
-      case 2: return "🥈";
-      case 3: return "🥉";
-      default: return `#${puesto}`;
+  const agregarComentario = async (postId) => {
+    const comentarioTexto = comentarios[postId] || "";
+    
+    if (!comentarioTexto.trim()) return;
+
+    try {
+      await gobaService.addNaviVibesComment(postId, usuarioActual.id, comentarioTexto);
+      
+      // Actualizar localmente
+      const postsActualizados = posts.map(post => {
+        if (post.id === postId) {
+          const nuevoComentario = {
+            usuarioId: usuarioActual.id,
+            usuario: usuarioActual.nombre,
+            usuarioAvatar: usuarioActual.avatar, // 🆕 Agregar avatar
+            usuarioPais: usuarioActual.pais,     // 🆕 Agregar país
+            texto: comentarioTexto,
+            fecha: new Date().toISOString(),
+            fechaFormateada: new Date().toLocaleDateString('es-ES', { 
+              day: '2-digit', 
+              month: 'short', 
+              year: 'numeric' 
+            })
+          };
+          return {
+            ...post,
+            comentarios: [...(post.comentarios || []), nuevoComentario]
+          };
+        }
+        return post;
+      });
+      setPosts(postsActualizados);
+      
+      // 🆕 Limpiar solo el comentario de este post
+      setComentarios(prev => ({ ...prev, [postId]: "" }));
+      
+    } catch (error) {
+      console.error("Error al comentar:", error);
     }
   };
 
-  const getColorPuesto = (puesto) => {
-    switch (puesto) {
-      case 1: return "bg-gradient-to-r from-yellow-400 to-yellow-600";
-      case 2: return "bg-gradient-to-r from-gray-400 to-gray-600";
-      case 3: return "bg-gradient-to-r from-amber-600 to-amber-800";
-      default: return "bg-white";
+  const votarEnPoll = async (postId, opcionIndex) => {
+    try {
+      await gobaService.votarEnPoll(postId, usuarioActual.id, opcionIndex);
+      
+      // Actualizar localmente
+      const postsActualizados = posts.map(post => {
+        if (post.id === postId && post.tipo === "poll") {
+          const nuevasOpciones = [...post.opciones];
+          nuevasOpciones[opcionIndex].votos = (nuevasOpciones[opcionIndex].votos || 0) + 1;
+          return { ...post, opciones: nuevasOpciones };
+        }
+        return post;
+      });
+      setPosts(postsActualizados);
+      
+    } catch (error) {
+      console.error("Error al votar:", error);
     }
+  };
+
+  // FUNCIÓN PARA ELIMINAR POST
+  const eliminarPost = async (postId, postUsuarioId) => {
+    if (!usuarioActual) return;
+    
+    // Solo admin puede eliminar cualquier post, usuarios solo pueden eliminar sus propios posts
+    if (usuarioActual.rol !== "admin" && usuarioActual.id !== postUsuarioId) {
+      alert("❌ Solo puedes eliminar tus propias publicaciones");
+      return;
+    }
+
+    const confirmar = window.confirm(
+      "¿Estás seguro de que quieres eliminar esta publicación?"
+    );
+
+    if (confirmar) {
+      try {
+        await gobaService.eliminarPostNaviVibes(postId);
+        alert("✅ Publicación eliminada exitosamente");
+        
+        // Recargar posts
+        await cargarPosts();
+      } catch (error) {
+        alert("❌ Error al eliminar publicación: " + error.message);
+      }
+    }
+  };
+
+  // FUNCIONES AUXILIARES
+  const agregarOpcionPoll = () => {
+    if (opcionesPoll.length < 6) {
+      setOpcionesPoll([...opcionesPoll, ""]);
+    }
+  };
+
+  const actualizarOpcionPoll = (index, valor) => {
+    const nuevasOpciones = [...opcionesPoll];
+    nuevasOpciones[index] = valor;
+    setOpcionesPoll(nuevasOpciones);
+  };
+
+  const eliminarOpcionPoll = (index) => {
+    if (opcionesPoll.length > 2) {
+      setOpcionesPoll(opcionesPoll.filter((_, i) => i !== index));
+    }
+  };
+
+  const getIconoTipo = (tipo) => {
+    switch (tipo) {
+      case "texto": return "📝";
+      case "imagen": return "🖼️";
+      case "pelicula": return "🎬";
+      case "poll": return "📊";
+      default: return "💬";
+    }
+  };
+
+  const getColorCategoria = (categoria) => {
+    const colores = {
+      general: "bg-blue-100 text-blue-700",
+      peliculas: "bg-purple-100 text-purple-700",
+      musica: "bg-green-100 text-green-700",
+      recuerdos: "bg-yellow-100 text-yellow-700",
+      divertido: "bg-pink-100 text-pink-700",
+      reflexiones: "bg-indigo-100 text-indigo-700"
+    };
+    return colores[categoria] || "bg-gray-100 text-gray-700";
   };
 
   if (!usuarioActual) {
-    return <div className="text-center py-8">Cargando...</div>;
+    return <div className="text-center py-8">Cargando NaviVibes...</div>;
   }
 
-  const rankingData = getRankingData();
-  const categoriaActual = categoriasRanking.find(cat => cat.id === rankingActivo);
-
   return (
-    <div className="min-h-screen bg-gradient-to-br from-amber-50 via-orange-50 to-yellow-50 py-8 px-4">
-      <div className="max-w-6xl mx-auto">
+    <div className="min-h-screen bg-gradient-to-br from-red-50 via-green-50 to-blue-50 py-8 px-4">
+      <div className="max-w-4xl mx-auto">
         
         {/* Header */}
         <div className="text-center mb-12">
-          <h1 className="text-5xl font-bold text-gray-800 mb-4 bg-gradient-to-r from-yellow-600 via-orange-500 to-amber-600 bg-clip-text text-transparent">
-            🏆 Ranking Familiar 2025
+          <h1 className="text-4xl md:text-5xl font-bold text-gray-800 mb-4 bg-gradient-to-r from-red-600 via-green-500 to-blue-600 bg-clip-text text-transparent">
+            🎄 NaviVibes
           </h1>
-          <p className="text-xl text-gray-600 mb-8 font-light">
-            Descubre quiénes lideran la diversión navideña en la familia
+          <p className="text-lg md:text-xl text-gray-600 mb-8 font-light">
+            El muro navideño de la familia - Comparte, recomienda y diviértete
           </p>
+          
+          {/* Botón para crear post */}
+          <button
+            onClick={() => setMostrarFormPost(true)}
+            className="bg-gradient-to-r from-red-500 to-green-500 hover:from-red-600 hover:to-green-600 text-white font-semibold py-3 px-6 rounded-2xl transition-all duration-300 transform hover:scale-105 shadow-lg mb-6"
+          >
+            ✨ Crear Publicación
+          </button>
+
+          {/* Stats */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 max-w-2xl mx-auto mb-8">
+            <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-4 shadow-lg border border-red-200">
+              <div className="text-red-500 text-2xl mb-2">💬</div>
+              <h2 className="font-bold text-gray-800 mb-1 text-sm">Publicaciones</h2>
+              <p className="text-xl font-bold text-red-600">{posts.length}</p>
+            </div>
+            <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-4 shadow-lg border border-green-200">
+              <div className="text-green-500 text-2xl mb-2">❤️</div>
+              <h2 className="font-bold text-gray-800 mb-1 text-sm">Reacciones</h2>
+              <p className="text-xl font-bold text-green-600">
+                {posts.reduce((total, post) => total + Object.values(post.reacciones || {}).reduce((a, b) => a + b, 0), 0)}
+              </p>
+            </div>
+            <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-4 shadow-lg border border-blue-200">
+              <div className="text-blue-500 text-2xl mb-2">🎬</div>
+              <h2 className="font-bold text-gray-800 mb-1 text-sm">Películas</h2>
+              <p className="text-xl font-bold text-blue-600">
+                {posts.filter(post => post.tipo === "pelicula").length}
+              </p>
+            </div>
+            <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-4 shadow-lg border border-purple-200">
+              <div className="text-purple-500 text-2xl mb-2">📊</div>
+              <h2 className="font-bold text-gray-800 mb-1 text-sm">Encuestas</h2>
+              <p className="text-xl font-bold text-purple-600">
+                {posts.filter(post => post.tipo === "poll").length}
+              </p>
+            </div>
+          </div>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
-          
-          {/* Sidebar - Categorías */}
-          <div className="lg:col-span-1">
-            <div className="bg-white/90 backdrop-blur-sm rounded-2xl p-6 shadow-xl border-2 border-amber-200 sticky top-4">
-              <h2 className="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2">
-                📊 Categorías
-              </h2>
-              
-              <div className="space-y-2">
-                {categoriasRanking.map((categoria) => (
-                  <button
-                    key={categoria.id}
-                    onClick={() => setRankingActivo(categoria.id)}
-                    className={`w-full text-left p-4 rounded-xl transition-all ${
-                      rankingActivo === categoria.id
-                        ? `bg-gradient-to-r ${categoria.color} text-white shadow-lg transform scale-105`
-                        : 'bg-gray-100 hover:bg-gray-200 text-gray-700'
-                    }`}
-                  >
+        {/* Loading */}
+        {cargando && (
+          <div className="text-center py-8">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-500 mx-auto"></div>
+            <p className="text-gray-600 mt-4">Cargando publicaciones...</p>
+          </div>
+        )}
+
+        {/* Lista de Posts */}
+        {!cargando && (
+          <div className="space-y-6 mb-12">
+            {posts.map((post) => (
+              <div 
+                key={post.id}
+                className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-xl overflow-hidden hover:shadow-2xl transition-all duration-300 border-2 border-white"
+              >
+                {/* Header del post - VERSIÓN MEJORADA */}
+                <div className="p-4 md:p-6 border-b border-gray-100">
+                  <div className="flex items-start justify-between mb-3">
                     <div className="flex items-center gap-3">
-                      <span className="text-xl">{categoria.icono}</span>
+                      {/* 🆕 AVATAR DEL USUARIO */}
+                      <div className="text-2xl">{post.usuarioAvatar || "👤"}</div>
                       <div>
-                        <div className="font-semibold">{categoria.nombre}</div>
-                        <div className="text-sm opacity-80">{categoria.descripcion}</div>
+                        <h3 className="font-bold text-gray-800 text-lg">{post.titulo}</h3>
+                        <div className="flex items-center gap-2 mt-1 flex-wrap">
+                          <span className="text-sm text-gray-600">por {post.usuario}</span>
+                          <span className="text-xs text-gray-400">•</span>
+                          {/* 🆕 PAÍS FICTICIO */}
+                          <span className="text-sm text-green-600 font-medium">
+                            {post.usuarioPais || "Sin territorio"}
+                          </span>
+                          <span className="text-xs text-gray-400">•</span>
+                          <span className="text-sm text-gray-500">
+                            {post.fechaFormateada || post.fecha}
+                          </span>
+                        </div>
                       </div>
                     </div>
+                    <div className="flex items-center gap-2">
+                      <span className={`text-xs px-3 py-1 rounded-full ${getColorCategoria(post.categoria)}`}>
+                        {post.categoria}
+                      </span>
+                      
+                      {/* Botón eliminar (solo admin o autor) */}
+                      {(usuarioActual.rol === "admin" || usuarioActual.id === post.usuarioId) && (
+                        <button
+                          onClick={() => eliminarPost(post.id, post.usuarioId)}
+                          className="text-red-500 hover:text-red-700 text-sm font-medium p-1"
+                          title="Eliminar publicación"
+                        >
+                          🗑️
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                  
+                  <p className="text-gray-700 leading-relaxed">{post.contenido}</p>
+                  
+                  {/* Información específica del tipo */}
+                  {post.tipo === "pelicula" && post.pelicula && (
+                    <div className="mt-3 p-3 bg-blue-50 rounded-lg border border-blue-200">
+                      <p className="text-sm text-blue-700">
+                        <span className="font-semibold">🎬 Película:</span> {post.pelicula}
+                      </p>
+                    </div>
+                  )}
+                </div>
+
+                {/* Contenido específico */}
+                {post.tipo === "poll" && post.opciones && (
+                  <div className="p-4 bg-gray-50 border-b">
+                    <div className="space-y-2">
+                      {post.opciones.map((opcion, index) => {
+                        const totalVotos = post.opciones.reduce((sum, op) => sum + (op.votos || 0), 0);
+                        const porcentaje = totalVotos > 0 ? Math.round((opcion.votos / totalVotos) * 100) : 0;
+                        
+                        return (
+                          <button
+                            key={index}
+                            onClick={() => votarEnPoll(post.id, index)}
+                            className="w-full text-left p-3 bg-white rounded-lg border border-gray-200 hover:border-green-300 transition-colors"
+                          >
+                            <div className="flex justify-between items-center">
+                              <span>{opcion.texto}</span>
+                              <span className="text-sm text-gray-500">
+                                {opcion.votos || 0} votos ({porcentaje}%)
+                              </span>
+                            </div>
+                            {totalVotos > 0 && (
+                              <div className="w-full bg-gray-200 rounded-full h-2 mt-2">
+                                <div 
+                                  className="bg-green-500 h-2 rounded-full transition-all duration-500"
+                                  style={{ width: `${porcentaje}%` }}
+                                ></div>
+                              </div>
+                            )}
+                          </button>
+                        );
+                      })}
+                    </div>
+                    <p className="text-xs text-gray-500 mt-2 text-center">
+                      {post.opciones.reduce((sum, op) => sum + (op.votos || 0), 0)} votos totales
+                    </p>
+                  </div>
+                )}
+
+                {post.tipo === "imagen" && post.imagenUrl && (
+                  <div className="border-b">
+                    <img 
+                      src={post.imagenUrl} 
+                      alt={post.titulo}
+                      className="w-full h-auto max-h-96 object-cover"
+                    />
+                  </div>
+                )}
+
+                {/* Reacciones y comentarios */}
+                <div className="p-4">
+                  {/* Reacciones existentes */}
+                  {Object.keys(post.reacciones || {}).length > 0 && (
+                    <div className="flex gap-1 mb-3 flex-wrap">
+                      {Object.entries(post.reacciones).map(([reaccion, count]) => (
+                        <span key={reaccion} className="bg-gray-100 px-2 py-1 rounded-full text-sm">
+                          {reaccion} {count}
+                        </span>
+                      ))}
+                    </div>
+                  )}
+
+                  {/* Botones de interacción - VERSIÓN CORREGIDA */}
+                  <div className="flex gap-4 border-t pt-3">
+                    <div className="relative">
+                      <button
+                        onClick={() => setMostrarReacciones(mostrarReacciones === post.id ? null : post.id)}
+                        className="flex items-center gap-2 text-gray-600 hover:text-green-600 transition-colors"
+                      >
+                        <span className="text-lg">😊</span>
+                        <span className="text-sm">Reaccionar</span>
+                      </button>
+
+                      {mostrarReacciones === post.id && (
+                        <div className="absolute bottom-full mb-2 left-0 bg-white rounded-xl shadow-2xl border-2 border-green-200 p-3 z-10">
+                          <div className="grid grid-cols-4 gap-2">
+                            {reaccionesDisponibles.map(reaccion => (
+                              <button
+                                key={reaccion}
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  agregarReaccion(post.id, reaccion);
+                                  setMostrarReacciones(null);
+                                }}
+                                className="text-xl hover:scale-125 transition-transform duration-200 p-2 rounded-lg hover:bg-gray-100"
+                              >
+                                {reaccion}
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+
+                    <div className="flex-1 flex gap-2">
+                      <input
+                        type="text"
+                        placeholder="Escribe un comentario..."
+                        className="flex-1 text-sm p-2 border border-gray-300 rounded-lg focus:border-green-400 focus:outline-none"
+                        value={comentarios[post.id] || ""} // 🆕 Comentario individual por post
+                        onChange={(e) => setComentarios(prev => ({ 
+                          ...prev, 
+                          [post.id]: e.target.value 
+                        }))}
+                      />
+                      <button
+                        onClick={() => agregarComentario(post.id)}
+                        className="bg-green-500 text-white px-4 rounded-lg hover:bg-green-600 transition-colors"
+                      >
+                        ➤
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Comentarios existentes - VERSIÓN MEJORADA */}
+                  {post.comentarios && post.comentarios.length > 0 && (
+                    <div className="mt-4 space-y-3">
+                      {post.comentarios.slice(-3).map((coment, idx) => (
+                        <div key={idx} className="bg-gray-50 p-3 rounded-lg">
+                          <div className="flex items-start gap-3 mb-2">
+                            {/* 🆕 AVATAR EN COMENTARIO */}
+                            <div className="text-lg">{coment.usuarioAvatar || "👤"}</div>
+                            <div className="flex-1">
+                              <div className="flex justify-between items-start">
+                                <span className="font-semibold text-gray-800 text-sm">{coment.usuario}</span>
+                                <span className="text-xs text-gray-500">
+                                  {coment.fechaFormateada || coment.fecha}
+                                </span>
+                              </div>
+                              {/* 🆕 PAÍS EN COMENTARIO */}
+                              <p className="text-xs text-green-600 font-medium">
+                                {coment.usuarioPais || "Sin territorio"}
+                              </p>
+                            </div>
+                          </div>
+                          <p className="text-gray-600 text-sm mt-1">{coment.texto}</p>
+                        </div>
+                      ))}
+                      {post.comentarios.length > 3 && (
+                        <button
+                          onClick={() => setPostSeleccionado(post)}
+                          className="text-green-600 text-sm font-medium hover:text-green-700"
+                        >
+                          Ver todos los comentarios ({post.comentarios.length})
+                        </button>
+                      )}
+                    </div>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* Si no hay posts */}
+        {!cargando && posts.length === 0 && (
+          <div className="text-center py-12">
+            <div className="text-6xl mb-4">💬</div>
+            <h2 className="text-2xl font-bold text-gray-700 mb-2">No hay publicaciones aún</h2>
+            <p className="text-gray-500">¡Sé el primero en compartir algo en NaviVibes!</p>
+            <button
+              onClick={() => setMostrarFormPost(true)}
+              className="mt-4 bg-gradient-to-r from-red-500 to-green-500 text-white font-semibold py-3 px-6 rounded-2xl transition-all duration-300 transform hover:scale-105 shadow-lg"
+            >
+              ✨ Crear Primera Publicación
+            </button>
+          </div>
+        )}
+
+        {/* MODAL PARA CREAR POST */}
+        {mostrarFormPost && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-2xl p-6 max-w-md w-full max-h-[90vh] overflow-y-auto">
+              <h3 className="text-2xl font-bold text-gray-800 mb-4">✨ Crear Publicación</h3>
+              
+              {/* Selector de tipo */}
+              <div className="grid grid-cols-4 gap-2 mb-4">
+                {[
+                  { tipo: "texto", icono: "📝", label: "Texto" },
+                  { tipo: "imagen", icono: "🖼️", label: "Imagen" },
+                  { tipo: "pelicula", icono: "🎬", label: "Película" },
+                  { tipo: "poll", icono: "📊", label: "Encuesta" }
+                ].map((item) => (
+                  <button
+                    key={item.tipo}
+                    type="button"
+                    onClick={() => setTipoPost(item.tipo)}
+                    className={`p-3 rounded-lg border-2 transition-all ${
+                      tipoPost === item.tipo 
+                        ? 'border-green-500 bg-green-50' 
+                        : 'border-gray-200 hover:border-gray-300'
+                    }`}
+                  >
+                    <div className="text-lg">{item.icono}</div>
+                    <div className="text-xs mt-1">{item.label}</div>
                   </button>
                 ))}
               </div>
+              
+              <form onSubmit={crearPost} className="space-y-4">
+                {/* Categoría */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Categoría
+                  </label>
+                  <select
+                    value={formData.categoria}
+                    onChange={(e) => setFormData(prev => ({...prev, categoria: e.target.value}))}
+                    className="w-full p-3 border-2 border-gray-200 rounded-lg focus:border-green-400 focus:outline-none"
+                  >
+                    {categorias.map(cat => (
+                      <option key={cat} value={cat}>
+                        {cat.charAt(0).toUpperCase() + cat.slice(1)}
+                      </option>
+                    ))}
+                  </select>
+                </div>
 
-              {/* Stats del usuario actual */}
-              <div className="mt-6 p-4 bg-amber-50 rounded-xl border border-amber-200">
-                <h3 className="font-bold text-amber-800 mb-2">Tu Posición</h3>
-                {usuarioActual && (
-                  <div className="text-center">
-                    <div className="text-2xl font-bold text-amber-600">
-                      {rankingData.findIndex(user => user.nombre === usuarioActual.nombre) + 1 || "?"}
-                    </div>
-                    <div className="text-sm text-amber-700">de {rankingData.length} participantes</div>
+                {/* Título */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Título *
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={formData.titulo}
+                    onChange={(e) => setFormData(prev => ({...prev, titulo: e.target.value}))}
+                    placeholder={
+                      tipoPost === "pelicula" ? "Ej: Recomendación: Home Alone" :
+                      tipoPost === "poll" ? "Ej: ¿Cuál es su comida navideña favorita?" :
+                      "Título de tu publicación"
+                    }
+                    className="w-full p-3 border-2 border-gray-200 rounded-lg focus:border-green-400 focus:outline-none"
+                  />
+                </div>
+
+                {/* Contenido */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    {tipoPost === "poll" ? "Descripción (opcional)" : "Contenido *"}
+                  </label>
+                  <textarea
+                    value={formData.contenido}
+                    onChange={(e) => setFormData(prev => ({...prev, contenido: e.target.value}))}
+                    placeholder={
+                      tipoPost === "pelicula" ? "¿Por qué recomiendas esta película?" :
+                      tipoPost === "poll" ? "Explica tu encuesta..." :
+                      "Comparte tus pensamientos, recuerdos o ideas..."
+                    }
+                    rows="3"
+                    className="w-full p-3 border-2 border-gray-200 rounded-lg focus:border-green-400 focus:outline-none"
+                  />
+                </div>
+
+                {/* Campos específicos por tipo */}
+                {tipoPost === "imagen" && (
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Seleccionar imagen
+                    </label>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={(e) => setImagenSubida(e.target.files[0])}
+                      className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-green-100 file:text-green-700 hover:file:bg-green-200"
+                    />
+                    {imagenSubida && (
+                      <div className="mt-2 text-center bg-gray-50 p-3 rounded-lg border-2 border-green-300">
+                        <p className="text-sm text-green-600 font-medium">Vista previa:</p>
+                        <img 
+                          src={URL.createObjectURL(imagenSubida)} 
+                          alt="Preview" 
+                          className="max-h-32 mx-auto rounded-lg shadow-md mt-2"
+                        />
+                      </div>
+                    )}
                   </div>
                 )}
-              </div>
-            </div>
-          </div>
 
-          {/* Main Content - Ranking */}
-          <div className="lg:col-span-3">
-            <div className="bg-white/90 backdrop-blur-sm rounded-2xl p-6 shadow-xl border-2 border-amber-200">
-              
-              {/* Header del Ranking */}
-              <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6">
-                <div>
-                  <h2 className="text-2xl font-bold text-gray-800 flex items-center gap-3">
-                    {categoriaActual?.icono} {categoriaActual?.nombre}
-                  </h2>
-                  <p className="text-gray-600">{categoriaActual?.descripcion}</p>
-                </div>
-                <div className="bg-amber-100 text-amber-800 px-4 py-2 rounded-full font-semibold mt-2 md:mt-0">
-                  {rankingData.length} Familiares
-                </div>
-              </div>
+                {tipoPost === "pelicula" && (
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Película que recomiendas
+                    </label>
+                    <input
+                      type="text"
+                      value={peliculaSugerida}
+                      onChange={(e) => setPeliculaSugerida(e.target.value)}
+                      placeholder="Ej: Home Alone, Elf, The Grinch..."
+                      className="w-full p-3 border-2 border-gray-200 rounded-lg focus:border-green-400 focus:outline-none"
+                    />
+                  </div>
+                )}
 
-              {/* Lista del Ranking */}
-              <div className="space-y-3">
-                {rankingData.map((usuario, index) => {
-                  const puesto = index + 1;
-                  const puntos = getPuntosUsuario(usuario);
-                  const esUsuarioActual = usuario.nombre === usuarioActual.nombre;
-                  
-                  return (
-                    <div
-                      key={usuario.nombre}
-                      className={`flex items-center gap-4 p-4 rounded-xl border-2 transition-all ${
-                        esUsuarioActual 
-                          ? 'border-amber-400 bg-amber-50 shadow-lg transform scale-105' 
-                          : 'border-gray-200 hover:border-amber-300 hover:bg-amber-50'
-                      } ${getColorPuesto(puesto)}`}
-                    >
-                      {/* Puesto */}
-                      <div className={`w-12 h-12 rounded-full flex items-center justify-center font-bold ${
-                        puesto <= 3 
-                          ? 'text-white bg-opacity-90' 
-                          : 'bg-gray-200 text-gray-700'
-                      }`}>
-                        {getIconoPuesto(puesto)}
-                      </div>
-
-                      {/* Avatar y Nombre */}
-                      <div className="flex items-center gap-3 flex-1">
-                        <div className="text-2xl">{usuario.avatar}</div>
-                        <div>
-                          <div className="font-semibold text-gray-800 flex items-center gap-2">
-                            {usuario.nombre}
-                            {esUsuarioActual && <span className="text-xs bg-amber-500 text-white px-2 py-1 rounded-full">Tú</span>}
-                          </div>
-                          <div className="text-sm text-gray-600">{usuario.pais}</div>
-                        </div>
-                      </div>
-
-                      {/* Puntos */}
-                      <div className="text-right">
-                        <div className="text-lg font-bold text-gray-800">{puntos} pts</div>
-                        <div className="text-sm text-gray-600">
-                          {rankingActivo === "general" && "Total"}
-                          {rankingActivo === "retos" && "Retos"}
-                          {rankingActivo === "juegos" && "Juegos"}
-                          {rankingActivo === "actividad" && "Actividad"}
-                        </div>
-                      </div>
-
-                      {/* Badges */}
-                      {usuario.badges.length > 0 && (
-                        <div className="flex gap-1">
-                          {usuario.badges.slice(0, 2).map((badge, badgeIndex) => (
-                            <div
-                              key={badgeIndex}
-                              className="text-xl"
-                              title={`${badge.nombre}: ${badge.descripcion}`}
+                {tipoPost === "poll" && (
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Opciones de la encuesta *
+                    </label>
+                    <div className="space-y-2">
+                      {opcionesPoll.map((opcion, index) => (
+                        <div key={index} className="flex gap-2">
+                          <input
+                            type="text"
+                            value={opcion}
+                            onChange={(e) => actualizarOpcionPoll(index, e.target.value)}
+                            placeholder={`Opción ${index + 1}`}
+                            className="flex-1 p-2 border border-gray-300 rounded-lg"
+                          />
+                          {opcionesPoll.length > 2 && (
+                            <button
+                              type="button"
+                              onClick={() => eliminarOpcionPoll(index)}
+                              className="bg-red-500 text-white w-8 h-8 rounded-lg flex items-center justify-center hover:bg-red-600"
                             >
-                              {badge.nombre.split(' ')[0]} {/* Solo el emoji */}
-                            </div>
-                          ))}
-                          {usuario.badges.length > 2 && (
-                            <div className="text-xs bg-gray-200 text-gray-600 px-2 py-1 rounded-full">
-                              +{usuario.badges.length - 2}
-                            </div>
+                              ✕
+                            </button>
                           )}
                         </div>
+                      ))}
+                      {opcionesPoll.length < 6 && (
+                        <button
+                          type="button"
+                          onClick={agregarOpcionPoll}
+                          className="text-green-600 text-sm font-medium hover:text-green-700"
+                        >
+                          + Agregar otra opción
+                        </button>
                       )}
                     </div>
-                  );
-                })}
-              </div>
-            </div>
+                  </div>
+                )}
 
-            {/* Sección de Badges */}
-            <div className="mt-8 bg-white/90 backdrop-blur-sm rounded-2xl p-6 shadow-xl border-2 border-purple-200">
-              <h2 className="text-2xl font-bold text-gray-800 mb-6 flex items-center gap-2">
-                🎖️ Badges y Premios
-              </h2>
-              
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {badges.map((badge) => {
-                  const tieneBadge = usuarios.find(u => 
-                    u.nombre === usuarioActual.nombre && 
-                    u.badges.some(b => b.id === badge.id)
-                  );
-                  
-                  return (
-                    <div
-                      key={badge.id}
-                      className={`p-4 rounded-xl border-2 transition-all ${
-                        tieneBadge
-                          ? 'border-purple-400 bg-purple-50 shadow-lg'
-                          : 'border-gray-200 bg-gray-100 opacity-70'
-                      }`}
-                    >
-                      <div className="flex items-center gap-3 mb-2">
-                        <span className="text-2xl">{badge.nombre.split(' ')[0]}</span>
-                        <div>
-                          <div className="font-semibold text-gray-800">{badge.nombre}</div>
-                          <div className={`text-xs px-2 py-1 rounded-full ${
-                            badge.rareza === 'legendario' ? 'bg-yellow-100 text-yellow-800' :
-                            badge.rareza === 'épico' ? 'bg-purple-100 text-purple-800' :
-                            badge.rareza === 'raro' ? 'bg-blue-100 text-blue-800' :
-                            'bg-gray-100 text-gray-800'
-                          }`}>
-                            {badge.rareza}
+                {/* Botones */}
+                <div className="flex gap-3 pt-4">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setMostrarFormPost(false);
+                      setFormData({ titulo: "", contenido: "", categoria: "general" });
+                      setImagenSubida(null);
+                      setPeliculaSugerida("");
+                      setOpcionesPoll(["", ""]);
+                    }}
+                    className="flex-1 bg-gray-500 text-white py-3 rounded-lg font-medium hover:bg-gray-600 transition-colors"
+                  >
+                    Cancelar
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={!formData.titulo.trim() || subiendoContenido}
+                    className={`flex-1 py-3 px-4 rounded-lg font-semibold transition-all ${
+                      !formData.titulo.trim() || subiendoContenido
+                        ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                        : 'bg-gradient-to-r from-red-500 to-green-500 hover:from-red-600 hover:to-green-600 text-white shadow-lg hover:shadow-xl'
+                    }`}
+                  >
+                    {subiendoContenido ? (
+                      <span className="flex items-center justify-center gap-2">
+                        <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent"></div>
+                        Publicando...
+                      </span>
+                    ) : (
+                      `📤 Publicar ${tipoPost === "pelicula" ? "Recomendación" : tipoPost === "poll" ? "Encuesta" : ""}`
+                    )}
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
+
+        {/* MODAL PARA VER POST COMPLETO */}
+        {postSeleccionado && (
+          <div className="fixed inset-0 bg-black bg-opacity-90 flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+              <div className="p-6">
+                <button
+                  onClick={() => setPostSeleccionado(null)}
+                  className="absolute top-4 right-4 bg-red-500 text-white w-8 h-8 rounded-full flex items-center justify-center hover:bg-red-600"
+                >
+                  ✕
+                </button>
+                
+                <div className="flex items-start gap-3 mb-4">
+                  <div className="text-3xl">{getIconoTipo(postSeleccionado.tipo)}</div>
+                  <div>
+                    <h3 className="text-2xl font-bold text-gray-800">{postSeleccionado.titulo}</h3>
+                    <div className="flex items-center gap-2 mt-1">
+                      <span className="text-gray-600">por {postSeleccionado.usuario}</span>
+                      <span className="text-gray-400">•</span>
+                      <span className="text-green-600 font-medium">
+                        {postSeleccionado.usuarioPais || "Sin territorio"}
+                      </span>
+                      <span className="text-gray-400">•</span>
+                      <span className="text-gray-500">
+                        {postSeleccionado.fechaFormateada || postSeleccionado.fecha}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                <p className="text-gray-700 text-lg mb-6">{postSeleccionado.contenido}</p>
+
+                {/* Contenido específico en modal */}
+                {postSeleccionado.tipo === "poll" && postSeleccionado.opciones && (
+                  <div className="mb-6">
+                    <h4 className="font-semibold text-gray-800 mb-3">Resultados:</h4>
+                    <div className="space-y-3">
+                      {postSeleccionado.opciones.map((opcion, index) => {
+                        const totalVotos = postSeleccionado.opciones.reduce((sum, op) => sum + (op.votos || 0), 0);
+                        const porcentaje = totalVotos > 0 ? Math.round((opcion.votos / totalVotos) * 100) : 0;
+                        
+                        return (
+                          <div key={index} className="bg-gray-50 p-3 rounded-lg">
+                            <div className="flex justify-between items-center mb-1">
+                              <span className="font-medium">{opcion.texto}</span>
+                              <span className="text-sm text-gray-600">
+                                {opcion.votos || 0} votos ({porcentaje}%)
+                              </span>
+                            </div>
+                            <div className="w-full bg-gray-200 rounded-full h-3">
+                              <div 
+                                className="bg-green-500 h-3 rounded-full transition-all duration-500"
+                                style={{ width: `${porcentaje}%` }}
+                              ></div>
+                            </div>
                           </div>
-                        </div>
-                      </div>
-                      <p className="text-sm text-gray-600">{badge.descripcion}</p>
-                      {tieneBadge && (
-                        <div className="mt-2 text-xs text-green-600 font-semibold">
-                          ✅ Obtenido
-                        </div>
-                      )}
+                        );
+                      })}
                     </div>
-                  );
-                })}
+                  </div>
+                )}
+
+                {/* Comentarios en modal - VERSIÓN MEJORADA */}
+                <div className="border-t pt-6">
+                  <h4 className="font-semibold text-gray-800 mb-4">
+                    Comentarios ({postSeleccionado.comentarios?.length || 0})
+                  </h4>
+                  {postSeleccionado.comentarios && postSeleccionado.comentarios.length > 0 ? (
+                    <div className="space-y-4">
+                      {postSeleccionado.comentarios.map((coment, idx) => (
+                        <div key={idx} className="bg-gray-50 p-4 rounded-lg">
+                          <div className="flex items-start gap-3 mb-2">
+                            {/* 🆕 AVATAR EN MODAL */}
+                            <div className="text-xl">{coment.usuarioAvatar || "👤"}</div>
+                            <div className="flex-1">
+                              <div className="flex justify-between items-start mb-1">
+                                <span className="font-semibold text-gray-800">{coment.usuario}</span>
+                                <span className="text-sm text-gray-500">
+                                  {coment.fechaFormateada || coment.fecha}
+                                </span>
+                              </div>
+                              {/* 🆕 PAÍS EN MODAL */}
+                              <p className="text-sm text-green-600 font-medium">
+                                {coment.usuarioPais || "Sin territorio"}
+                              </p>
+                            </div>
+                          </div>
+                          <p className="text-gray-600">{coment.texto}</p>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-gray-500 text-center py-4">No hay comentarios aún</p>
+                  )}
+                </div>
               </div>
             </div>
           </div>
-        </div>
-
-        {/* Información */}
-        <div className="mt-8 bg-gradient-to-r from-amber-400 to-orange-500 rounded-2xl p-8 text-white text-center shadow-2xl">
-          <h2 className="text-2xl font-bold mb-3">📈 ¿Cómo subir en el ranking?</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-left">
-            <div>
-              <h3 className="font-bold mb-2">🎮 Juega Más</h3>
-              <p className="text-white/90">Cada juego te da puntos. ¡Mejora tus puntuaciones!</p>
-            </div>
-            <div>
-              <h3 className="font-bold mb-2">🏆 Completa Retos</h3>
-              <p className="text-white/90">Los retos semanales dan muchos puntos.</p>
-            </div>
-          </div>
-        </div>
+        )}
 
         {/* Navegación */}
-        <div className="text-center mt-12">
+        <div className="text-center">
           <Link 
             to="/home" 
-            className="inline-flex items-center gap-2 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white font-semibold py-4 px-8 rounded-2xl transition-all duration-300 transform hover:scale-105 shadow-lg"
+            className="inline-flex items-center gap-2 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white font-semibold py-4 px-8 rounded-2xl transition-all duration-300 transform hover:scale-105 shadow-lg"
           >
-            ← Volver al Home Navideño
+            ← Volver al Home
           </Link>
         </div>
       </div>

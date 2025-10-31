@@ -1,5 +1,5 @@
 import React from "react";
-import { Routes, Route, Navigate, useLocation, Link } from "react-router-dom";
+import { HashRouter, Routes, Route, Navigate, useLocation, Link } from "react-router-dom";
 
 import Home from "./pages/home.jsx";
 import Calendario from "./pages/calendario.jsx";

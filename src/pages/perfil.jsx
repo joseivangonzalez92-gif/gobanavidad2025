@@ -7,6 +7,7 @@ export default function Perfil() {
   const [usuario, setUsuario] = useState(null);
   const [editando, setEditando] = useState(false);
   const [guardando, setGuardando] = useState(false);
+  const [ranking, setRanking] = useState([]); // 🆕 AGREGAMOS RANKING
   const [formData, setFormData] = useState({
     pais: "",
     avatar: "",
@@ -51,9 +52,17 @@ export default function Perfil() {
     "Jumanji"
   ];
 
-  // Cargar datos del usuario
+  // 🆕 FUNCIÓN PARA OBTENER MIS PUNTOS DESDE EL RANKING
+  const obtenerMisPuntos = () => {
+    if (!usuario || !ranking.length) return 0;
+    
+    const miRanking = ranking.find(jugador => jugador.userId === usuario.id);
+    return miRanking?.puntosTotales || usuario.puntos || 0;
+  };
+
+  // Cargar datos del usuario Y ranking
   useEffect(() => {
-    const cargarUsuario = async () => {
+    const cargarDatos = async () => {
       try {
         const usuarioRaw = localStorage.getItem('usuarioActual');
         if (!usuarioRaw) {
@@ -63,6 +72,10 @@ export default function Perfil() {
 
         const usuarioLocal = JSON.parse(usuarioRaw);
         setUsuario(usuarioLocal);
+        
+        // 🆕 CARGAR RANKING PARA OBTENER PUNTOS ACTUALIZADOS
+        const rankingData = await gobaService.getRanking();
+        setRanking(rankingData);
         
         // Cargar datos actualizados de Firebase
         const usuarioFirebase = await gobaService.obtenerUsuario(usuarioLocal.id);
@@ -74,7 +87,6 @@ export default function Perfil() {
             frase: usuarioFirebase.frase || ""
           });
         } else {
-          // Usar datos de localStorage como fallback
           setFormData({
             pais: usuarioLocal.pais || "",
             avatar: usuarioLocal.avatar || "👤",
@@ -86,7 +98,7 @@ export default function Perfil() {
       }
     };
 
-    cargarUsuario();
+    cargarDatos();
   }, [navigate]);
 
   // Guardar cambios en el perfil
@@ -95,7 +107,6 @@ export default function Perfil() {
 
     setGuardando(true);
     try {
-      // Actualizar en Firebase
       const exito = await gobaService.actualizarUsuario(usuario.id, {
         pais: formData.pais,
         avatar: formData.avatar,
@@ -103,7 +114,6 @@ export default function Perfil() {
       });
 
       if (exito) {
-        // Actualizar localStorage
         const usuarioActualizado = {
           ...usuario,
           pais: formData.pais,
@@ -146,13 +156,14 @@ export default function Perfil() {
     );
   }
 
+  // 🆕 CALCULAR PUNTOS ACTUALES
+  const misPuntos = obtenerMisPuntos();
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-white via-blue-50 to-emerald-50 py-8">
       <div className="max-w-4xl mx-auto px-4">
         
-        {/* Header CORREGIDO - Centrado y sin avatar duplicado */}
         <div className="text-center mb-8">
-        
           <h1 className="text-4xl font-bold text-gray-800 mb-4">👤 Mi Perfil</h1>
           <p className="text-xl text-gray-600">Personaliza tu identidad navideña</p>
         </div>
@@ -163,7 +174,6 @@ export default function Perfil() {
           <div className="lg:col-span-1">
             <div className="bg-white rounded-3xl p-6 shadow-2xl border-2 border-green-200 sticky top-8">
               <div className="text-center">
-                {/* Avatar principal - SOLO UNO */}
                 <div className="text-8xl mb-4">{usuario.avatar || "👤"}</div>
                 <h2 className="text-2xl font-bold text-gray-800 mb-2">{usuario.nombre}</h2>
                 <p className="text-lg text-green-600 font-semibold mb-1">{usuario.pais || "Sin territorio"}</p>
@@ -171,14 +181,14 @@ export default function Perfil() {
                   <p className="text-gray-600 italic mb-4">"{usuario.frase}"</p>
                 )}
                 
-                {/* Stats - ACTUALIZADO para conectar con retos */}
-            <div className="bg-gradient-to-r from-green-100 to-blue-100 rounded-xl p-6 mt-4 text-center border-2 border-green-200">
-  <div className="flex flex-col items-center justify-center">
-    <p className="text-4xl font-bold text-green-600 mb-2">{usuario.puntos || 0}</p>
-    <p className="text-lg font-semibold text-gray-700">⭐ Puntos de Retos</p>
-    <p className="text-sm text-gray-500 mt-1">Acumulados en challenges</p>
-  </div>
-</div>
+                {/* 🆕 PUNTOS DESDE RANKING - IGUAL QUE EN CHALLENGES */}
+                <div className="bg-gradient-to-r from-green-100 to-blue-100 rounded-xl p-6 mt-4 text-center border-2 border-green-200">
+                  <div className="flex flex-col items-center justify-center">
+                    <p className="text-4xl font-bold text-green-600 mb-2">{misPuntos}</p>
+                    <p className="text-lg font-semibold text-gray-700">⭐ Puntos de Retos</p>
+                    <p className="text-sm text-gray-500 mt-1">Acumulados en challenges</p>
+                  </div>
+                </div>
 
                 <div className="mt-6 bg-yellow-50 border border-yellow-200 rounded-xl p-3">
                   <p className="text-sm text-yellow-700 text-center">
@@ -189,11 +199,10 @@ export default function Perfil() {
             </div>
           </div>
 
-          {/* Columna 2: Edición del perfil */}
+          {/* El resto de tu código permanece igual */}
           <div className="lg:col-span-2">
             <div className="bg-white rounded-3xl p-8 shadow-2xl border-2 border-blue-200">
               
-              {/* Header de edición */}
               <div className="flex justify-between items-center mb-8">
                 <h2 className="text-2xl font-bold text-gray-800">
                   {editando ? "✏️ Editando Perfil" : "📋 Información Personal"}
@@ -224,7 +233,6 @@ export default function Perfil() {
                 )}
               </div>
 
-              {/* Información fija (no editable) */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
                 <div className="bg-gray-50 p-4 rounded-xl">
                   <label className="block text-sm font-semibold text-gray-600 mb-1">👤 Nombre</label>
@@ -236,11 +244,8 @@ export default function Perfil() {
                 </div>
               </div>
 
-              {/* Campos editables */}
               {editando && (
                 <div className="space-y-6">
-                  
-                  {/* Selector de Avatar */}
                   <div className="bg-purple-50 border-2 border-purple-200 rounded-xl p-6">
                     <h3 className="text-lg font-bold text-purple-800 mb-4">🎨 Elige tu Avatar</h3>
                     <div className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-7 gap-3">
@@ -265,7 +270,6 @@ export default function Perfil() {
                     )}
                   </div>
 
-                  {/* Selector de País Ficticio */}
                   <div className="bg-green-50 border-2 border-green-200 rounded-xl p-6">
                     <h3 className="text-lg font-bold text-green-800 mb-4">🗺️ Tu Territorio Familiar</h3>
                     <select
@@ -285,7 +289,6 @@ export default function Perfil() {
                     </p>
                   </div>
 
-                  {/* Frase Personal */}
                   <div className="bg-blue-50 border-2 border-blue-200 rounded-xl p-6">
                     <h3 className="text-lg font-bold text-blue-800 mb-4">💬 Tu Frase Célebre</h3>
                     <textarea
@@ -300,11 +303,9 @@ export default function Perfil() {
                       ✨ {formData.frase.length}/100 caracteres - Esta frase te identifica en la familia
                     </p>
                   </div>
-
                 </div>
               )}
 
-              {/* Vista de solo lectura cuando no está editando */}
               {!editando && (
                 <div className="space-y-6">
                   <div className="bg-purple-50 border-2 border-purple-200 rounded-xl p-6">
@@ -329,7 +330,6 @@ export default function Perfil() {
                 </div>
               )}
 
-              {/* Información adicional */}
               <div className="mt-8 bg-yellow-50 border border-yellow-200 rounded-xl p-4">
                 <h3 className="font-semibold text-yellow-800 mb-2">💡 ¿Cómo funciona?</h3>
                 <ul className="text-sm text-yellow-700 space-y-1">
@@ -341,7 +341,6 @@ export default function Perfil() {
               </div>
             </div>
 
-            {/* 🔥 BOTÓN VOLVER EN CUADRO COLORIDO - NUEVA SECCIÓN */}
             <div className="mt-8 bg-gradient-to-r from-purple-500 to-pink-500 rounded-2xl p-6 text-center shadow-xl">
               <Link 
                 to="/home" 

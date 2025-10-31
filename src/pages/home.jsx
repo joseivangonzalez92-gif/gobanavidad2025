@@ -21,7 +21,10 @@ export default function Home() {
             ¡Hola {usuarioActual.nombre || "Familia"}!
           </h1>
           <p className="text-xl md:text-2xl text-gray-600 mb-8 max-w-2xl mx-auto">
-            Diversión, Competencia y Experiencia Familiar unica!!!!                                          Cerremos con todo este 2025!
+            Diversión, Competencia y Amor!                                         
+          </p>
+           <p className="text-xl md:text-2xl text-gray-600 mb-8 max-w-2xl mx-auto">
+            Cerremos con todo este 2025!                                         
           </p>
           
           {/* Stats rápidas */}
@@ -80,14 +83,14 @@ export default function Home() {
           >
             <div className="bg-gradient-to-br from-green-500 to-green-600 rounded-3xl p-8 text-white text-center shadow-2xl transform transition-all duration-300 hover:scale-105 hover:shadow-3xl h-full flex flex-col justify-between">
               <div>
-                <div className="text-5xl mb-4">🎮</div>
+                <div className="text-5xl mb-4">🥇</div>
                 <h3 className="text-2xl font-bold mb-3">Retos Familiares</h3>
                 <p className="text-white/90 mb-4">
                   Completa desafíos divertidos y gana puntos para el ranking familiar
                 </p>
               </div>
               <div className="bg-white/20 rounded-xl p-3 mt-4">
-                <p className="text-sm font-semibold">⭐ {usuarioActual.puntos || 0} puntos acumulados</p>
+                <p className="text-sm font-semibold">⭐ Retos semanales</p>
               </div>
             </div>
           </Link>
@@ -134,14 +137,14 @@ export default function Home() {
           <Link to="/rankings" className="group">
             <div className="bg-gradient-to-br from-amber-500 to-orange-500 rounded-3xl p-8 text-white text-center shadow-2xl transform transition-all duration-300 hover:scale-105 hover:shadow-3xl h-full flex flex-col justify-between">
               <div>
-                <div className="text-5xl mb-4">🏆</div>
-                <h3 className="text-2xl font-bold mb-3">Ranking Familiar</h3>
+                <div className="text-5xl mb-4">🫂</div>
+                <h3 className="text-2xl font-bold mb-3">NaviVibes</h3>
                 <p className="text-white/90 mb-4">
-                  Mira quién lidera la diversión navideña en la familia
+                  Fotos, Recuerdos y vibra navideña 
                 </p>
               </div>
               <div className="bg-white/20 rounded-xl p-3 mt-4">
-                <p className="text-sm font-semibold">🎖️ Badges y premios</p>
+                <p className="text-sm font-semibold">🤗 Nuestra red social privada</p>
               </div>
             </div>
           </Link>
@@ -181,7 +184,7 @@ export default function Home() {
             </div>
           </Link>
 
-          {/* Mi Perfil - AHORA ES UN LINK */}
+          {/* Mi Perfil */}
           <Link 
             to="/perfil" 
             className="group"
@@ -193,7 +196,6 @@ export default function Home() {
                 <div className="space-y-2 text-white/90 text-left">
                   <p><strong>Nombre:</strong> {usuarioActual.nombre || "Invitado"}</p>
                   <p><strong>Territorio:</strong> {usuarioActual.pais || "Por asignar"}</p>
-                  <p><strong>Puntos:</strong> {usuarioActual.puntos || 0} ⭐</p>
                   {usuarioActual.frase && (
                     <p><strong>Frase:</strong> "{usuarioActual.frase}"</p>
                   )}
@@ -223,7 +225,6 @@ export default function Home() {
               <ul className="space-y-2">
                 <li>• Retos disponibles todas las semanas </li>
                 <li>• Puntos por completar</li>
-                <li>• Ranking familiar en tiempo real</li>
                 <li>• ¡Gana premios y sorpresas!</li>
               </ul>
             </div>

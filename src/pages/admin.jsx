@@ -916,47 +916,79 @@ export default function Admin() {
                   <h3 className="font-bold mb-4 text-lg">🎮 Control de Concursos y Juegos</h3>
                   
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {/* CONTROL CONCURSO RÁPIDO */}
-                    <div className="bg-blue-50 p-4 rounded-lg">
-                      <h4 className="font-semibold mb-3 text-blue-800">⚡ Concurso Rápido</h4>
-                      <div className="space-y-2">
-                        <Link 
-                          to="/concurso-rapido"
-                          className="block w-full bg-green-500 hover:bg-green-600 text-white text-center py-2 px-4 rounded transition-colors"
-                        >
-                          🎯 Ir al Concurso Rápido
-                        </Link>
-                        
-                        {/* BOTÓN PARA INICIAR CONCURSO DESDE ADMIN */}
-                        <button
-                          onClick={async () => {
-                            try {
-                              await gobaService.iniciarConcurso('navidad_rapido');
-                              alert('✅ Concurso iniciado! Los usuarios ya pueden participar');
-                            } catch (error) {
-                              alert('❌ Error iniciando concurso: ' + error.message);
-                            }
-                          }}
-                          className="w-full bg-green-500 hover:bg-green-600 text-white py-2 px-4 rounded transition-colors"
-                        >
-                          🚀 Iniciar Concurso
-                        </button>
-                        
-                        <button
-                          onClick={async () => {
-                            try {
-                              await gobaService.reiniciarConcurso('navidad_rapido');
-                              alert('✅ Concurso rápido reiniciado');
-                            } catch (error) {
-                              alert('❌ Error: ' + error.message);
-                            }
-                          }}
-                          className="w-full bg-orange-500 hover:bg-orange-600 text-white py-2 px-4 rounded transition-colors"
-                        >
-                          🔄 Reiniciar Concurso
-                        </button>
-                      </div>
-                    </div>
+               
+          
+{/* CONTROL CONCURSO RÁPIDO */}
+<div className="bg-blue-50 p-4 rounded-lg">
+  <h4 className="font-semibold mb-3 text-blue-800">⚡ Concurso Rápido</h4>
+  <div className="space-y-2">
+    <Link 
+      to="/concurso-rapido"
+      className="block w-full bg-green-500 hover:bg-green-600 text-white text-center py-2 px-4 rounded transition-colors"
+    >
+      🎯 Ir al Concurso Rápido
+    </Link>
+    
+    {/* BOTÓN INICIAR CONCURSO SIMPLE */}
+    <button
+      onClick={async () => {
+        if (confirm('¿Iniciar concurso rápido? Se iniciará el conteo de 5 segundos.')) {
+          try {
+            await gobaService.iniciarConcursoSimple('navidad_rapido');
+            alert('¡Concurso iniciado! Countdown de 5 segundos empezó.');
+          } catch (error) {
+            console.error('❌ Error:', error);
+            alert('Error: ' + error.message);
+          }
+        }
+      }}
+      className="w-full bg-green-600 hover:bg-green-700 text-white py-3 px-4 rounded transition-colors font-bold"
+    >
+      🚀 INICIAR CONCURSO
+    </button>
+
+    {/* BOTÓN INICIAR CON PREGUNTA */}
+    <button
+      onClick={async () => {
+        const pregunta = prompt('Escribe la pregunta para el concurso rápido:');
+        if (pregunta && pregunta.trim()) {
+          if (confirm(`¿Iniciar concurso con la pregunta: "${pregunta}"?`)) {
+            try {
+              await gobaService.iniciarConcursoConPregunta('navidad_rapido', pregunta.trim());
+              alert('¡Concurso iniciado con pregunta!');
+            } catch (error) {
+              console.error('❌ Error:', error);
+              alert('Error: ' + error.message);
+            }
+          }
+        } else if (pregunta !== null) {
+          alert('La pregunta no puede estar vacía');
+        }
+      }}
+      className="w-full bg-purple-500 hover:bg-purple-600 text-white py-2 px-4 rounded transition-colors font-semibold"
+    >
+      ❓ Iniciar con Pregunta
+    </button>
+
+    {/* BOTÓN REINICIAR */}
+    <button
+      onClick={async () => {
+        if (confirm('¿Reiniciar concurso rápido?')) {
+          try {
+            await gobaService.reiniciarConcurso('navidad_rapido');
+            alert('Concurso reiniciado');
+          } catch (error) {
+            console.error('❌ Error reiniciando:', error);
+            alert('Error: ' + error.message);
+          }
+        }
+      }}
+      className="w-full bg-orange-500 hover:bg-orange-600 text-white py-2 px-4 rounded transition-colors font-semibold"
+    >
+      🔄 Reiniciar Todo
+    </button>
+  </div>
+</div>
 
                     {/* CONTROL JUEGOS */}
                     <div className="bg-purple-50 p-4 rounded-lg">

@@ -22,14 +22,14 @@ export default function Challenges() {
 
   // 8 RETOS SEMANALES DE FOTOS (Lunes a Domingo)
   const retosSemanales = [
-    { id: "foto_1", titulo: "Reto Semanal #1", descripcion: "📸 ¡Sube tu foto con un gorro navideño!", tipo: "foto", puntos: 10 },
-    { id: "foto_2", titulo: "Reto Semanal #2", descripcion: "📸 ¡Sube tu foto con vibes navideñas!", tipo: "foto", puntos: 10 },
-    { id: "foto_3", titulo: "Reto Semanal #3", descripcion: "📸 ¡Sube tu foto con vibes navideñas!", tipo: "foto", puntos: 10 },
-    { id: "foto_4", titulo: "Reto Semanal #4", descripcion: "📸 ¡Sube tu foto con vibes navideñas!", tipo: "foto", puntos: 10 },
-    { id: "foto_5", titulo: "Reto Semanal #5", descripcion: "📸 ¡Sube tu foto con vibes navideñas!", tipo: "foto", puntos: 10 },
-    { id: "foto_6", titulo: "Reto Semanal #6", descripcion: "📸 ¡Sube tu foto con vibes navideñas!", tipo: "foto", puntos: 10 },
-    { id: "foto_7", titulo: "Reto Semanal #7", descripcion: "📸 ¡Sube tu foto con vibes navideñas!", tipo: "foto", puntos: 10 },
-    { id: "foto_8", titulo: "Reto Semanal #8", descripcion: "📸 ¡Sube tu foto con vibes navideñas!", tipo: "foto", puntos: 10 }
+    { id: "foto_1", titulo: "Reto Semanal #1", descripcion: "📸 ¡Sube tu foto sonriendo!", tipo: "foto", puntos: 10 },
+    { id: "foto_2", titulo: "Reto Semanal #2", descripcion: "📸 ¡Sube tu foto comiendo un postre", tipo: "foto", puntos: 10 },
+    { id: "foto_3", titulo: "Reto Semanal #3", descripcion: "📸 ¡Sube tu foto con decoraciones navideñas", tipo: "foto", puntos: 10 },
+    { id: "foto_4", titulo: "Reto Semanal #4", descripcion: "📸 ¡Sube tu foto usando algo navideño", tipo: "foto", puntos: 10 },
+    { id: "foto_5", titulo: "Reto Semanal #5", descripcion: "📸 ¡Sube tu foto viendo una película navideña", tipo: "foto", puntos: 10 },
+    { id: "foto_6", titulo: "Reto Semanal #6", descripcion: "📸 ¡Sube tu foto junto a un arbol de navidad", tipo: "foto", puntos: 10 },
+    { id: "foto_7", titulo: "Reto Semanal #7", descripcion: "📸 ¡Sube tu foto comiendo comida navideña", tipo: "foto", puntos: 10 },
+    { id: "foto_8", titulo: "Reto Semanal #8", descripcion: "📸 ¡Sube tu foto abrazando a alguien", tipo: "foto", puntos: 10 }
   ];
 
   // FECHAS DE APERTURA SEMANALES CORREGIDAS (Semana 1: 20-26 Oct 2025)
@@ -50,28 +50,28 @@ const fechasSemanales = [
     { 
       id: "pregunta_1", 
       titulo: "🎄 Pregunta Miércoles #1", 
-      descripcion: "¿Cuál es el mejor momento para abrir regalos de Navidad?",
+      descripcion: "¿Navidad que vuelve?",
       tipo: "pregunta",
-      respuestaCorrecta: "Nochebuena",
+      respuestaCorrecta: "Tradición del año",
       opciones: [
-        "Nochebuena",
-        "Navidad en la mañana", 
-        "Año Nuevo",
-        "Día de Reyes"
+        "llegó la navidad",
+        "Vuelve la parranda", 
+        "Un año que viene",
+        "Tradición del año"
       ],
       puntos: 5
     },
     { 
       id: "pregunta_2", 
       titulo: "🎅 Pregunta Viernes #1", 
-      descripcion: "¿Qué color de ropa lleva tradicionalmente Santa Claus?",
+      descripcion: "¿LLega Naaavidad?",
       tipo: "pregunta",
-      respuestaCorrecta: "Rojo",
+      respuestaCorrecta: "Y yo sin tí",
       opciones: [
-        "Rojo",
-        "Verde",
-        "Azul",
-        "Blanco"
+        "Con todos los poderes",
+        "si verdad",
+        "Y yo sin tí",
+        "Bonita navidad"
       ],
       puntos: 5
     },
@@ -79,14 +79,14 @@ const fechasSemanales = [
     { 
       id: "pregunta_3", 
       titulo: "🌟 Pregunta Miércoles #2", 
-      descripcion: "¿En qué ciudad vive Santa Claus según la tradición?",
+      descripcion: "¿En qué año nació Don Reny?",
       tipo: "pregunta",
-      respuestaCorrecta: "Polo Norte",
+      respuestaCorrecta: "1971",
       opciones: [
-        "Polo Norte",
-        "New York",
-        "Laponia",
-        "Alaska"
+        "1945",
+        "1971",
+        "1981",
+        "1975"
       ],
       puntos: 5
     },
@@ -446,6 +446,58 @@ const getEstadoReto = (reto, index, tipo) => {
     return usuarioActual.puntos;
   };
 
+  // 🆕 FUNCIÓN PARA SUBIR FOTO RESTAURADA
+  const manejarSubidaFoto = async (retoId) => {
+    if (!imagenSubida || !usuarioActual) {
+      alert("❌ Por favor selecciona una foto primero");
+      return;
+    }
+
+    try {
+      setSubiendoFoto(true);
+      
+      // Subir imagen a ImgBB
+      const formData = new FormData();
+      formData.append("image", imagenSubida);
+      
+      const imgbbResponse = await fetch("https://api.imgbb.com/1/upload?key=YOUR_IMGBB_API_KEY", {
+        method: "POST",
+        body: formData
+      });
+      
+      const imgbbData = await imgbbResponse.json();
+      
+      if (!imgbbData.success) {
+        throw new Error("Error al subir la imagen");
+      }
+      
+      const imageUrl = imgbbData.data.url;
+      
+      // Guardar en Firebase
+      const puntosObtenidos = await gobaService.completeChallenge(
+        usuarioActual.id,
+        retoId,
+        imageUrl,
+        10 // Puntos por subir foto
+      );
+      
+      alert(`✅ ¡Foto subida correctamente! Ganaste ${puntosObtenidos} puntos. Espera la aprobación del admin.`);
+      
+      // Limpiar estado
+      setImagenSubida(null);
+      
+      // Actualizar puntos y recargar datos
+      await actualizarPuntosUsuario();
+      loadChallengesData();
+      
+    } catch (error) {
+      console.error("❌ Error subiendo foto:", error);
+      alert("❌ Error al subir la foto. Intenta de nuevo.");
+    } finally {
+      setSubiendoFoto(false);
+    }
+  };
+
   // Cargar usuario y datos al iniciar
   useEffect(() => {
     const usuario = JSON.parse(localStorage.getItem('usuarioActual'));
@@ -704,14 +756,14 @@ const completarTesoro = async (retoId) => {
         
         {/* Puntos acumulados - CONECTADO CON RANKING */}
         <div className="mt-4 bg-gradient-to-r from-green-100 to-blue-100 rounded-xl p-6 inline-block border-2 border-green-200">
-          <div className="flex flex-col items-center justify-center">
-            <p className="text-4xl font-bold text-green-600 mb-2">
-              {usuarioActual.puntos || 0}
-            </p>
-            <p className="text-lg font-semibold text-gray-800">⭐ Puntos Acumulados</p>
-            <p className="text-sm text-gray-600 mt-1">Sumados desde retos completados</p>
-          </div>
-        </div>
+  <div className="flex flex-col items-center justify-center">
+    <p className="text-4xl font-bold text-green-600 mb-2">
+      {ranking.find(jugador => jugador.userId === usuarioActual.id)?.puntosTotales || 0}
+    </p>
+    <p className="text-lg font-semibold text-gray-800">⭐ Puntos Acumulados</p>
+    <p className="text-sm text-gray-600 mt-1">Sumados desde retos completados</p>
+  </div>
+</div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
@@ -766,6 +818,58 @@ const completarTesoro = async (retoId) => {
                       </div>
                       
                       <p className="text-gray-600 mb-4 text-sm">{reto.descripcion}</p>
+
+                      {/* FOTO - SUBIR O VER COMPLETADO (RESTAURADO) */}
+                      {reto.tipo === "foto" && !completado && (
+                        <div className="space-y-4 p-4 bg-gradient-to-r from-green-50 to-blue-50 rounded-xl border-2 border-green-200">
+                          {/* Vista previa */}
+                          {imagenSubida && (
+                            <div className="text-center bg-white p-3 rounded-lg border-2 border-green-300">
+                              <p className="text-xs text-green-600 font-medium mb-2">Vista previa:</p>
+                              <img 
+                                src={URL.createObjectURL(imagenSubida)} 
+                                alt="Tu foto para el reto" 
+                                className="max-h-40 mx-auto rounded-lg shadow-md"
+                              />
+                              <p className="text-xs text-gray-500 mt-2">
+                                {imagenSubida.name} - {(imagenSubida.size / 1024 / 1024).toFixed(2)}MB
+                              </p>
+                            </div>
+                          )}
+
+                          {/* Input de archivo */}
+                          <label className="block cursor-pointer">
+                            <span className="sr-only">Seleccionar foto</span>
+                            <input
+                              type="file"
+                              accept="image/*"
+                              onChange={(e) => setImagenSubida(e.target.files[0])}
+                              disabled={subiendoFoto}
+                              className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-green-100 file:text-green-700 hover:file:bg-green-200 disabled:opacity-50"
+                            />
+                          </label>
+
+                          {/* Botón de subida */}
+                          <button
+                            onClick={() => manejarSubidaFoto(reto.id)}
+                            disabled={!imagenSubida || subiendoFoto}
+                            className={`w-full py-3 px-4 rounded-lg font-semibold transition-all ${
+                              !imagenSubida || subiendoFoto
+                                ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                                : 'bg-gradient-to-r from-green-500 to-blue-500 hover:from-green-600 hover:to-blue-600 text-white shadow-lg hover:shadow-xl transform hover:scale-105'
+                            }`}
+                          >
+                            {subiendoFoto ? (
+                              <span className="flex items-center justify-center gap-2">
+                                <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent"></div>
+                                Subiendo a Galería Familiar...
+                              </span>
+                            ) : (
+                              '📤 Subir a Galería Familiar'
+                            )}
+                          </button>
+                        </div>
+                      )}
 
                       {/* PREGUNTAS SEMANALES - OPCIONES MÚLTIPLES (SOLO UN INTENTO) */}
                       {reto.tipo === "pregunta" && !completado && (
@@ -842,6 +946,17 @@ const completarTesoro = async (retoId) => {
                             }
                           </div>
                           
+                          {reto.tipo === "foto" && completado.imageUrl && (
+                            <div className="mb-3">
+                              <p className="text-sm text-green-600 mb-2">Tu foto aprobada:</p>
+                              <img 
+                                src={completado.imageUrl} 
+                                alt="Foto aprobada" 
+                                className="max-h-32 mx-auto rounded-lg shadow-md"
+                              />
+                            </div>
+                          )}
+                          
                           <div className={`text-lg font-bold ${
                             reto.tipo === "tesoro" || (completado.puntosObtenidos || completado.pointsAwarded) > 0 
                               ? 'text-green-800' 
@@ -862,6 +977,12 @@ const completarTesoro = async (retoId) => {
                                   ? `Respuesta incorrecta. La correcta era: ${reto.respuestaCorrecta}`
                                   : `Respuesta correcta: ${reto.respuestaCorrecta}`
                               }
+                            </p>
+                          )}
+                          
+                          {reto.tipo === "foto" && (
+                            <p className="text-sm text-green-600 mt-1">
+                              Foto aprobada por el admin
                             </p>
                           )}
                         </div>

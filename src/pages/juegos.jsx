@@ -24,12 +24,14 @@ const JuegoSimple = ({
   const tiempoRespuestaRef = useRef(null);
 
   const [mejorPuntuacion, setMejorPuntuacion] = useState(0);
+  const [mejorPuntuacionCargada, setMejorPuntuacionCargada] = useState(false);
 
-  // Cargar mejor puntuación al iniciar
+  // Cargar mejor puntuación al iniciar - MEJORADO
   useEffect(() => {
     const cargarMejorPuntuacion = async () => {
       const mejor = await obtenerMejorPuntuacionPersonal(juegoId);
       setMejorPuntuacion(mejor);
+      setMejorPuntuacionCargada(true);
     };
     cargarMejorPuntuacion();
   }, [juegoId]);
@@ -64,7 +66,22 @@ const JuegoSimple = ({
           { pregunta: "🎅🤴👸", opciones: ["The Princess Switch", "A Christmas Prince", "The Royal Treatment", "The Knight Before Christmas"], respuesta: "A Christmas Prince" },
           { pregunta: "🏠🎄🔥", opciones: ["The Holiday", "Home Alone", "The Family Stone", "Christmas with the Kranks"], respuesta: "The Holiday" },
           { pregunta: "🎄👦🦸", opciones: ["The Christmas Chronicles", "The Santa Clause", "Elf", "Jingle All the Way"], respuesta: "The Christmas Chronicles" },
-          { pregunta: "❄️👑🔍", opciones: ["Frozen", "Snow White", "The Snow Queen", "Ice Princess"], respuesta: "Frozen" }
+          { pregunta: "❄️👑🔍", opciones: ["Frozen", "Snow White", "The Snow Queen", "Ice Princess"], respuesta: "Frozen" },
+          { pregunta: "🦁👑🌅", opciones: ["The Lion King", "Aladdin", "Beauty and the Beast", "The Jungle Book"], respuesta: "The Lion King" },
+{ pregunta: "🚀👨‍🚀🌌", opciones: ["Interstellar", "Gravity", "The Martian", "Apollo 13"], respuesta: "Interstellar" },
+{ pregunta: "🏰👸🐸", opciones: ["The Princess and the Frog", "Shrek", "Enchanted", "Tangled"], respuesta: "The Princess and the Frog" },
+{ pregunta: "🎭🕴️🔫", opciones: ["The Matrix", "John Wick", "James Bond", "Mission Impossible"], respuesta: "The Matrix" },
+{ pregunta: "🧙‍♂️⚡👓", opciones: ["Harry Potter", "The Lord of the Rings", "The Chronicles of Narnia", "Percy Jackson"], respuesta: "Harry Potter" },
+{ pregunta: "🚗🌇🏁", opciones: ["Fast and Furious", "The Fast and the Furious: Tokyo Drift", "Need for Speed", "Gone in 60 Seconds"], respuesta: "Fast and Furious" },
+{ pregunta: "🦇🏙️🤡", opciones: ["The Dark Knight", "Batman Begins", "Joker", "The Batman"], respuesta: "The Dark Knight" },
+{ pregunta: "👽📞🏠", opciones: ["E.T. the Extra-Terrestrial", "Close Encounters of the Third Kind", "Arrival", "The Day the Earth Stood Still"], respuesta: "E.T. the Extra-Terrestrial" },
+{ pregunta: "🚢❤️🌊", opciones: ["Titanic", "The Poseidon Adventure", "A Perfect Storm", "The Abyss"], respuesta: "Titanic" },
+{ pregunta: "🔍🕵️‍♂️🔫", opciones: ["Sherlock Holmes", "The Da Vinci Code", "National Treasure", "The Bourne Identity"], respuesta: "Sherlock Holmes" },
+{ pregunta: "🎵🎤🎹", opciones: ["La La Land", "A Star is Born", "Bohemian Rhapsody", "The Greatest Showman"], respuesta: "La La Land" },
+{ pregunta: "👻🏠👦", opciones: ["Casper", "The Haunting", "The Amityville Horror", "Poltergeist"], respuesta: "Casper" },
+{ pregunta: "🦕🏝️🔬", opciones: ["Jurassic Park", "The Lost World", "King Kong", "Godzilla"], respuesta: "Jurassic Park" },
+{ pregunta: "👗👠💼", opciones: ["The Devil Wears Prada", "Legally Blonde", "Working Girl", "13 Going on 30"], respuesta: "The Devil Wears Prada" },
+{ pregunta: "🚀🤖👦", opciones: ["Big Hero 6", "Astro Boy", "Robots", "The Iron Giant"], respuesta: "Big Hero 6" }
         ]
       },
       canciones: {
@@ -94,7 +111,27 @@ const JuegoSimple = ({
           { pregunta: "____, qué noche tan linda", opciones: ["Navidad", "Amigos", "Fiesta", "Alegría"], respuesta: "Navidad" },
           { pregunta: "Vuela, vuela, vuela, la ____", opciones: ["mariposa", "campana", "estrella", "paloma"], respuesta: "campana" },
           { pregunta: "____, José, no te dé cuidado", opciones: ["María", "Mujer", "Esposa", "Querida"], respuesta: "María" },
-          { pregunta: "El ____ al niño le trae", opciones: ["burrito", "pastor", "rey", "ángel"], respuesta: "burrito" }
+          { pregunta: "El ____ al niño le trae", opciones: ["burrito", "pastor", "rey", "ángel"], respuesta: "burrito" },
+          { pregunta: "I'm dreaming of a white ____", opciones: ["Christmas", "holiday", "winter", "snow"], respuesta: "Christmas" },
+{ pregunta: "Jingle bells, jingle bells, jingle all the ____", opciones: ["way", "night", "day", "time"], respuesta: "way" },
+{ pregunta: "Last Christmas I gave you my ____", opciones: ["heart", "love", "soul", "gift"], respuesta: "heart" },
+{ pregunta: "All I want for Christmas is ____", opciones: ["you", "love", "joy", "peace"], respuesta: "you" },
+{ pregunta: "Santa Claus is coming to ____", opciones: ["town", "you", "home", "us"], respuesta: "town" },
+{ pregunta: "Feliz Navidad, Feliz Navidad, ____", opciones: ["Feliz Navidad", "te deseo yo", "con amor", "y prosperidad"], respuesta: "Feliz Navidad" },
+{ pregunta: "It's the most wonderful ____ of the year", opciones: ["time", "day", "night", "season"], respuesta: "time" },
+{ pregunta: "Let it snow, let it snow, let it ____", opciones: ["snow", "go", "flow", "glow"], respuesta: "snow" },
+{ pregunta: "Rockin' around the Christmas ____", opciones: ["tree", "time", "night", "world"], respuesta: "tree" },
+{ pregunta: "Noche de paz, noche de ____", opciones: ["amor", "sueño", "alegría", "fe"], respuesta: "amor" },
+{ pregunta: "Have yourself a merry little ____", opciones: ["Christmas", "holiday", "winter", "night"], respuesta: "Christmas" },
+{ pregunta: "Los ____ de la noche son tan fríos", opciones: ["vientos", "aires", "cantos", "sueños"], respuesta: "vientos" },
+{ pregunta: "Santa baby, just slip a ____ under the tree", opciones: ["sable", "diamond", "ring", "car"], respuesta: "sable" },
+{ pregunta: "Ven a cantar, ven a ____", opciones: ["gozar", "reír", "bailar", "amar"], respuesta: "gozar" },
+{ pregunta: "It's beginning to look a lot like ____", opciones: ["Christmas", "winter", "holidays", "snow"], respuesta: "Christmas" },
+{ pregunta: "Esta ____ es para ti", opciones: ["Navidad", "noche", "canción", "alegría"], respuesta: "Navidad" },
+{ pregunta: "Do you hear what I ____?", opciones: ["hear", "see", "feel", "know"], respuesta: "hear" },
+{ pregunta: "En Navidad, yo quiero ____", opciones: ["amor", "paz", "alegría", "felicidad"], respuesta: "amor" },
+{ pregunta: "You're a mean one, Mr. ____", opciones: ["Grinch", "Scrooge", "Santa", "Frost"], respuesta: "Grinch" },
+{ pregunta: "Blanca Navidad de ____ y amor", opciones: ["paz", "nieve", "alegría", "fe"], respuesta: "paz" }
         ]
       },
       quiz: {
@@ -128,33 +165,33 @@ const JuegoSimple = ({
         ]
       },
       familia: {
-        titulo: "👨‍👩‍👧‍👦 Adivina el Familiar",
+        titulo: "Completa el Refran!!",
         preguntas: [
-          { pregunta: "Esta persona siempre organiza los juegos familiares", opciones: ["María", "Juan", "Carlos", "Ana"], respuesta: "María" },
-          { pregunta: "Sabe todas las letras de los villancicos de memoria", opciones: ["La abuela", "El niño", "Papá", "La tía"], respuesta: "La abuela" },
-          { pregunta: "Siempre llega tarde a la cena navideña", opciones: ["El tío", "La prima", "Mamá", "El abuelo"], respuesta: "El tío" },
-          { pregunta: "Es el mejor contando chistes malos", opciones: ["Papá", "El primo", "La tía", "El sobrino"], respuesta: "Papá" },
-          { pregunta: "Nunca se olvida de comprar los regalos", opciones: ["Mamá", "Papá", "La abuela", "El hijo mayor"], respuesta: "Mamá" },
-          { pregunta: "Siempre toma fotos de todos los momentos", opciones: ["La hija", "El abuelo", "La tía", "El primo"], respuesta: "La hija" },
-          { pregunta: "Tiene la risa más contagiosa de la familia", opciones: ["El primo pequeño", "La abuela", "Mamá", "El tío"], respuesta: "El primo pequeño" },
-          { pregunta: "Siempre gana en los juegos de cartas", opciones: ["El abuelo", "Papá", "La tía", "El sobrino"], respuesta: "El abuelo" },
-          { pregunta: "Prepara el mejor ponche navideño", opciones: ["La tía", "Mamá", "La abuela", "Papá"], respuesta: "La tía" },
-          { pregunta: "Siempre pide el mismo postre cada año", opciones: ["El hijo menor", "El abuelo", "Mamá", "La prima"], respuesta: "El hijo menor" },
-          { pregunta: "Organiza la decoración del árbol", opciones: ["Los niños", "Mamá", "Papá", "La abuela"], respuesta: "Los niños" },
-          { pregunta: "Siempre cuenta historias del pasado", opciones: ["El abuelo", "La tía", "Papá", "Mamá"], respuesta: "El abuelo" },
-          { pregunta: "Es el más emocionado con los regalos", opciones: ["El más pequeño", "La hija", "El primo", "El sobrino"], respuesta: "El más pequeño" },
-          { pregunta: "Siempre trae el pavo", opciones: ["Papá", "Mamá", "El tío", "La abuela"], respuesta: "Papá" },
-          { pregunta: "Coordina el intercambio de regalos", opciones: ["Mamá", "Papá", "La hija mayor", "El abuelo"], respuesta: "Mamá" },
-          { pregunta: "Tiene una colección de adornos navideños", opciones: ["La abuela", "Mamá", "La tía", "Los niños"], respuesta: "La abuela" },
-          { pregunta: "Siempre se duerme primero después de la cena", opciones: ["El abuelo", "El primo", "La tía", "El sobrino"], respuesta: "El abuelo" },
-          { pregunta: "Es el experto en armar las luces navideñas", opciones: ["Papá", "El tío", "El primo mayor", "El abuelo"], respuesta: "Papá" },
-          { pregunta: "Siempre pide pizza el 25 de diciembre", opciones: ["Los jóvenes", "Los niños", "Los adultos", "Todos"], respuesta: "Los jóvenes" },
-          { pregunta: "Guarda todos los recuerdos navideños", opciones: ["Mamá", "La hija", "La abuela", "Papá"], respuesta: "Mamá" },
-          { pregunta: "Siempre llega con regalos extras", opciones: ["La tía", "El tío", "Los primos", "Los abuelos"], respuesta: "La tía" },
-          { pregunta: "Es el primero en probar toda la comida", opciones: ["Papá", "El abuelo", "Los niños", "Mamá"], respuesta: "Papá" },
-          { pregunta: "Siempre sugiere ver la misma película", opciones: ["El hijo menor", "La abuela", "Mamá", "El primo"], respuesta: "El hijo menor" },
-          { pregunta: "Coordina la hora de la cena", opciones: ["Mamá", "Papá", "La abuela", "La tía"], respuesta: "Mamá" },
-          { pregunta: "Siempre se ofrece para lavar los platos", opciones: ["La hija mayor", "El primo", "El tío", "Papá"], respuesta: "La hija mayor" }
+          { pregunta: "Al que madruga...", opciones: ["Dios le ayuda", "le caen las manzanas", "nadie le ve", "le sale el sol"], respuesta: "Dios le ayuda" },
+{ pregunta: "No por mucho madrugar...", opciones: ["se duerme más", "se amanece más temprano", "se hace más rico", "se vive mejor"], respuesta: "se amanece más temprano" },
+{ pregunta: "A quien le pica...", opciones: ["se rasca", "se aguanta", "se queja", "se cura"], respuesta: "se rasca" },
+{ pregunta: "Más vale pájaro en mano...", opciones: ["que dos volando", "que cien en el suelo", "que diez en el nido", "que ciento en el monte"], respuesta: "que ciento en el monte" },
+{ pregunta: "Ojos que no ven...", opciones: ["boca que no come", "manos que no trabajan", "corazón que no siente", "oídos que no escuchan"], respuesta: "corazón que no siente" },
+{ pregunta: "Cuando el río suena...", opciones: ["piedras lleva", "agua lleva", "peces lleva", "arena lleva"], respuesta: "piedras lleva" },
+{ pregunta: "En boca cerrada...", opciones: ["no hay dolor", "no hay risa", "no entran moscas", "no salen palabras"], respuesta: "no entran moscas" },
+{ pregunta: "Dime con quién andas...", opciones: ["y te diré quién eres", "y te diré adónde vas", "y te diré qué haces", "y te diré cómo estás"], respuesta: "y te diré quién eres" },
+{ pregunta: "Camarón que se duerme...", opciones: ["se lo come el pez", "se lo lleva la corriente", "se despierta tarde", "no desayuna"], respuesta: "se lo lleva la corriente" },
+{ pregunta: "A lo hecho...", opciones: ["pecho", "derecho", "hecho", "techo"], respuesta: "pecho" },
+{ pregunta: "Más vale maña...", opciones: ["que belleza", "que dinero", "que fuerza", "que fama"], respuesta: "que fuerza" },
+{ pregunta: "El que mucho abarca...", opciones: ["poco aprieta", "poco alcanza", "poco entiende", "poco disfruta"], respuesta: "poco aprieta" },
+{ pregunta: "No hay mal que por bien...", opciones: ["no venga", "no vaya", "venga", "no salga"], respuesta: "no venga" },
+{ pregunta: "Al no haber pan...", opciones: ["Tortillas", "buenas son galletas", "bueno es el arroz", "buenas son las frutas"], respuesta: "Tortillas" },
+{ pregunta: "Donde hay humo...", opciones: ["hay fuego", "hay calor", "hay gente", "hay cocina"], respuesta: "hay fuego" },
+{ pregunta: "Perro que ladra...", opciones: ["no duerme", "no come", "no muerde", "no juega"], respuesta: "no muerde" },
+{ pregunta: "A buen entendedor...", opciones: ["pocas palabras", "muchas palabras", "buen hablador", "mejor oyente"], respuesta: "pocas palabras" },
+{ pregunta: "El que ríe último...", opciones: ["ríe mejor", "más fuerte ríe", "más tarde ríe", "más feliz es"], respuesta: "ríe mejor" },
+{ pregunta: "A caballo regalado...", opciones: ["no se le ve el colmillo", "no se le mira el diente", "no se le cambia", "no se le vende"], respuesta: "no se le mira el diente" },
+{ pregunta: "Del árbol caído...", opciones: ["todos hacen leña", "todos recogen frutas", "todos se alejan", "todos tienen sombra"], respuesta: "todos hacen leña" },
+{ pregunta: "Cría cuervos...", opciones: ["y te sacarán los ojos", "y te comerán el pan", "y te quitarán el sueño", "y te robarán el alma"], respuesta: "y te sacarán los ojos" },
+{ pregunta: "La curiosidad mató...", opciones: ["al ratón", "al gato", "al perro", "al pájaro"], respuesta: "al gato" },
+{ pregunta: "No dejes para mañana...", opciones: ["lo que puedes hacer hoy", "lo que puedes hacer después", "lo que puedes hacer nunca", "lo que puedes hacer pronto"], respuesta: "lo que puedes hacer hoy" },
+{ pregunta: "Agua que no has de beber...", opciones: ["déjala correr", "tírala al mar", "guárdala bien", "ofrécesela a otro"], respuesta: "déjala correr" },
+{ pregunta: "Dios aprieta...", opciones: ["pero no ahorca", "pero no castiga", "pero no olvida", "pero no abandona"], respuesta: "pero no ahorca" }
         ]
       }
     };
@@ -258,7 +295,7 @@ const JuegoSimple = ({
           duracion: Date.now() - tiempoInicio,
           detalles: {
             rachaMaxima: mejorRacha,
-            preguntasCorrectas: puntuacion / 10 // Estimación
+            preguntasCorrectas: Math.round(puntuacion / 10) // MEJORADO: cálculo más preciso
           }
         };
         guardarEnRanking(juegoId, puntuacion, datosSession);
@@ -300,12 +337,23 @@ const JuegoSimple = ({
             </div>
             <div className="text-center">
               <div className="text-sm text-gray-600">Tu récord</div>
-              <div className="text-lg font-bold text-purple-600">{mejorPuntuacion} pts</div>
+              <div className="text-lg font-bold text-purple-600">
+                {mejorPuntuacionCargada ? mejorPuntuacion : "..."} pts
+              </div>
             </div>
           </div>
-          {puntuacion > mejorPuntuacion && (
+          
+          {/* MEJORADO: Solo mostrar nuevo récord cuando realmente lo sea */}
+          {mejorPuntuacionCargada && puntuacion > mejorPuntuacion && mejorPuntuacion > 0 && (
             <div className="text-xl font-bold text-yellow-600 mb-4">
               🏆 ¡Nuevo récord personal!
+            </div>
+          )}
+          
+          {/* MEJORADO: Mensaje para primer juego */}
+          {mejorPuntuacionCargada && mejorPuntuacion === 0 && (
+            <div className="text-xl font-bold text-blue-600 mb-4">
+              ⭐ ¡Primera puntuación registrada!
             </div>
           )}
         </div>
@@ -350,7 +398,9 @@ const JuegoSimple = ({
         </div>
         <div className="text-center">
           <div className="text-sm text-purple-600">Mejor</div>
-          <div className="text-lg font-bold text-purple-700">{mejorPuntuacion}</div>
+          <div className="text-lg font-bold text-purple-700">
+            {mejorPuntuacionCargada ? mejorPuntuacion : "..."}
+          </div>
         </div>
       </div>
 
@@ -423,7 +473,7 @@ const JuegoSimple = ({
   );
 };
 
-// MEMORY GAME CORREGIDO - PUNTOS POSITIVOS
+// MEMORY GAME MEJORADO - SISTEMA DE PUNTOS MÁS VARIADO
 const MemoryGame = ({ 
   usuarioActual, 
   volverASeleccion, 
@@ -443,29 +493,40 @@ const MemoryGame = ({
   const [bloquearClics, setBloquearClics] = useState(false);
   const [puntuacion, setPuntuacion] = useState(0);
   const [mejorPuntuacion, setMejorPuntuacion] = useState(0);
+  const [mejorPuntuacionCargada, setMejorPuntuacionCargada] = useState(false);
 
-  // Cargar mejor puntuación al iniciar
+  // Cargar mejor puntuación al iniciar - CORREGIDO
   useEffect(() => {
     const cargarMejorPuntuacion = async () => {
       const mejor = await obtenerMejorPuntuacionPersonal("memory");
       setMejorPuntuacion(mejor);
+      setMejorPuntuacionCargada(true);
     };
     cargarMejorPuntuacion();
   }, []);
 
-  // SISTEMA SIMPLE DE PUNTOS - CORREGIDO
+  // SISTEMA DE PUNTOS MEJORADO - MÁS VARIABILIDAD
   const calcularPuntuacionMemory = (totalMovimientos) => {
     // Puntuación base por completar el juego
     let puntuacionBase = 100;
     
-    // Bonificación por eficiencia (menos movimientos = más puntos)
-    if (totalMovimientos <= 20) return puntuacionBase + 80;      // 180 puntos
-    if (totalMovimientos <= 24) return puntuacionBase + 60;      // 160 puntos  
-    if (totalMovimientos <= 28) return puntuacionBase + 40;      // 140 puntos
-    if (totalMovimientos <= 32) return puntuacionBase + 20;      // 120 puntos
-    if (totalMovimientos <= 36) return puntuacionBase;           // 100 puntos
-    if (totalMovimientos <= 40) return puntuacionBase - 20;      // 80 puntos
-    return puntuacionBase - 40;                                  // 60 puntos (mínimo)
+    // BONUS POR EFICIENCIA - MÁS GRANULARIDAD
+    let bonusEficiencia = 0;
+    
+    if (totalMovimientos <= 16) bonusEficiencia = 100;        // Perfecto (mínimo teórico: 16)
+    else if (totalMovimientos <= 20) bonusEficiencia = 85;    // Excelente
+    else if (totalMovimientos <= 24) bonusEficiencia = 70;    // Muy bueno
+    else if (totalMovimientos <= 28) bonusEficiencia = 55;    // Bueno  
+    else if (totalMovimientos <= 32) bonusEficiencia = 40;    // Normal
+    else if (totalMovimientos <= 36) bonusEficiencia = 25;    // Regular
+    else if (totalMovimientos <= 40) bonusEficiencia = 10;    // Básico
+    else bonusEficiencia = 0;                                 // Solo completó
+    
+    // PUNTUACIÓN FINAL CON MÁS VARIABILIDAD
+    const puntuacionFinal = puntuacionBase + bonusEficiencia;
+    
+    // Asegurar mínimo de puntos
+    return Math.max(50, puntuacionFinal);
   };
 
   useEffect(() => {
@@ -511,18 +572,23 @@ const MemoryGame = ({
             const nuevosPares = prev + 1;
             if (nuevosPares === 8) {
               setJuegoTerminado(true);
-              // CALCULAR PUNTUACIÓN FINAL - CORREGIDO: usar nuevosMovimientos + 1
+              // CALCULAR PUNTUACIÓN FINAL - SISTEMA MEJORADO
               const totalMovimientos = nuevosMovimientos;
               const puntuacionFinal = calcularPuntuacionMemory(totalMovimientos);
               setPuntuacion(puntuacionFinal);
+              
               const datosSession = {
                 paresEncontrados: 8,
                 movimientos: totalMovimientos,
-                duracion: 0, // Podrías agregar un timer
+                duracion: 0,
                 detalles: {
-                  eficiencia: totalMovimientos <= 20 ? "excelente" : totalMovimientos <= 28 ? "buena" : "normal"
+                  eficiencia: totalMovimientos <= 16 ? "perfecto" : 
+                            totalMovimientos <= 20 ? "excelente" :
+                            totalMovimientos <= 24 ? "muy bueno" : 
+                            totalMovimientos <= 28 ? "bueno" : "normal"
                 }
               };
+              
               guardarEnRanking("memory", puntuacionFinal, datosSession);
             }
             return nuevosPares;
@@ -557,7 +623,9 @@ const MemoryGame = ({
           <div className="text-sm text-purple-600">Puntos</div>
         </div>
         <div className="text-center">
-          <div className="text-lg font-bold text-purple-700">{mejorPuntuacion}</div>
+          <div className="text-lg font-bold text-purple-700">
+            {mejorPuntuacionCargada ? mejorPuntuacion : "..."}
+          </div>
           <div className="text-sm text-purple-600">Mejor</div>
         </div>
       </div>
@@ -588,11 +656,21 @@ const MemoryGame = ({
           <p className="text-green-600">
             Puntos obtenidos: <strong>{puntuacion}</strong>
           </p>
-          {puntuacion > mejorPuntuacion && (
+          
+          {/* CORRECCIÓN: Solo mostrar "Nuevo récord" cuando realmente lo sea */}
+          {mejorPuntuacionCargada && puntuacion > mejorPuntuacion && mejorPuntuacion > 0 && (
             <p className="text-green-800 font-bold mt-2">
               🏆 ¡Nuevo récord personal!
             </p>
           )}
+          
+          {/* Mostrar mensaje diferente para primer juego */}
+          {mejorPuntuacionCargada && mejorPuntuacion === 0 && (
+            <p className="text-blue-600 font-bold mt-2">
+              ⭐ ¡Primera puntuación registrada!
+            </p>
+          )}
+          
           <div className="flex gap-2 mt-3">
             <button
               onClick={iniciarJuego}
@@ -622,7 +700,7 @@ const MemoryGame = ({
   );
 };
 
-// COMPONENTE PRINCIPAL CORREGIDO - SISTEMA FIREBASE
+// COMPONENTE PRINCIPAL MEJORADO
 export default function Juegos() {
   const [usuarioActual, setUsuarioActual] = useState(null);
   const [juegoActivo, setJuegoActivo] = useState(null);
@@ -665,9 +743,9 @@ export default function Juegos() {
     },
     {
       id: "familia",
-      nombre: "👨‍👩‍👧‍👦 Adivina el Familiar",
-      descripcion: "¿Quién es quién en la familia?",
-      icono: "👨‍👩‍👧‍👦",
+      nombre: "🔤 Refranes",
+      descripcion: "Adivina el refran",
+      icono: "🔤",
       color: "from-yellow-500 to-amber-500",
       dificultad: "Difícil"
     }
@@ -683,16 +761,14 @@ export default function Juegos() {
     cargarRankings();
   }, []);
 
-  // FUNCIÓN ACTUALIZADA PARA CARGAR RANKINGS DESDE FIREBASE
+  // FUNCIÓN MEJORADA PARA CARGAR RANKINGS
   const cargarRankings = async () => {
     try {
       setCargando(true);
       setMensaje("🔄 Cargando rankings desde Firebase...");
-      console.log('🔍 Cargando rankings desde Firebase...');
       
       const nuevoRankingGlobal = {};
       
-      // Cargar rankings de cada juego
       for (const juego of juegos) {
         try {
           const rankingJuego = await gobaService.obtenerRankingJuego(juego.id);
@@ -706,8 +782,6 @@ export default function Juegos() {
               avatar: jugador.avatar
             };
           });
-          
-          console.log(`✅ Ranking de ${juego.nombre}:`, rankingJuego.length, 'jugadores');
         } catch (error) {
           console.log(`⚠️ Error cargando ranking de ${juego.id}:`, error);
           nuevoRankingGlobal[juego.id] = {};
@@ -721,7 +795,6 @@ export default function Juegos() {
     } catch (error) {
       console.log('❌ Error cargando rankings de Firebase:', error);
       setMensaje("⚠️ Error cargando rankings");
-      // Intentar cargar desde localStorage como fallback
       const rankingLocal = JSON.parse(localStorage.getItem('rankingGlobal')) || {};
       setRankingGlobal(rankingLocal);
     } finally {
@@ -730,16 +803,9 @@ export default function Juegos() {
     }
   };
 
-  // FUNCIÓN ACTUALIZADA PARA GUARDAR EN RANKING CON FIREBASE
+  // FUNCIÓN MEJORADA PARA GUARDAR EN RANKING
   const guardarEnRanking = async (juegoId, puntuacion, datosSession = {}) => {
     try {
-      console.log('💾 Guardando puntuación en Firebase:', { 
-        juegoId, 
-        puntuacion, 
-        usuario: usuarioActual.nombre,
-        datosSession 
-      });
-      
       setMensaje("📡 Guardando puntuación...");
       
       const resultado = await gobaService.guardarPuntuacionJuego(
@@ -749,22 +815,18 @@ export default function Juegos() {
         datosSession
       );
       
-      console.log('✅ Puntuación guardada en Firebase:', resultado);
-      
       if (resultado.esNuevoRecord) {
         setMensaje("🎉 ¡Nuevo récord personal!");
       } else {
         setMensaje("✅ Puntuación guardada");
       }
       
-      // Actualizar rankings locales
       cargarRankings();
       
     } catch (error) {
       console.log('❌ Error guardando en Firebase:', error);
       setMensaje("⚠️ Error guardando puntuación");
       
-      // Fallback a localStorage
       const usuarioKey = usuarioActual.nombre;
       setRankingGlobal(prev => {
         const nuevoRanking = { ...prev };
@@ -823,15 +885,17 @@ export default function Juegos() {
     setJuegoActivo(null);
   };
 
-  // COMPONENTE RANKING
+  // COMPONENTE RANKING MEJORADO
   const RankingJuego = ({ juegoId, juegoNombre }) => {
     const ranking = obtenerRankingJuego(juegoId);
     const [mejorPuntuacion, setMejorPuntuacion] = useState(0);
+    const [mejorPuntuacionCargada, setMejorPuntuacionCargada] = useState(false);
 
     useEffect(() => {
       const cargarMejorPuntuacion = async () => {
         const mejor = await obtenerMejorPuntuacionPersonal(juegoId);
         setMejorPuntuacion(mejor);
+        setMejorPuntuacionCargada(true);
       };
       cargarMejorPuntuacion();
     }, [juegoId]);
@@ -892,7 +956,9 @@ export default function Juegos() {
         <div className="mt-4 p-3 bg-blue-50 rounded-lg">
           <div className="text-center">
             <p className="text-blue-700 font-semibold">
-              Tu mejor puntuación: <strong>{mejorPuntuacion} pts</strong>
+              Tu mejor puntuación: <strong>
+                {mejorPuntuacionCargada ? mejorPuntuacion : "..."} pts
+              </strong>
             </p>
           </div>
         </div>
@@ -916,7 +982,6 @@ export default function Juegos() {
             Compite por la mejor marca personal. ¡Supera tus propios récords!
           </p>
           
-          {/* MENSAJE DE ESTADO */}
           {mensaje && (
             <div className={`inline-block px-4 py-2 rounded-lg mb-4 ${
               mensaje.includes('✅') || mensaje.includes('🎉') ? 'bg-green-100 text-green-700 border border-green-300' :
@@ -1014,48 +1079,47 @@ export default function Juegos() {
             )}
           </div>
         )}
-{usuarioActual?.esAdmin && !juegoActivo && (
-  <div className="bg-yellow-50 border-2 border-yellow-300 rounded-2xl p-6 mt-8">
-    <h3 className="text-2xl font-bold mb-4 text-yellow-800 text-center">
-      👑 Panel de Administración - Juegos
-    </h3>
-    
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-      <button
-        onClick={async () => {
-          if (window.confirm('¿REINICIAR TODOS LOS PUNTAJES?\n\n⚠️ Esta acción eliminará TODOS los rankings y sesiones de juego. Es irreversible.')) {
-            try {
-              setMensaje("🗑️ Reiniciando puntajes...");
-              const resultado = await gobaService.reiniciarTodosLosPuntajes();
-              setMensaje(resultado.message);
-              // Recargar rankings
-              cargarRankings();
-            } catch (error) {
-              setMensaje("❌ Error: " + error.message);
-            }
-          }
-        }}
-        className="bg-red-500 hover:bg-red-600 text-white font-bold py-4 px-6 rounded-xl transition-all transform hover:scale-105"
-      >
-        🗑️ Reiniciar Todos los Puntajes
-      </button>
-      
-      <Link 
-        to="/concurso-rapido"
-        className="bg-green-500 hover:bg-green-600 text-white font-bold py-4 px-6 rounded-xl transition-all transform hover:scale-105 text-center flex items-center justify-center"
-      >
-        ⚡ Ir al Concurso Rápido
-      </Link>
-    </div>
-    
-    <div className="mt-4 text-center">
-      <p className="text-yellow-700 text-sm">
-        💡 <strong>Acciones de administrador:</strong> Solo visible para usuarios admin
-      </p>
-    </div>
-  </div>
-)}
 
+        {usuarioActual?.esAdmin && !juegoActivo && (
+          <div className="bg-yellow-50 border-2 border-yellow-300 rounded-2xl p-6 mt-8">
+            <h3 className="text-2xl font-bold mb-4 text-yellow-800 text-center">
+              👑 Panel de Administración - Juegos
+            </h3>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <button
+                onClick={async () => {
+                  if (window.confirm('¿REINICIAR TODOS LOS PUNTAJES?\n\n⚠️ Esta acción eliminará TODOS los rankings y sesiones de juego. Es irreversible.')) {
+                    try {
+                      setMensaje("🗑️ Reiniciando puntajes...");
+                      const resultado = await gobaService.reiniciarTodosLosPuntajes();
+                      setMensaje(resultado.message);
+                      cargarRankings();
+                    } catch (error) {
+                      setMensaje("❌ Error: " + error.message);
+                    }
+                  }
+                }}
+                className="bg-red-500 hover:bg-red-600 text-white font-bold py-4 px-6 rounded-xl transition-all transform hover:scale-105"
+              >
+                🗑️ Reiniciar Todos los Puntajes
+              </button>
+              
+              <Link 
+                to="/concurso-rapido"
+                className="bg-green-500 hover:bg-green-600 text-white font-bold py-4 px-6 rounded-xl transition-all transform hover:scale-105 text-center flex items-center justify-center"
+              >
+                ⚡ Ir al Concurso Rápido
+              </Link>
+            </div>
+            
+            <div className="mt-4 text-center">
+              <p className="text-yellow-700 text-sm">
+                💡 <strong>Acciones de administrador:</strong> Solo visible para usuarios admin
+              </p>
+            </div>
+          </div>
+        )}
 
         <div className="text-center">
           <Link 
