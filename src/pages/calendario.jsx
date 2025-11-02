@@ -39,17 +39,14 @@ export default function Calendario() {
     }
   ];
 
-  // Fechas de cierre de retos por semana (domingos a las 6:00 PM)
-  const fechasRetos = [
-    "2025-11-09T18:00:00-06:00", // Semana 1
-    "2025-11-16T18:00:00-06:00", // Semana 2
-    "2025-11-23T18:00:00-06:00", // Semana 3
-    "2025-11-30T18:00:00-06:00", // Semana 4
-    "2025-12-07T18:00:00-06:00", // Semana 5
-    "2025-12-14T18:00:00-06:00", // Semana 6
-    "2025-12-21T18:00:00-06:00", // Semana 7
-    "2025-12-28T18:00:00-06:00"  // Semana 8
-  ];
+  // ✅ NUEVA FUNCIÓN - Obtener fecha actual en hora de Honduras (UTC-6)
+  const getHoyHonduras = () => {
+    const ahora = new Date();
+    // Honduras está en UTC-6
+    const offsetHonduras = -6;
+    const horaHonduras = new Date(ahora.getTime() + (offsetHonduras * 60 * 60 * 1000));
+    return horaHonduras.toISOString().split('T')[0];
+  };
 
   // 🔧 FUNCIÓN CORREGIDA: Formatear fecha en hora de Honduras
   const formatearFechaHonduras = (fechaStr) => {
@@ -231,6 +228,18 @@ export default function Calendario() {
     initializeCalendario();
   }, [navigate]);
 
+  // Fechas de cierre de retos por semana (domingos a las 6:00 PM)
+  const fechasRetos = [
+    "2025-11-09T18:00:00-06:00", // Semana 1
+    "2025-11-16T18:00:00-06:00", // Semana 2
+    "2025-11-23T18:00:00-06:00", // Semana 3
+    "2025-11-30T18:00:00-06:00", // Semana 4
+    "2025-12-07T18:00:00-06:00", // Semana 5
+    "2025-12-14T18:00:00-06:00", // Semana 6
+    "2025-12-21T18:00:00-06:00", // Semana 7
+    "2025-12-28T18:00:00-06:00"  // Semana 8
+  ];
+
   // Calcular número de semana actual y fecha de cierre
   const calcularSemanaRetos = () => {
     const hoy = new Date();
@@ -316,7 +325,7 @@ export default function Calendario() {
     };
   }, [eventosFamiliares]);
 
-  // Generar calendario para un mes específico
+  // ✅ FUNCIÓN CORREGIDA: Generar calendario para un mes específico
   const generarCalendario = (mes, año) => {
     const primerDia = new Date(año, mes, 1);
     const ultimoDia = new Date(año, mes + 1, 0);
@@ -334,13 +343,15 @@ export default function Calendario() {
     for (let dia = 1; dia <= diasEnMes; dia++) {
       const fechaStr = `${año}-${(mes + 1).toString().padStart(2, '0')}-${dia.toString().padStart(2, '0')}`;
       const eventoHoy = eventosFamiliares.find(e => e.fecha === fechaStr);
-      const esHoy = new Date().toISOString().split('T')[0] === fechaStr;
+      
+      // ✅ CORREGIDO: Usar la función de hora de Honduras
+      const esHoyHonduras = getHoyHonduras() === fechaStr;
       
       calendario.push({
         dia,
         fecha: fechaStr,
         evento: eventoHoy,
-        esHoy
+        esHoy: esHoyHonduras
       });
     }
     
@@ -358,7 +369,8 @@ export default function Calendario() {
     usuarioActual: usuarioActual?.nombre,
     eventosCount: eventosFamiliares.length,
     calendarioNoviembre: calendarioNoviembre.length,
-    calendarioDiciembre: calendarioDiciembre.length
+    calendarioDiciembre: calendarioDiciembre.length,
+    hoyHonduras: getHoyHonduras() // Para debug
   });
 
   if (loading) {
