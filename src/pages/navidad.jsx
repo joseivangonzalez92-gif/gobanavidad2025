@@ -203,42 +203,95 @@ El niño Dios está soñando y yo sigo tocando`,
     {
       id: 6,
       titulo: "Las Posadas",
-      acordes: "C - G7 - C - F\nC - G7 - C - C\nF - C - G7 - C\nC - F - C - G7 - C",
-      letra: `Venid, venid, pastores
-Venid, venid, pastores
-Venid a Belén
-Venid a Belén
-A ver a nuestro Rey
-A ver a nuestro Rey
-Al Niño Jesús
-Al Niño Jesús
-
-En el portal de Belén
-En el portal de Belén
-Hace frío a la noche
-Hace frío a la noche
-La Virgen y San José
-La Virgen y San José
-Lo abrigan con amor
-Lo abrigan con amor
-
-Los bueyes con su aliento
-Los bueyes con su aliento
-Lo están calentando
-Lo están calentando
-Y el niño está llorando
-Y el niño está llorando
-Por tanta oscuridad
-Por tanta oscuridad
-
-Venid, venid, pastores
-Venid, venid, pastores
-Venid a Belén
-Venid a Belén
-A ver a nuestro Rey
-A ver a nuestro Rey
-Al Niño Jesús
-Al Niño Jesús`,
+      acordes: "Prueba en canción",
+      letra: `C                 G
+En el nombre del Cielo,
+G         C
+Os pido posada,
+C7               F
+Pues no puede andar
+C     G   C G C
+Mi Esposa amada...
+ 
+C            G
+Aqui no es meson,
+G        C
+Sigan adelante,
+C7          F
+Yo no debo abrir,
+C      G     C G C
+No sea algun tunante
+ 
+C          G
+No seas inhumano,
+G          C
+Tennos caridad,
+C7                 F
+Que el Dios de los Cielos,
+C     G  C G C
+Os lo premiaria...
+ 
+C            G
+Ya se pueden ir,
+G        C
+Y no molestar,
+C7             F
+Porque si me enfado,
+C   G    C G C
+Os voy a apalear
+ 
+C            G
+Mi esposa es Maria,
+G            C
+Es Reina del Cielo,
+C7             F
+Y Madre va a ser
+C   G      C G C
+Del Divino Verbo...
+ 
+C        G
+Eres tu, Jose?
+G            C
+Tu Esposa es Maria?
+C7           F
+Entren, Peregrinos,
+C      G  C G C
+No los conocia
+ 
+C           G
+Dios pague, senores,
+G           C
+Vuestra caridad,
+C7            F
+Y os colme el Cielo
+C  G     C G C
+De Felicidad...
+ 
+C          G
+Dichosa la casa
+G                C
+Que alberga este dia
+C7          F
+A la Virgen Pura,
+C  G       C G C
+La Hermosa Maria
+ 
+C
+Entren, Santos Peregrinos, Peregrinos,
+G            C
+Reciban este rincon...
+C
+Que aunque es pobra la morada, la morada,
+G            C
+Os la doy de Corazon
+C
+Cantemos con alegria, alegria
+G               C
+Todos al considerar
+C
+Que Jesus, Jose, y Maria (y Maria)
+G                     C
+Nos Vinieron hoy a honrar`,
       nivel: "Fácil"
     },
     {

@@ -15,7 +15,7 @@ export default function Login() {
 
   const auth = getAuth();
 
-  // 🎨🎯 LISTAS DE AVATARES Y PAÍSES FICTICIOS (AGREGADAS)
+  // 🎨🎯 LISTAS DE AVATARES Y PAÍSES FICTICIOS
   const avatares = ['🎅', '🤶', '🦌', '🧝', '🎄', '🎁', '❄️', '🌟','🧑‍🎄','🔥','🐧','⛷️','😎','💫','❤️','🥰','🥁','🎵','🍷','🐻', '🐻‍❄️', '🦊', '🦉', '🐰', '🐦', '🐈','🎀','🍪',];
 
   const paisesFicticios = [
@@ -47,7 +47,6 @@ export default function Login() {
     "Pepsi Land",
     "Jumanji",
   ];
-  // 🎨🎯 FIN DE LISTAS AGREGADAS
 
   // 🔥 FUNCIÓN TEMPORAL PARA CREAR ADMIN (eliminar después)
   const crearAdminTemporal = async () => {
@@ -84,7 +83,7 @@ export default function Login() {
     }
   };
 
-  // Verificar si ya hay sesión de Firebase Auth
+  // Verificar si ya hay sesión de Firebase Auth (solo internamente)
   useEffect(() => {
     const unsubscribe = auth.onAuthStateChanged((user) => {
       if (user) {
@@ -179,7 +178,7 @@ export default function Login() {
 
         const solicitudId = generarIdDesdeNombre(nombre) + '_' + Date.now();
         
-        // 🎨🎯 AGREGAR AVATAR Y PAÍS ALEATORIOS AQUÍ
+        // 🎨🎯 AGREGAR AVATAR Y PAÍS ALEATORIOS
         const avatarAleatorio = avatares[Math.floor(Math.random() * avatares.length)];
         const paisAleatorio = paisesFicticios[Math.floor(Math.random() * paisesFicticios.length)];
 
@@ -187,11 +186,9 @@ export default function Login() {
           id: solicitudId,
           nombreSolicitado: nombre.trim(),
           codigoSecretoSolicitado: codigoSecreto,
-          // 🎨🎯 NUEVOS CAMPOS AGREGADOS
           avatar: avatarAleatorio,
           pais: paisAleatorio,
           frase: "", // vacío por defecto, luego pueden agregar en su perfil
-          // 🎨🎯 FIN DE NUEVOS CAMPOS
           fechaSolicitud: new Date().toISOString(),
           estado: 'pendiente',
           uid: userAuth ? userAuth.uid : 'anonymous-' + Date.now()
@@ -264,14 +261,6 @@ export default function Login() {
               </div>
             )}
 
-            {/* Info de Auth Status */}
-            {userAuth && (
-              <div className="bg-green-50 border border-green-200 p-2 rounded mb-4 text-xs text-green-700">
-                🔐 Autenticado: {userAuth.uid.substring(0, 10)}...
-                {userAuth.email && ` (${userAuth.email})`}
-              </div>
-            )}
-
             <div className="space-y-6">
               <div>
                 <label className="block text-gray-700 mb-3 font-semibold flex items-center gap-2">
@@ -322,7 +311,7 @@ export default function Login() {
                   Conectando...
                 </>
               ) : (
-                ' "Botón para solicitar crear el usuario o entrar si ya tienes" '
+                ' "Entrar" '
               )}
             </button>
           </div>
@@ -347,7 +336,7 @@ export default function Login() {
             <ul className="text-blue-700 text-sm space-y-1">
               <li>• Sistema de aprobación activado</li>
               <li>• Solo usuarios autorizados</li>
-              <li>• Espera aprobación si ya estás registrado ingresa </li>
+              <li>• Espera aprobación si es tu primera vez</li>
             </ul>
           </div>
 

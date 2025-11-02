@@ -7,9 +7,13 @@ export default function Rankings() {
   const [posts, setPosts] = useState([]);
   const [postSeleccionado, setPostSeleccionado] = useState(null);
   const [mostrarReacciones, setMostrarReacciones] = useState(null);
-  const [comentarios, setComentarios] = useState({}); // 🆕 Cambiado a objeto para comentarios individuales
+  const [comentarios, setComentarios] = useState({});
   const [tipoPost, setTipoPost] = useState("texto");
   const [cargando, setCargando] = useState(true);
+  
+  // Estados para usuarios
+  const [usuariosData, setUsuariosData] = useState({});
+  const [cargandoUsuarios, setCargandoUsuarios] = useState(true);
   
   // Estados para crear posts
   const [mostrarFormPost, setMostrarFormPost] = useState(false);
@@ -25,8 +29,49 @@ export default function Rankings() {
   const [opcionesPoll, setOpcionesPoll] = useState(["", ""]);
   const [peliculaSugerida, setPeliculaSugerida] = useState("");
 
-  const reaccionesDisponibles = ["❤️", "😂", "😮", "🎄", "✨", "👏", "🔥", "🎁"];
+  // 🆕 MEJORADO: Emojis con mejor espaciado y 2 nuevos emojis
+  const reaccionesDisponibles = ["❤️", "😂", "😮", "🎄", "✨", "👏", "🔥", "🎁", "🤗", "😊", "🥰"];
   const categorias = ["general", "peliculas", "musica", "recuerdos", "divertido", "reflexiones"];
+
+  // Función para cargar datos de usuarios
+  const cargarDatosUsuarios = async () => {
+    try {
+      console.log("👥 Cargando datos de usuarios...");
+      // 🆕 CORRECCIÓN: Usar obtenerTodosUsuarios en lugar de getUsuarios
+      const usuarios = await gobaService.obtenerTodosUsuarios();
+      
+      const usuariosMap = {};
+      usuarios.forEach(usuario => {
+        usuariosMap[usuario.id] = {
+          avatar: usuario.avatar,
+          pais: usuario.pais,
+          nombre: usuario.nombre
+        };
+      });
+      
+      setUsuariosData(usuariosMap);
+      console.log(`✅ Datos de ${usuarios.length} usuarios cargados`);
+    } catch (error) {
+      console.error("❌ Error cargando datos de usuarios:", error);
+    } finally {
+      setCargandoUsuarios(false);
+    }
+  };
+
+  // Función para obtener datos actualizados del usuario
+  const getDatosUsuario = (usuarioId) => {
+    const datosBase = usuariosData[usuarioId] || {
+      avatar: "👤",
+      pais: "Sin territorio", 
+      nombre: "Usuario"
+    };
+    
+    // 🆕 AGREGADO: "de" antes del territorio
+    return {
+      ...datosBase,
+      pais: `de ${datosBase.pais}`
+    };
+  };
 
   useEffect(() => {
     const usuario = JSON.parse(localStorage.getItem('usuarioActual'));
@@ -35,7 +80,12 @@ export default function Rankings() {
       return;
     }
     setUsuarioActual(usuario);
-    cargarPosts();
+    
+    // Cargar posts y usuarios en paralelo
+    Promise.all([cargarPosts(), cargarDatosUsuarios()])
+      .finally(() => {
+        setCargando(false);
+      });
   }, []);
 
   const cargarPosts = async () => {
@@ -54,8 +104,6 @@ export default function Rankings() {
     } catch (error) {
       console.error("❌ Error cargando posts:", error);
       setPosts([]);
-    } finally {
-      setCargando(false);
     }
   };
 
@@ -186,8 +234,8 @@ export default function Rankings() {
           const nuevoComentario = {
             usuarioId: usuarioActual.id,
             usuario: usuarioActual.nombre,
-            usuarioAvatar: usuarioActual.avatar, // 🆕 Agregar avatar
-            usuarioPais: usuarioActual.pais,     // 🆕 Agregar país
+            usuarioAvatar: usuarioActual.avatar,
+            usuarioPais: usuarioActual.pais,
             texto: comentarioTexto,
             fecha: new Date().toISOString(),
             fechaFormateada: new Date().toLocaleDateString('es-ES', { 
@@ -205,7 +253,7 @@ export default function Rankings() {
       });
       setPosts(postsActualizados);
       
-      // 🆕 Limpiar solo el comentario de este post
+      // Limpiar solo el comentario de este post
       setComentarios(prev => ({ ...prev, [postId]: "" }));
       
     } catch (error) {
@@ -301,7 +349,7 @@ export default function Rankings() {
     return colores[categoria] || "bg-gray-100 text-gray-700";
   };
 
-  if (!usuarioActual) {
+  if (!usuarioActual || cargandoUsuarios) {
     return <div className="text-center py-8">Cargando NaviVibes...</div>;
   }
 
@@ -373,20 +421,22 @@ export default function Rankings() {
                 key={post.id}
                 className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-xl overflow-hidden hover:shadow-2xl transition-all duration-300 border-2 border-white"
               >
-                {/* Header del post - VERSIÓN MEJORADA */}
+                {/* Header del post - VERSIÓN ACTUALIZADA */}
                 <div className="p-4 md:p-6 border-b border-gray-100">
                   <div className="flex items-start justify-between mb-3">
                     <div className="flex items-center gap-3">
-                      {/* 🆕 AVATAR DEL USUARIO */}
-                      <div className="text-2xl">{post.usuarioAvatar || "👤"}</div>
+                      {/* AVATAR ACTUALIZADO */}
+                      <div className="text-2xl">{getDatosUsuario(post.usuarioId).avatar}</div>
                       <div>
                         <h3 className="font-bold text-gray-800 text-lg">{post.titulo}</h3>
                         <div className="flex items-center gap-2 mt-1 flex-wrap">
-                          <span className="text-sm text-gray-600">por {post.usuario}</span>
+                          <span className="text-sm text-gray-600">
+                            por {getDatosUsuario(post.usuarioId).nombre}
+                          </span>
                           <span className="text-xs text-gray-400">•</span>
-                          {/* 🆕 PAÍS FICTICIO */}
+                          {/* PAÍS ACTUALIZADO CON "de" */}
                           <span className="text-sm text-green-600 font-medium">
-                            {post.usuarioPais || "Sin territorio"}
+                            {getDatosUsuario(post.usuarioId).pais}
                           </span>
                           <span className="text-xs text-gray-400">•</span>
                           <span className="text-sm text-gray-500">
@@ -486,7 +536,7 @@ export default function Rankings() {
                     </div>
                   )}
 
-                  {/* Botones de interacción - VERSIÓN CORREGIDA */}
+                  {/* Botones de interacción */}
                   <div className="flex gap-4 border-t pt-3">
                     <div className="relative">
                       <button
@@ -498,8 +548,9 @@ export default function Rankings() {
                       </button>
 
                       {mostrarReacciones === post.id && (
-                        <div className="absolute bottom-full mb-2 left-0 bg-white rounded-xl shadow-2xl border-2 border-green-200 p-3 z-10">
-                          <div className="grid grid-cols-4 gap-2">
+                        <div className="absolute bottom-full mb-2 left-0 bg-white rounded-xl shadow-2xl border-2 border-green-200 p-3 z-10 min-w-[200px]">
+                          {/* 🆕 MEJORADO: Grid con mejor espaciado */}
+                          <div className="grid grid-cols-4 gap-3">
                             {reaccionesDisponibles.map(reaccion => (
                               <button
                                 key={reaccion}
@@ -508,7 +559,8 @@ export default function Rankings() {
                                   agregarReaccion(post.id, reaccion);
                                   setMostrarReacciones(null);
                                 }}
-                                className="text-xl hover:scale-125 transition-transform duration-200 p-2 rounded-lg hover:bg-gray-100"
+                                className="text-2xl hover:scale-125 transition-transform duration-200 p-2 rounded-lg hover:bg-gray-100 flex items-center justify-center"
+                                title={reaccion}
                               >
                                 {reaccion}
                               </button>
@@ -523,7 +575,7 @@ export default function Rankings() {
                         type="text"
                         placeholder="Escribe un comentario..."
                         className="flex-1 text-sm p-2 border border-gray-300 rounded-lg focus:border-green-400 focus:outline-none"
-                        value={comentarios[post.id] || ""} // 🆕 Comentario individual por post
+                        value={comentarios[post.id] || ""}
                         onChange={(e) => setComentarios(prev => ({ 
                           ...prev, 
                           [post.id]: e.target.value 
@@ -538,24 +590,26 @@ export default function Rankings() {
                     </div>
                   </div>
 
-                  {/* Comentarios existentes - VERSIÓN MEJORADA */}
+                  {/* Comentarios existentes - VERSIÓN ACTUALIZADA */}
                   {post.comentarios && post.comentarios.length > 0 && (
                     <div className="mt-4 space-y-3">
                       {post.comentarios.slice(-3).map((coment, idx) => (
                         <div key={idx} className="bg-gray-50 p-3 rounded-lg">
                           <div className="flex items-start gap-3 mb-2">
-                            {/* 🆕 AVATAR EN COMENTARIO */}
-                            <div className="text-lg">{coment.usuarioAvatar || "👤"}</div>
+                            {/* AVATAR ACTUALIZADO EN COMENTARIO */}
+                            <div className="text-lg">{getDatosUsuario(coment.usuarioId).avatar}</div>
                             <div className="flex-1">
                               <div className="flex justify-between items-start">
-                                <span className="font-semibold text-gray-800 text-sm">{coment.usuario}</span>
+                                <span className="font-semibold text-gray-800 text-sm">
+                                  {getDatosUsuario(coment.usuarioId).nombre}
+                                </span>
                                 <span className="text-xs text-gray-500">
                                   {coment.fechaFormateada || coment.fecha}
                                 </span>
                               </div>
-                              {/* 🆕 PAÍS EN COMENTARIO */}
+                              {/* PAÍS ACTUALIZADO EN COMENTARIO CON "de" */}
                               <p className="text-xs text-green-600 font-medium">
-                                {coment.usuarioPais || "Sin territorio"}
+                                {getDatosUsuario(coment.usuarioId).pais}
                               </p>
                             </div>
                           </div>
@@ -810,14 +864,16 @@ export default function Rankings() {
                 </button>
                 
                 <div className="flex items-start gap-3 mb-4">
-                  <div className="text-3xl">{getIconoTipo(postSeleccionado.tipo)}</div>
+                  <div className="text-3xl">{getDatosUsuario(postSeleccionado.usuarioId).avatar}</div>
                   <div>
                     <h3 className="text-2xl font-bold text-gray-800">{postSeleccionado.titulo}</h3>
                     <div className="flex items-center gap-2 mt-1">
-                      <span className="text-gray-600">por {postSeleccionado.usuario}</span>
+                      <span className="text-gray-600">
+                        por {getDatosUsuario(postSeleccionado.usuarioId).nombre}
+                      </span>
                       <span className="text-gray-400">•</span>
                       <span className="text-green-600 font-medium">
-                        {postSeleccionado.usuarioPais || "Sin territorio"}
+                        {getDatosUsuario(postSeleccionado.usuarioId).pais}
                       </span>
                       <span className="text-gray-400">•</span>
                       <span className="text-gray-500">
@@ -859,7 +915,7 @@ export default function Rankings() {
                   </div>
                 )}
 
-                {/* Comentarios en modal - VERSIÓN MEJORADA */}
+                {/* Comentarios en modal - VERSIÓN ACTUALIZADA */}
                 <div className="border-t pt-6">
                   <h4 className="font-semibold text-gray-800 mb-4">
                     Comentarios ({postSeleccionado.comentarios?.length || 0})
@@ -869,18 +925,20 @@ export default function Rankings() {
                       {postSeleccionado.comentarios.map((coment, idx) => (
                         <div key={idx} className="bg-gray-50 p-4 rounded-lg">
                           <div className="flex items-start gap-3 mb-2">
-                            {/* 🆕 AVATAR EN MODAL */}
-                            <div className="text-xl">{coment.usuarioAvatar || "👤"}</div>
+                            {/* AVATAR ACTUALIZADO EN MODAL */}
+                            <div className="text-xl">{getDatosUsuario(coment.usuarioId).avatar}</div>
                             <div className="flex-1">
                               <div className="flex justify-between items-start mb-1">
-                                <span className="font-semibold text-gray-800">{coment.usuario}</span>
+                                <span className="font-semibold text-gray-800">
+                                  {getDatosUsuario(coment.usuarioId).nombre}
+                                </span>
                                 <span className="text-sm text-gray-500">
                                   {coment.fechaFormateada || coment.fecha}
                                 </span>
                               </div>
-                              {/* 🆕 PAÍS EN MODAL */}
+                              {/* PAÍS ACTUALIZADO EN MODAL CON "de" */}
                               <p className="text-sm text-green-600 font-medium">
-                                {coment.usuarioPais || "Sin territorio"}
+                                {getDatosUsuario(coment.usuarioId).pais}
                               </p>
                             </div>
                           </div>

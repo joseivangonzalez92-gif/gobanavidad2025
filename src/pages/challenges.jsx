@@ -32,21 +32,21 @@ export default function Challenges() {
     { id: "foto_8", titulo: "Reto Semanal #8", descripcion: "📸 ¡Sube tu foto abrazando a alguien", tipo: "foto", puntos: 10 }
   ];
 
-  // FECHAS DE APERTURA SEMANALES CORREGIDAS (Semana 1: 20-26 Oct 2025)
-const fechasSemanales = [
-  new Date(2025, 9, 27, 6, 0, 0),   // 27 Oct 2025 (Lunes) - Semana 1 ✅ ACTIVA para apruebas 
-  new Date(2025, 10, 3, 6, 0, 0),   // 3 Nov 2025 (Lunes) - Semana 2
-  new Date(2025, 10, 10, 6, 0, 0),  // 10 Nov 2025 (Lunes) - Semana 3
-  new Date(2025, 10, 17, 6, 0, 0),  // 17 Nov 2025 (Lunes) - Semana 4
-  new Date(2025, 10, 24, 6, 0, 0),  // 24 Nov 2025 (Lunes) - Semana 5
-  new Date(2025, 11, 1, 6, 0, 0),   // 1 Dic 2025 (Lunes) - Semana 6
-  new Date(2025, 11, 8, 6, 0, 0),   // 8 Dic 2025 (Lunes) - Semana 7
-  new Date(2025, 11, 15, 6, 0, 0)   // 15 Dic 2025 (Lunes) - Semana 8
-];
+  // 🆕 FECHAS CORREGIDAS - Semana 1: 3-9 Nov 2025
+  const fechasSemanales = [
+    new Date(2025, 10, 3, 6, 0, 0),   // 3 Nov 2025 (Lunes) - Semana 1
+    new Date(2025, 10, 10, 6, 0, 0),  // 10 Nov 2025 (Lunes) - Semana 2
+    new Date(2025, 10, 17, 6, 0, 0),  // 17 Nov 2025 (Lunes) - Semana 3
+    new Date(2025, 10, 24, 6, 0, 0),  // 24 Nov 2025 (Lunes) - Semana 4
+    new Date(2025, 11, 1, 6, 0, 0),   // 1 Dic 2025 (Lunes) - Semana 5
+    new Date(2025, 11, 8, 6, 0, 0),   // 8 Dic 2025 (Lunes) - Semana 6
+    new Date(2025, 11, 15, 6, 0, 0),  // 15 Dic 2025 (Lunes) - Semana 7
+    new Date(2025, 11, 22, 6, 0, 0)   // 22 Dic 2025 (Lunes) - Semana 8
+  ];
 
   // 14 PREGUNTAS MIÉRCOLES Y VIERNES CON 4 OPCIONES
   const preguntasMiercolesViernes = [
-    // Semana 1
+    // Semana 1 (3-9 Nov)
     { 
       id: "pregunta_1", 
       titulo: "🎄 Pregunta Miércoles #1", 
@@ -75,7 +75,7 @@ const fechasSemanales = [
       ],
       puntos: 5
     },
-    // Semana 2
+    // Semana 2 (10-16 Nov)
     { 
       id: "pregunta_3", 
       titulo: "🌟 Pregunta Miércoles #2", 
@@ -104,7 +104,7 @@ const fechasSemanales = [
       ],
       puntos: 5
     },
-    // Semana 3
+    // Semana 3 (17-23 Nov)
     { 
       id: "pregunta_5", 
       titulo: "🎁 Pregunta Miércoles #3", 
@@ -133,7 +133,7 @@ const fechasSemanales = [
       ],
       puntos: 5
     },
-    // Semana 4
+    // Semana 4 (24-30 Nov)
     { 
       id: "pregunta_7", 
       titulo: "🍪 Pregunta Miércoles #4", 
@@ -162,7 +162,7 @@ const fechasSemanales = [
       ],
       puntos: 5
     },
-    // Semana 5
+    // Semana 5 (1-7 Dic)
     { 
       id: "pregunta_9", 
       titulo: "🎵 Pregunta Miércoles #5", 
@@ -191,7 +191,7 @@ const fechasSemanales = [
       ],
       puntos: 5
     },
-    // Semana 6
+    // Semana 6 (8-14 Dic)
     { 
       id: "pregunta_11", 
       titulo: "🧦 Pregunta Miércoles #6", 
@@ -220,7 +220,7 @@ const fechasSemanales = [
       ],
       puntos: 5
     },
-    // Semana 7
+    // Semana 7 (15-21 Dic)
     { 
       id: "pregunta_13", 
       titulo: "🎀 Pregunta Miércoles #7", 
@@ -264,7 +264,7 @@ const fechasSemanales = [
     { 
       id: "tesoro_2", 
       titulo: "💝 Búsqueda del Tesoro #2", 
-      descripcion: "¿Cuál es la palabra mágica que dice el Bot?",
+      descripcion: "¿Cuál es la palabra oculta en NaviVibes?",
       tipo: "tesoro", 
       respuestaCorrecta: "AMOR",
       puntos: 15
@@ -296,25 +296,44 @@ const fechasSemanales = [
     return new Date(hondurasTime);
   };
 
- // Función para obtener la semana actual (0-7) - MODIFICADA PARA PRUEBAS
-const getSemanaActual = () => {
-  // ⚠️ TEMPORAL: Forzar semana 1 durante pruebas
-  return 0; // Semana 1 (27 Oct-2 Nov)
-};
+  // 🆕 FUNCIÓN CORREGIDA PARA OBTENER SEMANA ACTUAL
+  const getSemanaActual = () => {
+    const ahora = getFechaHonduras();
+    
+    for (let i = 0; i < fechasSemanales.length; i++) {
+      const fechaInicio = fechasSemanales[i];
+      const fechaFin = new Date(fechaInicio);
+      fechaFin.setDate(fechaFin.getDate() + 6); // Domingo
+      fechaFin.setHours(18, 0, 0, 0); // Domingo 6:00pm (cierre)
+      
+      if (ahora >= fechaInicio && ahora <= fechaFin) {
+        return i; // Retorna 0-7 para semana actual
+      }
+    }
+    
+    return -1; // Fuera de temporada
+  };
 
-  // Función para verificar estado de un reto
+ 
+// 🆕 FUNCIÓN CORREGIDA - TODOS CIERRAN DOMINGO 6:00PM
 const getEstadoReto = (reto, index, tipo) => {
   const ahora = getFechaHonduras();
   const semanaActual = getSemanaActual();
   
+  if (semanaActual === -1) return "fuera_temporada";
+  
   if (tipo === "foto") {
     const semanaReto = index;
-    if (semanaReto !== semanaActual) return "proxima_semana";
+    
+    // Solo activo si es la semana correspondiente
+    if (semanaReto !== semanaActual) {
+      return semanaReto < semanaActual ? "cerrado" : "proxima_semana";
+    }
     
     const fechaApertura = fechasSemanales[index];
     const fechaCierre = new Date(fechaApertura);
-    fechaCierre.setDate(fechaCierre.getDate() + 6);
-    fechaCierre.setHours(18, 0, 0, 0);
+    fechaCierre.setDate(fechaCierre.getDate() + 6); // Domingo
+    fechaCierre.setHours(18, 0, 0, 0); // Domingo 6:00pm
     
     if (ahora < fechaApertura) return "proximo";
     if (ahora > fechaCierre) return "cerrado";
@@ -323,23 +342,43 @@ const getEstadoReto = (reto, index, tipo) => {
   
   if (tipo === "pregunta") {
     const semanaReto = Math.floor(index / 2);
-    if (semanaReto !== semanaActual) return "proxima_semana";
     
-    // ⚠️ TEMPORAL: Forzar preguntas activas durante testing
+    // Solo activo si es la semana correspondiente
+    if (semanaReto !== semanaActual) {
+      return semanaReto < semanaActual ? "cerrado" : "proxima_semana";
+    }
+    
+    const fechaAperturaBase = fechasSemanales[semanaReto];
+    const fechaApertura = new Date(fechaAperturaBase);
+    
+    // Miércoles: +2 días, Viernes: +4 días
+    const diasSumar = index % 2 === 0 ? 2 : 4; // 0=Miércoles, 1=Viernes
+    fechaApertura.setDate(fechaApertura.getDate() + diasSumar);
+    fechaApertura.setHours(6, 0, 0, 0); // 6:00am
+    
+    // 🆕 TODOS CIERRAN DOMINGO 6:00PM
+    const fechaCierre = new Date(fechaAperturaBase);
+    fechaCierre.setDate(fechaCierre.getDate() + 6); // Domingo
+    fechaCierre.setHours(18, 0, 0, 0); // Domingo 6:00pm
+    
+    if (ahora < fechaApertura) return "proximo";
+    if (ahora > fechaCierre) return "cerrado";
     return "activo";
   }
   
   if (tipo === "tesoro") {
-    return "activo";
+    return "activo"; // Siempre activos
   }
   
   return "proxima_semana";
 };
 
-  // Función para obtener retos de la semana actual (en cualquier estado)
+  // 🆕 FUNCIÓN CORREGIDA PARA OBTENER RETOS DE LA SEMANA ACTUAL
   const getRetosSemanaActual = () => {
     const semanaActual = getSemanaActual();
     const retosSemana = [];
+    
+    if (semanaActual === -1) return retosSemana;
     
     // Reto de foto de la semana actual
     if (semanaActual < retosSemanales.length) {
@@ -348,7 +387,7 @@ const getEstadoReto = (reto, index, tipo) => {
         ...retosSemanales[semanaActual],
         estado: estado,
         fechaApertura: fechasSemanales[semanaActual],
-        horario: "Lunes 6:00am"
+        horario: "Lunes 6:00am a Domingo 6:00pm"
       });
     }
     
@@ -357,20 +396,22 @@ const getEstadoReto = (reto, index, tipo) => {
     preguntasSemana.forEach((pregunta, index) => {
       const indiceGlobal = (semanaActual * 2) + index;
       const estado = getEstadoReto(pregunta, indiceGlobal, "pregunta");
+      const dia = index === 0 ? "Miércoles" : "Viernes";
       retosSemana.push({
         ...pregunta,
         estado: estado,
-        horario: index === 0 ? "Miércoles 6:00am" : "Viernes 6:00am"
+          horario: `${dia} 6:00am a Domingo 6:00pm`
       });
     });
     
     return retosSemana;
   };
 
-  // Función para obtener retos activos (solo los que se pueden completar)
+  // 🆕 FUNCIÓN CORREGIDA PARA OBTENER RETOS ACTIVOS
   const getRetosActivos = () => {
     const retos = [];
     const semanaActual = getSemanaActual();
+    
     
     // Agregar tesoros (siempre activos)
     preguntasTesoro.forEach(reto => {
@@ -391,36 +432,41 @@ const getEstadoReto = (reto, index, tipo) => {
     return retos;
   };
 
-  // Función para calcular retos de la próxima semana
+  // 🆕 FUNCIÓN CORREGIDA PARA RETOS PRÓXIMA SEMANA
   const getRetosProximaSemana = () => {
     const semanaActual = getSemanaActual();
     const proximos = [];
     
-    if (semanaActual < 7) {
-      const proximaSemana = semanaActual + 1;
-      
-      // Reto de foto de la próxima semana
+    if (semanaActual === -1 || semanaActual >= 7) return proximos;
+    
+    const proximaSemana = semanaActual + 1;
+    
+    // Reto de foto de la próxima semana
+    proximos.push({
+      id: `foto_${proximaSemana + 1}`,
+      titulo: "📸 Reto Semanal #" + (proximaSemana + 1),
+      descripcion: "❓ El reto de foto se revelará el lunes a las 6:00am",
+      tipo: "foto",
+      puntos: 10,
+      estado: "proxima_semana",
+      horario: "Lunes 6:00am"
+    });
+    
+    // Preguntas de la próxima semana (sin revelar)
+    const preguntasSemana = preguntasMiercolesViernes.slice(proximaSemana * 2, (proximaSemana * 2) + 2);
+    preguntasSemana.forEach((pregunta, index) => {
+      const dia = index === 0 ? "Miércoles" : "Viernes";
       proximos.push({
-        ...retosSemanales[proximaSemana],
+        id: pregunta.id,
+        titulo: pregunta.titulo,
+        descripcion: "❓ La pregunta se revelará el día del reto",
+        tipo: "pregunta",
+        puntos: 5,
         estado: "proxima_semana",
-        horario: "Lunes 6:00am"
+        horario: `${dia} 6:00am`,
+        opciones: []
       });
-      
-      // Preguntas de la próxima semana (sin revelar la pregunta)
-      const preguntasSemana = preguntasMiercolesViernes.slice(proximaSemana * 2, (proximaSemana * 2) + 2);
-      preguntasSemana.forEach((pregunta, index) => {
-        proximos.push({
-          id: pregunta.id,
-          titulo: pregunta.titulo,
-          descripcion: "❓ La pregunta se revelará el día del reto",
-          tipo: "pregunta",
-          puntos: 5,
-          estado: "proxima_semana",
-          horario: index === 0 ? "Miércoles 6:00am" : "Viernes 6:00am",
-          opciones: []
-        });
-      });
-    }
+    });
     
     return proximos;
   };
@@ -447,56 +493,57 @@ const getEstadoReto = (reto, index, tipo) => {
   };
 
   // 🆕 FUNCIÓN PARA SUBIR FOTO RESTAURADA
-  const manejarSubidaFoto = async (retoId) => {
-    if (!imagenSubida || !usuarioActual) {
-      alert("❌ Por favor selecciona una foto primero");
-      return;
-    }
+const manejarSubidaFoto = async (retoId) => {
+  if (!imagenSubida || !usuarioActual) {
+    alert("❌ Por favor selecciona una foto primero");
+    return;
+  }
 
-    try {
-      setSubiendoFoto(true);
-      
-      // Subir imagen a ImgBB
-      const formData = new FormData();
-      formData.append("image", imagenSubida);
-      
-      const imgbbResponse = await fetch("https://api.imgbb.com/1/upload?key=YOUR_IMGBB_API_KEY", {
-        method: "POST",
-        body: formData
-      });
-      
-      const imgbbData = await imgbbResponse.json();
-      
-      if (!imgbbData.success) {
-        throw new Error("Error al subir la imagen");
-      }
-      
-      const imageUrl = imgbbData.data.url;
-      
-      // Guardar en Firebase
-      const puntosObtenidos = await gobaService.completeChallenge(
-        usuarioActual.id,
-        retoId,
-        imageUrl,
-        10 // Puntos por subir foto
-      );
-      
-      alert(`✅ ¡Foto subida correctamente! Ganaste ${puntosObtenidos} puntos. Espera la aprobación del admin.`);
-      
-      // Limpiar estado
-      setImagenSubida(null);
-      
-      // Actualizar puntos y recargar datos
-      await actualizarPuntosUsuario();
-      loadChallengesData();
-      
-    } catch (error) {
-      console.error("❌ Error subiendo foto:", error);
-      alert("❌ Error al subir la foto. Intenta de nuevo.");
-    } finally {
-      setSubiendoFoto(false);
+  try {
+    setSubiendoFoto(true);
+    
+    // Subir imagen a ImgBB
+    const IMGBB_API_KEY = import.meta.env.VITE_IMGBB_API_KEY;
+    const formData = new FormData();
+    formData.append("image", imagenSubida);
+    
+    const imgbbResponse = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_API_KEY}`, {
+      method: "POST",
+      body: formData
+    });
+    
+    const imgbbData = await imgbbResponse.json();
+    
+    if (!imgbbData.success) {
+      throw new Error("Error al subir la imagen");
     }
-  };
+    
+    const imageUrl = imgbbData.data.url;
+    
+    // Guardar en Firebase
+    const puntosObtenidos = await gobaService.completeChallenge(
+      usuarioActual.id,
+      retoId,
+      imageUrl,
+      10 // Puntos por subir foto
+    );
+    
+    alert(`✅ ¡Foto subida correctamente! Ganaste ${puntosObtenidos} puntos. Espera la aprobación del admin.`);
+    
+    // Limpiar estado
+    setImagenSubida(null);
+    
+    // Actualizar puntos y recargar datos
+    await actualizarPuntosUsuario();
+    loadChallengesData();
+    
+  } catch (error) {
+    console.error("❌ Error subiendo foto:", error);
+    alert("❌ Error al subir la foto. Intenta de nuevo.");
+  } finally {
+    setSubiendoFoto(false);
+  }
+};
 
   // Cargar usuario y datos al iniciar
   useEffect(() => {
@@ -688,7 +735,8 @@ const completarTesoro = async (retoId) => {
       "proximo": "⏰ Próximo",
       "activo": "✅ Activo", 
       "cerrado": "❌ Cerrado",
-      "proxima_semana": "📅 Próxima Semana"
+      "proxima_semana": "📅 Próxima Semana",
+      "fuera_temporada": "🎄 Fuera de Temporada"
     };
     return estados[estado] || estado;
   };
@@ -698,18 +746,30 @@ const completarTesoro = async (retoId) => {
       "proximo": "bg-blue-100 text-blue-800 border-blue-200",
       "activo": "bg-green-100 text-green-800 border-green-200",
       "cerrado": "bg-red-100 text-red-800 border-red-200",
-      "proxima_semana": "bg-purple-100 text-purple-800 border-purple-200"
+      "proxima_semana": "bg-purple-100 text-purple-800 border-purple-200",
+      "fuera_temporada": "bg-gray-100 text-gray-800 border-gray-200"
     };
     return colores[estado] || "bg-gray-100 text-gray-800 border-gray-200";
   };
 
+  // 🆕 TEXTO SEMANA ACTUAL CORREGIDO
   const getTextoSemanaActual = () => {
     const semanaActual = getSemanaActual();
+    
+    if (semanaActual === -1) return "Fuera de temporada navideña";
+    
     const semanas = [
-      "Semana 1 (27 Oct-2 Nov)", "Semana 2 (27 Oct-2 Nov)", "Semana 3 (3-9 Nov)", "Semana 4 (10-16 Nov)",
-      "Semana 5 (17-23 Nov)", "Semana 6 (24-30 Nov)", "Semana 7 (1-7 Dic)", "Semana 8 (8-14 Dic)"
+      "Semana 1 (3-9 Nov)",
+      "Semana 2 (10-16 Nov)", 
+      "Semana 3 (17-23 Nov)",
+      "Semana 4 (24-30 Nov)",
+      "Semana 5 (1-7 Dic)",
+      "Semana 6 (8-14 Dic)",
+      "Semana 7 (15-21 Dic)",
+      "Semana 8 (22-28 Dic)"
     ];
-    return semanas[semanaActual] || "Fuera de temporada";
+    
+    return semanas[semanaActual] || "Semana especial";
   };
 
   // 🆕 FUNCIÓN PARA VERIFICAR SI UN RETO ESTÁ COMPLETADO
@@ -761,7 +821,7 @@ const completarTesoro = async (retoId) => {
       {ranking.find(jugador => jugador.userId === usuarioActual.id)?.puntosTotales || 0}
     </p>
     <p className="text-lg font-semibold text-gray-800">⭐ Puntos Acumulados</p>
-    <p className="text-sm text-gray-600 mt-1">Sumados desde retos completados</p>
+    <p className="text-sm text-gray-600 mt-1">Retos semanales</p>
   </div>
 </div>
       </div>

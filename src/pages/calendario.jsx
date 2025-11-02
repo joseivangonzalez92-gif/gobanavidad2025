@@ -423,6 +423,7 @@ export default function Calendario() {
             🎄 Calendario Navideño 2025
           </h1>
           <p className="text-xl text-gray-600 mb-8 font-light animate-fadeIn">Tu guía para la magia navideña familiar</p>
+          <p className="text-xl text-gray-600 mb-8 font-light animate-fadeIn">Pendiente nuevas fechas de actividades</p>
         </div>
 
         {/* Calendarios Noviembre y Diciembre con animaciones balanceadas */}

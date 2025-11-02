@@ -87,81 +87,113 @@ const JuegoSimple = ({
       canciones: {
         titulo: "🎵 Completa la Canción",
         preguntas: [
-          { pregunta: "Noche de ____, noche de amor", opciones: ["paz", "alegría", "magia", "ensueño"], respuesta: "paz" },
-          { pregunta: "Campana sobre campana, y sobre campana ____", opciones: ["una", "dos", "tres", "cuatro"], respuesta: "una" },
-          { pregunta: "Mi burrito sabanero, vamos a ____", opciones: ["Belén", "la fiesta", "cantar", "pasear"], respuesta: "Belén" },
-          { pregunta: "Los peces en el río, pero mira cómo ____", opciones: ["beben", "nadan", "saltan", "juegan"], respuesta: "beben" },
-          { pregunta: "Arre borriquito, vamos a ____", opciones: ["Belén", "cantar", "bailar", "correr"], respuesta: "Belén" },
-          { pregunta: "Ya viene la vieja, con el ____", opciones: ["aguinaldo", "regalo", "pavo", "chocolate"], respuesta: "aguinaldo" },
-          { pregunta: "Blanca Navidad, yo ____ soñé", opciones: ["la", "te", "se", "me"], respuesta: "la" },
-          { pregunta: "Ven a ____ casa, es Navidad", opciones: ["mi", "tu", "nuestra", "la"], respuesta: "mi" },
-          { pregunta: "Navidad, Navidad, dulce ____", opciones: ["Navidad", "momentos", "fiesta", "alegría"], respuesta: "Navidad" },
-          { pregunta: "Los ____ pasan, llevan flores", opciones: ["pastores", "reyes", "niños", "ángeles"], respuesta: "pastores" },
-          { pregunta: "Ande, ande, ande, la ____", opciones: ["marimorena", "navidad", "fiesta", "alegría"], respuesta: "marimorena" },
-          { pregunta: "En el portal de ____", opciones: ["Belén", "Jerusalén", "Nazaret", "Galilea"], respuesta: "Belén" },
-          { pregunta: "____, campana sobre campana", opciones: ["Campana", "Suena", "Brilla", "Canta"], respuesta: "Campana" },
-          { pregunta: "Vamos, vamos, ____", opciones: ["pastores", "amigos", "hermanos", "niños"], respuesta: "pastores" },
-          { pregunta: "La ____ está en el portal", opciones: ["Virgen", "Madre", "Señora", "Reina"], respuesta: "Virgen" },
-          { pregunta: "____, José con el niño", opciones: ["María", "La Virgen", "Santa", "Madre"], respuesta: "María" },
-          { pregunta: "Ya ____ la Navidad", opciones: ["llegó", "vino", "está", "viene"], respuesta: "llegó" },
-          { pregunta: "Noche de ____, noche de amor", opciones: ["paz", "alegría", "magia", "ensueño"], respuesta: "paz" },
-          { pregunta: "Con mi ____ cantaré", opciones: ["burrito", "caballo", "perrito", "gatito"], respuesta: "burrito" },
-          { pregunta: "A ____ me voy", opciones: ["Belén", "casa", "la fiesta", "la iglesia"], respuesta: "Belén" },
-          { pregunta: "____ de la rosa", opciones: ["Flor", "Rey", "Canto", "Belleza"], respuesta: "Flor" },
-          { pregunta: "____, qué noche tan linda", opciones: ["Navidad", "Amigos", "Fiesta", "Alegría"], respuesta: "Navidad" },
-          { pregunta: "Vuela, vuela, vuela, la ____", opciones: ["mariposa", "campana", "estrella", "paloma"], respuesta: "campana" },
-          { pregunta: "____, José, no te dé cuidado", opciones: ["María", "Mujer", "Esposa", "Querida"], respuesta: "María" },
-          { pregunta: "El ____ al niño le trae", opciones: ["burrito", "pastor", "rey", "ángel"], respuesta: "burrito" },
-          { pregunta: "I'm dreaming of a white ____", opciones: ["Christmas", "holiday", "winter", "snow"], respuesta: "Christmas" },
-{ pregunta: "Jingle bells, jingle bells, jingle all the ____", opciones: ["way", "night", "day", "time"], respuesta: "way" },
-{ pregunta: "Last Christmas I gave you my ____", opciones: ["heart", "love", "soul", "gift"], respuesta: "heart" },
-{ pregunta: "All I want for Christmas is ____", opciones: ["you", "love", "joy", "peace"], respuesta: "you" },
-{ pregunta: "Santa Claus is coming to ____", opciones: ["town", "you", "home", "us"], respuesta: "town" },
-{ pregunta: "Feliz Navidad, Feliz Navidad, ____", opciones: ["Feliz Navidad", "te deseo yo", "con amor", "y prosperidad"], respuesta: "Feliz Navidad" },
-{ pregunta: "It's the most wonderful ____ of the year", opciones: ["time", "day", "night", "season"], respuesta: "time" },
-{ pregunta: "Let it snow, let it snow, let it ____", opciones: ["snow", "go", "flow", "glow"], respuesta: "snow" },
-{ pregunta: "Rockin' around the Christmas ____", opciones: ["tree", "time", "night", "world"], respuesta: "tree" },
-{ pregunta: "Noche de paz, noche de ____", opciones: ["amor", "sueño", "alegría", "fe"], respuesta: "amor" },
-{ pregunta: "Have yourself a merry little ____", opciones: ["Christmas", "holiday", "winter", "night"], respuesta: "Christmas" },
-{ pregunta: "Los ____ de la noche son tan fríos", opciones: ["vientos", "aires", "cantos", "sueños"], respuesta: "vientos" },
-{ pregunta: "Santa baby, just slip a ____ under the tree", opciones: ["sable", "diamond", "ring", "car"], respuesta: "sable" },
-{ pregunta: "Ven a cantar, ven a ____", opciones: ["gozar", "reír", "bailar", "amar"], respuesta: "gozar" },
-{ pregunta: "It's beginning to look a lot like ____", opciones: ["Christmas", "winter", "holidays", "snow"], respuesta: "Christmas" },
-{ pregunta: "Esta ____ es para ti", opciones: ["Navidad", "noche", "canción", "alegría"], respuesta: "Navidad" },
-{ pregunta: "Do you hear what I ____?", opciones: ["hear", "see", "feel", "know"], respuesta: "hear" },
-{ pregunta: "En Navidad, yo quiero ____", opciones: ["amor", "paz", "alegría", "felicidad"], respuesta: "amor" },
-{ pregunta: "You're a mean one, Mr. ____", opciones: ["Grinch", "Scrooge", "Santa", "Frost"], respuesta: "Grinch" },
-{ pregunta: "Blanca Navidad de ____ y amor", opciones: ["paz", "nieve", "alegría", "fe"], respuesta: "paz" }
-        ]
+  { pregunta: "Noche de ____, noche de amor", opciones: ["paz", "alegría", "magia", "ensueño"], respuesta: "paz" },
+  { pregunta: "Campana sobre campana, y sobre campana ____", opciones: ["una", "dos", "tres", "cuatro"], respuesta: "una" },
+  { pregunta: "Mi burrito sabanero, vamos a ____", opciones: ["Belén", "la fiesta", "cantar", "pasear"], respuesta: "Belén" },
+  { pregunta: "Los peces en el río, pero mira cómo ____", opciones: ["beben", "nadan", "saltan", "juegan"], respuesta: "beben" },
+  { pregunta: "Arre borriquito, vamos a ____", opciones: ["Belén", "cantar", "bailar", "correr"], respuesta: "Belén" },
+  { pregunta: "Ya viene la vieja, con el ____", opciones: ["aguinaldo", "regalo", "pavo", "chocolate"], respuesta: "aguinaldo" },
+  { pregunta: "Blanca Navidad, yo ____ soñé", opciones: ["la", "te", "se", "me"], respuesta: "la" },
+  { pregunta: "Ven a ____ casa, es Navidad", opciones: ["mi", "tu", "nuestra", "la"], respuesta: "mi" },
+  { pregunta: "Navidad, Navidad, dulce ____", opciones: ["Navidad", "momentos", "fiesta", "alegría"], respuesta: "Navidad" },
+  { pregunta: "Los ____ pasan, llevan flores", opciones: ["pastores", "reyes", "niños", "ángeles"], respuesta: "pastores" },
+  { pregunta: "Ande, ande, ande, la ____", opciones: ["marimorena", "navidad", "fiesta", "alegría"], respuesta: "marimorena" },
+  { pregunta: "En el portal de ____", opciones: ["Belén", "Jerusalén", "Nazaret", "Galilea"], respuesta: "Belén" },
+  { pregunta: "____, campana sobre campana", opciones: ["Campana", "Suena", "Brilla", "Canta"], respuesta: "Campana" },
+  { pregunta: "Vamos, vamos, ____", opciones: ["pastores", "amigos", "hermanos", "niños"], respuesta: "pastores" },
+  { pregunta: "La ____ está en el portal", opciones: ["Virgen", "Madre", "Señora", "Reina"], respuesta: "Virgen" },
+  { pregunta: "____, José con el niño", opciones: ["María", "La Virgen", "Santa", "Madre"], respuesta: "María" },
+  { pregunta: "Ya ____ la Navidad", opciones: ["llegó", "vino", "está", "viene"], respuesta: "llegó" },
+  { pregunta: "Con mi ____ cantaré", opciones: ["burrito", "caballo", "perrito", "gatito"], respuesta: "burrito" },
+  { pregunta: "A ____ me voy", opciones: ["Belén", "casa", "la fiesta", "la iglesia"], respuesta: "Belén" },
+  { pregunta: "____ de la rosa", opciones: ["Flor", "Rey", "Canto", "Belleza"], respuesta: "Flor" },
+  { pregunta: "____, qué noche tan linda", opciones: ["Navidad", "Amigos", "Fiesta", "Alegría"], respuesta: "Navidad" },
+  { pregunta: "Vuela, vuela, vuela, la ____", opciones: ["mariposa", "campana", "estrella", "paloma"], respuesta: "campana" },
+  { pregunta: "____, José, no te dé cuidado", opciones: ["María", "Mujer", "Esposa", "Querida"], respuesta: "María" },
+  { pregunta: "El ____ al niño le trae", opciones: ["burrito", "pastor", "rey", "ángel"], respuesta: "burrito" },
+  { pregunta: "I'm dreaming of a white ____", opciones: ["Christmas", "holiday", "winter", "snow"], respuesta: "Christmas" },
+  { pregunta: "Jingle bells, jingle bells, jingle all the ____", opciones: ["way", "night", "day", "time"], respuesta: "way" },
+  { pregunta: "Last Christmas I gave you my ____", opciones: ["heart", "love", "soul", "gift"], respuesta: "heart" },
+  { pregunta: "All I want for Christmas is ____", opciones: ["you", "love", "joy", "peace"], respuesta: "you" },
+  { pregunta: "Santa Claus is coming to ____", opciones: ["town", "you", "home", "us"], respuesta: "town" },
+  { pregunta: "Feliz Navidad, Feliz Navidad, ____", opciones: ["Feliz Navidad", "te deseo yo", "con amor", "y prosperidad"], respuesta: "Feliz Navidad" },
+  { pregunta: "It's the most wonderful ____ of the year", opciones: ["time", "day", "night", "season"], respuesta: "time" },
+  { pregunta: "Let it snow, let it snow, let it ____", opciones: ["snow", "go", "flow", "glow"], respuesta: "snow" },
+  { pregunta: "Rockin' around the Christmas ____", opciones: ["tree", "time", "night", "world"], respuesta: "tree" },
+  { pregunta: "Noche de paz, noche de ____", opciones: ["amor", "sueño", "alegría", "fe"], respuesta: "amor" },
+  { pregunta: "Have yourself a merry little ____", opciones: ["Christmas", "holiday", "winter", "night"], respuesta: "Christmas" },
+  { pregunta: "Los ____ de la noche son tan fríos", opciones: ["vientos", "aires", "cantos", "sueños"], respuesta: "vientos" },
+  { pregunta: "Santa baby, just slip a ____ under the tree", opciones: ["sable", "diamond", "ring", "car"], respuesta: "sable" },
+  { pregunta: "Ven a cantar, ven a ____", opciones: ["cantar", "reír", "bailar", "amar"], respuesta: "cantar" },
+  { pregunta: "It's beginning to look a lot like ____", opciones: ["Christmas", "winter", "holidays", "snow"], respuesta: "Christmas" },
+  { pregunta: "Esta ____ es para ti", opciones: ["Navidad", "noche", "canción", "alegría"], respuesta: "Navidad" },
+  { pregunta: "Do you hear what I ____?", opciones: ["hear", "see", "feel", "know"], respuesta: "hear" },
+  { pregunta: "En Navidad, yo quiero ____", opciones: ["amor", "paz", "alegría", "felicidad"], respuesta: "amor" },
+  { pregunta: "You're a mean one, Mr. ____", opciones: ["Grinch", "Scrooge", "Santa", "Frost"], respuesta: "Grinch" },
+  { pregunta: "Blanca Navidad de ____ y amor", opciones: ["paz", "nieve", "alegría", "fe"], respuesta: "paz" },
+  // NUEVAS PREGUNTAS AÑADIDAS
+  { pregunta: "Aquellos Diciembres que nunca ____", opciones: ["volverán", "llegarán", "terminarán", "olvidaré"], respuesta: "volverán" },
+  { pregunta: "Mele Kalikimaka is the thing to say on a bright Hawaiian ____", opciones: ["Christmas Day", "New Year's Eve", "holy night", "summer day"], respuesta: "Christmas Day" },
+  { pregunta: "Frosty the Snowman, was a ____ soul", opciones: ["jolly happy", "merry happy", "happy jolly", "cheerful happy"], respuesta: "jolly happy" },
+  { pregunta: "Naranjas y limas, ____", opciones: ["limas y limones", "limones y limas", "dulces canciones", "verdes limoneros"], respuesta: "limas y limones" },
+  { pregunta: "Just hear those sleigh bells ____", opciones: ["jingling", "ringing", "singing", "dancing"], respuesta: "jingling" },
+  { pregunta: "Have a holly jolly Christmas, it's the ____ time of the year", opciones: ["best", "most wonderful", "happiest", "brightest"], respuesta: "best" },
+  { pregunta: "Run, run Rudolph, Santa's got to ____ tonight", opciones: ["make it", "get there", "run fast", "fly high"], respuesta: "make it" },
+  { pregunta: "Baby, it's cold ____", opciones: ["outside", "in here", "tonight", "everywhere"], respuesta: "outside" },
+  { pregunta: "But it doesn't show signs of stopping, and I've bought some ____ for the ice", opciones: ["corn", "salt", "bags", "wood"], respuesta: "corn" },
+  { pregunta: "Año nuevo, ____ nueva", opciones: ["vida", "vieja nueva", "villa", "meta"], respuesta: "vida" },
+  { pregunta: "Faltan ____ para las doce", opciones: ["cinco", "tres", "diez", "veinte"], respuesta: "cinco" },
+  { pregunta: "Si quieres gozar, reír y cantar, toca el ____", opciones: ["piano merengue", "acordeón", "güiro y tambor", "violín"], respuesta: "piano merengue" },
+  { pregunta: "Arbolito lindo de Navidad, ¿qué me ____?", opciones: ["vas a dar", "quieres dar", "traes hoy", "vas a contar"], respuesta: "vas a dar" },
+  { pregunta: "Arre, ____, arre burro, arre", opciones: ["borriquito", "caballito", "burrito", "cielito"], respuesta: "borriquito" },
+  { pregunta: "Por eso y muchas cosas más, ____", opciones: ["ven a mi casa esta Navidad", "te deseo feliz Navidad", "hoy te quiero cantar", "contigo quiero estar"], respuesta: "ven a mi casa esta Navidad" },
+  { pregunta: "Yo no olvido al ____", opciones: ["año viejo", "año pasado", "viejo año", "tiempo ido"], respuesta: "año viejo" },
+  { pregunta: "Baby, it's cold ____", opciones: ["outside", "in here", "tonight", "everywhere"], respuesta: "outside" },
+  { pregunta: "But it doesn't ____ like Christmas at all", opciones: ["feel", "look", "sound", "smell"], respuesta: "feel" },
+  { pregunta: "El ____ que lleva a Belén", opciones: ["camino", "sendero", "portal", "rey"], respuesta: "camino" },
+  { pregunta: "I really can't ____", opciones: ["stay", "go", "leave", "wait"], respuesta: "stay" },
+  { pregunta: "Navidad que vuelve, ____ del año", opciones: ["tradición", "alegría", "emoción", "ilusión"], respuesta: "tradición" }
+]
       },
       quiz: {
         titulo: "❓ Trivia Familiar Goba",
         preguntas: [
-          { pregunta: "¿Quién hace el mejor pavo en Navidad?", opciones: ["Mamá", "Papá", "La abuela", "La tía"], respuesta: "Mamá" },
-          { pregunta: "¿Qué tradición familiar empezó en 2020?", opciones: ["Intercambio de regalos", "Cena temática", "Fotos familiares", "Juegos después de cenar"], respuesta: "Intercambio de regalos" },
-          { pregunta: "¿Quién siempre se queda dormido primero en Nochebuena?", opciones: ["El abuelo", "El primo", "La tía", "El sobrino"], respuesta: "El abuelo" },
-          { pregunta: "¿Cuál es el postre favorito de la familia en Navidad?", opciones: ["Torta de chocolate", "Pie de manzana", "Flan", "Galletas decoradas"], respuesta: "Torta de chocolate" },
-          { pregunta: "¿Quién organiza la decoración navideña cada año?", opciones: ["Los niños", "Mamá", "Papá", "Todos juntos"], respuesta: "Los niños" },
-          { pregunta: "¿Qué película navideña ven siempre juntos?", opciones: ["Home Alone", "The Grinch", "Elf", "Polar Express"], respuesta: "Home Alone" },
-          { pregunta: "¿Quién siempre llega tarde a la cena familiar?", opciones: ["El tío Carlos", "La prima Ana", "El abuelo", "La tía María"], respuesta: "El tío Carlos" },
-          { pregunta: "¿Qué juego familiar es el favorito en Navidad?", opciones: ["Uno", "Monopoly", "Cartas", "Juegos de mesa"], respuesta: "Uno" },
-          { pregunta: "¿Quién canta mejor los villancicos?", opciones: ["La abuela", "Mamá", "Los niños", "Papá"], respuesta: "La abuela" },
-          { pregunta: "¿Qué postre navideño es el más esperado?", opciones: ["Galletas de jengibre", "Pie de manzana", "Torta de chocolate", "Flan"], respuesta: "Galletas de jengibre" },
-          { pregunta: "¿Quién siempre toma fotos de todos?", opciones: ["La hija mayor", "Mamá", "Papá", "El primo"], respuesta: "La hija mayor" },
-          { pregunta: "¿Qué bebida caliente prefieren en Navidad?", opciones: ["Chocolate caliente", "Ponche", "Café", "Té"], respuesta: "Chocolate caliente" },
-          { pregunta: "¿Quién cuenta los chistes más graciosos?", opciones: ["Papá", "El tío", "El abuelo", "Los primos"], respuesta: "Papá" },
-          { pregunta: "¿Qué adornos navideños son los favoritos?", opciones: ["Las esferas brillantes", "Las luces", "El pesebre", "La estrella"], respuesta: "Las esferas brillantes" },
-          { pregunta: "¿Quién siempre gana en los juegos de mesa?", opciones: ["El primo mayor", "La abuela", "Los niños", "Mamá"], respuesta: "El primo mayor" },
-          { pregunta: "¿Qué canción navideña cantan todos juntos?", opciones: ["Noche de Paz", "Campana sobre campana", "Mi Burrito Sabanero", "Los Peces en el Río"], respuesta: "Noche de Paz" },
-          { pregunta: "¿Quién organiza el intercambio de regalos?", opciones: ["Mamá", "Papá", "Los niños", "Todos juntos"], respuesta: "Mamá" },
-          { pregunta: "¿Qué comida nunca falta en la cena?", opciones: ["Pavo", "Tamales", "Pierna", "Lomo"], respuesta: "Pavo" },
-          { pregunta: "¿Quién decora mejor el árbol?", opciones: ["Los niños", "Mamá", "Papá", "La abuela"], respuesta: "Los niños" },
-          { pregunta: "¿Qué momento prefieren de la Navidad?", opciones: ["Abrir regalos", "La cena", "Cantar villancicos", "Jugar juegos"], respuesta: "Abrir regalos" },
-          { pregunta: "¿Quién siempre pide el mismo regalo?", opciones: ["El más pequeño", "El abuelo", "Mamá", "Papá"], respuesta: "El más pequeño" },
-          { pregunta: "¿Qué película ven el 24 de diciembre?", opciones: ["Home Alone", "The Grinch", "Elf", "Polar Express"], respuesta: "Home Alone" },
+          { pregunta: "¿Es la película favorita navideña de Olivia?", opciones: ["El regaldo prometido", "santaclausula", "mi pobre angelito", "Story Bots de Navidad"], respuesta: "Story Bots de Navidad" },
+          { pregunta: "¿Es la comida favorita Navideña de Montserrat", opciones: ["Recalentado de cerdo", "Galletas Navideñas", "Montucas", "Tamal"], respuesta: "Recalentado de cerdo" },
+          { pregunta: "¿Comida favorita de Valeria?", opciones: ["Costilla agridulce", "Tamales", "Cerdo Horneado", "Montucas"], respuesta: "Tamales" },
+          { pregunta: "¿Cuando come tamales José Iván?", opciones: ["Solo en Navidad", "En fechas especiales", "Cuando le invitan", "Cualquier día del año"], respuesta: "Solo en Navidad" },
+          { pregunta: "¿Canción navideña favorita de Valeria?", opciones: ["Piano Merengue", "Navidad sin tí", "Feliz Navidad", "Aquellos Diciembres"], respuesta: "Piano Merengue" },
+          { pregunta: "¿Costumbre navideña de navidades pasadas de valeria?", opciones: ["Pijamada con primas", "Volar Cometas", "Ir al mercado", "Ver películas todo el día"], respuesta: "Pijamada con primas" },
+          { pregunta: "¿Película favorita de Valeria?", opciones: ["Los fantasmas de scrooge", "Jingle All the way", "Intercambio de princesas", "Home Alone"], respuesta: "Los fantasmas de scrooge" },
+          { pregunta: "¿Comida navideña favorita de Andrés?", opciones: ["Recalentado de Cerdo", "Pavo Horneado", "Tamalitos", "Gallina Rellena"], respuesta: "Recalentado de Cerdo" },
+          { pregunta: "¿Canción navideña favorita de Andrés?", opciones: ["Cantares de Navidad", "El Tamborilero", "Pitorro de Coco", "Navidad sin tí"], respuesta: "Cantares de Navidad" },
+          { pregunta: "¿Costumbre de navidades pasadas de Andrés?", opciones: ["Amanecer con los sobrevivientes", "Hacer galletas", "Cocina Pierna Horneada", "Comer"], respuesta: "Amanecer con los sobrevivientes" },
+          { pregunta: "¿Costumbre de navidades pasadas de Raquel?", opciones: ["Bailar toda la noche", "Kareokear", "Cocina la pierna de cerdo", "Decorar la casa"], respuesta: "Bailar toda la noche" },
+          { pregunta: "¿Postre favorito de José Iván", opciones: ["Cheese Cake", "Pastel de chocolate", "Tiramisu", "Torrejas"], respuesta: "Cheese Cake" },
+          { pregunta: "¿Costumbre de navidades pasdadas de José Iván?", opciones: ["Reventar cohetes", "Ver tele todo el día", "ir a la playa", "Ayudar a cocinar"], respuesta: "Reventar cohetes" },
+          { pregunta: "¿Película navideña favorita de Raquel?", opciones: ["Una navidad de locos", "Intercambio de princesas 3", "Mickey en navidad", "Estrella navideña"], respuesta: "Una navidad de locos" },
+          { pregunta: "¿Canción navideña favorita de Olivia?", opciones: ["Navidad Rock", "Cascabel", "El año viejo", "Peces en el rio"], respuesta: "Navidad Rock" },
+          { pregunta: "¿Canción navideña favorita de Raquel?", opciones: ["El año viejo", "Campana sobre campana", "Mi Burrito Sabanero", "Los Peces en el Río"], respuesta: "El año viejo" },
+          { pregunta: "¿Comida navideña favorita de Raquel?", opciones: ["Cerdo Horneado", "Gallina Rellena", "Tamales", "Costilla Horneada"], respuesta: "Cerdo Horneado " },
+          { pregunta: "¿Los mejores complementos para el cerdo horneado para Mariana?", opciones: ["Ensalada de papa y Arroz", "Ensalda y Arroz", "Pure y Arroz", "Arroz y Tamal"], respuesta: "Ensalada de papa y Arroz" },
+          { pregunta: "¿Película favorita de Mariana?", opciones: ["El grinch", "Home Alone", "Navidad Catracha", "Navidad con los Miller"], respuesta: "El grinch" },
+          { pregunta: "¿Canción navideña favorita de Mariana?", opciones: ["La Marimorena", "Ven a cantar", "El Tamborilero", "Aquellos Diciembres"], respuesta: "La Marimorena" },
+          { pregunta: "¿Película favorita de Montserrat?", opciones: ["Mickey descubre la navidad", "Expresso Polar", "Elf", "Mi pobre angelito"], respuesta: "Mickey descubre la navidad" },
+          { pregunta: "¿Canción navideña favorita de Montserrat?", opciones: ["Noche de Paz", "Navidad Rock", "Dulce navidad", "Santa Claus"], respuesta: "Noche de Paz" },
           { pregunta: "¿Quién hace la mejor salsa navideña?", opciones: ["La abuela", "Mamá", "La tía", "Papá"], respuesta: "La abuela" },
           { pregunta: "¿Qué tradición tienen el 25 por la mañana?", opciones: ["Desayuno especial", "Abrir regalos", "Ir a misa", "Llamar a familiares"], respuesta: "Desayuno especial" },
-          { pregunta: "¿Quién siempre olvida comprar algún regalo?", opciones: ["Papá", "Mamá", "Los niños", "El tío"], respuesta: "Papá" }
+          { pregunta: "¿Quién siempre olvida comprar algún regalo?", opciones: ["Papá", "Mamá", "Los niños", "El tío"], respuesta: "Papá" },
+           { pregunta: "¿Comida favorita de JP?", opciones: ["Pollo en salsa de hongos", "Pavo horneado", "Lasagna", "Costillas BBQ"], respuesta: "Pollo en salsa de hongos" },
+  { pregunta: "¿Costumbre navideña de JP?", opciones: ["Sandwich de pollo de abuela", "Abrir regalos a media noche", "Ver luces navideñas", "Cantar villancicos"], respuesta: "Sandwich de pollo de abuela" },
+  { pregunta: "¿Costumbre de navidades pasadas de Ruth?", opciones: ["Amanecer bailando", "Cocinar tamales", "Ver películas", "Hacer galletas"], respuesta: "Amanecer bailando" },
+  { pregunta: "¿Película navideña favorita de Ruth?", opciones: ["Santa Clause", "El Grinch", "Home Alone", "Love Actually"], respuesta: "Santa Clause" },
+  { pregunta: "¿Comida navideña favorita de Camila?", opciones: ["Tamales", "Pierna horneada", "Roscas navideñas", "Pavo relleno"], respuesta: "Tamales" },
+  { pregunta: "¿Canción navideña favorita de Isabella?", opciones: ["Christmas Evel", "All I Want for Christmas", "Last Christmas", "Jingle Bell Rock"], respuesta: "Christmas Evel" },
+  { pregunta: "¿Canción navideña favorita de Paolo?", opciones: ["Navidad sin tí", "Feliz Navidad", "Noche de Paz", "Mi Burrito Sabanero"], respuesta: "Navidad sin tí" },
+  { pregunta: "¿Canción navideña favorita de Santiago?", opciones: ["Navidad sin tí", "Los Peces en el Río", "Campana sobre campana", "El Año Viejo"], respuesta: "Navidad sin tí" },
+  { pregunta: "¿Canción navideña favorita de Mateo?", opciones: ["Feliz Navidad", "Blanca Navidad", "Jingle Bells", "Noche de Paz"], respuesta: "Feliz Navidad" },
+  { pregunta: "¿Costumbre de navidades pasadas de Santiago?", opciones: ["Reventar diablillos", "Jugar con fuegos artificiales", "Hacer una fogata", "Tocar música"], respuesta: "Reventar diablillos" },
+  { pregunta: "¿Costumbre de navidades pasadas de Mateo?", opciones: ["Estar en familia", "Abrir regalos temprano", "Ver películas navideñas", "Cenar con amigos"], respuesta: "Estar en familia" }
         ]
       },
       familia: {
@@ -170,7 +202,7 @@ const JuegoSimple = ({
           { pregunta: "Al que madruga...", opciones: ["Dios le ayuda", "le caen las manzanas", "nadie le ve", "le sale el sol"], respuesta: "Dios le ayuda" },
 { pregunta: "No por mucho madrugar...", opciones: ["se duerme más", "se amanece más temprano", "se hace más rico", "se vive mejor"], respuesta: "se amanece más temprano" },
 { pregunta: "A quien le pica...", opciones: ["se rasca", "se aguanta", "se queja", "se cura"], respuesta: "se rasca" },
-{ pregunta: "Más vale pájaro en mano...", opciones: ["que dos volando", "que cien en el suelo", "que diez en el nido", "que ciento en el monte"], respuesta: "que ciento en el monte" },
+{ pregunta: "Más vale pájaro en mano...", opciones: ["que dos volando", "que cien en el suelo", "que diez en el nido", "que ciento volando"], respuesta: "que ciento volando" },
 { pregunta: "Ojos que no ven...", opciones: ["boca que no come", "manos que no trabajan", "corazón que no siente", "oídos que no escuchan"], respuesta: "corazón que no siente" },
 { pregunta: "Cuando el río suena...", opciones: ["piedras lleva", "agua lleva", "peces lleva", "arena lleva"], respuesta: "piedras lleva" },
 { pregunta: "En boca cerrada...", opciones: ["no hay dolor", "no hay risa", "no entran moscas", "no salen palabras"], respuesta: "no entran moscas" },
@@ -185,7 +217,7 @@ const JuegoSimple = ({
 { pregunta: "Perro que ladra...", opciones: ["no duerme", "no come", "no muerde", "no juega"], respuesta: "no muerde" },
 { pregunta: "A buen entendedor...", opciones: ["pocas palabras", "muchas palabras", "buen hablador", "mejor oyente"], respuesta: "pocas palabras" },
 { pregunta: "El que ríe último...", opciones: ["ríe mejor", "más fuerte ríe", "más tarde ríe", "más feliz es"], respuesta: "ríe mejor" },
-{ pregunta: "A caballo regalado...", opciones: ["no se le ve el colmillo", "no se le mira el diente", "no se le cambia", "no se le vende"], respuesta: "no se le mira el diente" },
+{ pregunta: "A caballo regalado...", opciones: ["no se le ve el colmillo", "no se le busca lado", "no se le cambia", "no se le vende"], respuesta: "no se le busca lado" },
 { pregunta: "Del árbol caído...", opciones: ["todos hacen leña", "todos recogen frutas", "todos se alejan", "todos tienen sombra"], respuesta: "todos hacen leña" },
 { pregunta: "Cría cuervos...", opciones: ["y te sacarán los ojos", "y te comerán el pan", "y te quitarán el sueño", "y te robarán el alma"], respuesta: "y te sacarán los ojos" },
 { pregunta: "La curiosidad mató...", opciones: ["al ratón", "al gato", "al perro", "al pájaro"], respuesta: "al gato" },
@@ -510,18 +542,31 @@ const MemoryGame = ({
     // Puntuación base por completar el juego
     let puntuacionBase = 100;
     
-    // BONUS POR EFICIENCIA - MÁS GRANULARIDAD
-    let bonusEficiencia = 0;
-    
-    if (totalMovimientos <= 16) bonusEficiencia = 100;        // Perfecto (mínimo teórico: 16)
-    else if (totalMovimientos <= 20) bonusEficiencia = 85;    // Excelente
-    else if (totalMovimientos <= 24) bonusEficiencia = 70;    // Muy bueno
-    else if (totalMovimientos <= 28) bonusEficiencia = 55;    // Bueno  
-    else if (totalMovimientos <= 32) bonusEficiencia = 40;    // Normal
-    else if (totalMovimientos <= 36) bonusEficiencia = 25;    // Regular
-    else if (totalMovimientos <= 40) bonusEficiencia = 10;    // Básico
-    else bonusEficiencia = 0;                                 // Solo completó
-    
+   // BONUS POR EFICIENCIA - ESCALA GRANULAR COMPACTA
+let bonusEficiencia = 0;
+const movimientos = totalMovimientos;
+
+if (movimientos <= 16) bonusEficiencia = 100;       // Perfecto
+else if (movimientos <= 17) bonusEficiencia = 95;   // Casi perfecto  
+else if (movimientos <= 18) bonusEficiencia = 90;   // Excelente+
+else if (movimientos <= 19) bonusEficiencia = 85;   // Excelente
+else if (movimientos <= 20) bonusEficiencia = 80;   // Muy bueno+
+else if (movimientos <= 21) bonusEficiencia = 75;   // Muy bueno
+else if (movimientos <= 22) bonusEficiencia = 70;   // Bueno+
+else if (movimientos <= 23) bonusEficiencia = 65;   // Bueno
+else if (movimientos <= 24) bonusEficiencia = 60;   // Bueno-
+else if (movimientos <= 25) bonusEficiencia = 55;   // Normal+
+else if (movimientos <= 26) bonusEficiencia = 50;   // Normal
+else if (movimientos <= 27) bonusEficiencia = 45;   // Normal-
+else if (movimientos <= 28) bonusEficiencia = 40;   // Regular+
+else if (movimientos <= 29) bonusEficiencia = 35;   // Regular
+else if (movimientos <= 30) bonusEficiencia = 30;   // Regular-
+else if (movimientos <= 31) bonusEficiencia = 25;   // Básico+
+else if (movimientos <= 32) bonusEficiencia = 20;   // Básico
+else if (movimientos <= 33) bonusEficiencia = 15;   // Básico-
+else if (movimientos <= 34) bonusEficiencia = 10;   // Principiante+
+else if (movimientos <= 35) bonusEficiencia = 5;    // Principiante
+else bonusEficiencia = 0;                           // Sin bonus
     // PUNTUACIÓN FINAL CON MÁS VARIABILIDAD
     const puntuacionFinal = puntuacionBase + bonusEficiencia;
     
