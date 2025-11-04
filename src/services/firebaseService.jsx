@@ -1778,124 +1778,149 @@ async obtenerEstadisticasNaviVibes() {
   // =============================================
   // 🎮 SISTEMA DE JUEGOS - FUNCIONES CORREGIDAS
   // =============================================
+async guardarPuntuacionJuego(usuarioId, juegoId, puntuacion, datosSession = {}) {
+  try {
+    console.log("🎯 Guardando puntuación de juego CON MOVIMIENTOS:", {
+      usuarioId,
+      juegoId,
+      puntuacion,
+      datosSession,
+      movimientos: datosSession.movimientos // ✅ NUEVO: Mostrar movimientos
+    });
 
-  // ✅ FUNCIÓN CORREGIDA: GUARDAR PUNTUACIÓN CON ESTRUCTURA PLANA
-  async guardarPuntuacionJuego(usuarioId, juegoId, puntuacion, datosSession = {}) {
-    try {
-      console.log("🎯 Guardando puntuación de juego:", {
-        usuarioId,
-        juegoId,
-        puntuacion,
-        datosSession
-      });
-
-      // ✅ VERIFICACIONES CRÍTICAS
-      if (!usuarioId) {
-        throw new Error('ID de usuario es requerido');
-      }
-
-      if (!juegoId) {
-        throw new Error('ID de juego es requerido');
-      }
-
-      // 1. OBTENER DATOS DEL USUARIO
-      const userDoc = await getDoc(doc(db, 'usuarios', usuarioId));
-      if (!userDoc.exists()) {
-        throw new Error('Usuario no encontrado');
-      }
-
-      const userData = userDoc.data();
-      const userName = userData.nombre || 'Usuario';
-      const userAvatar = userData.avatar || '👤';
-
-      // 2. CREAR ID ÚNICO PARA EL REGISTRO
-      const docId = `${juegoId}_${usuarioId}`;
-      
-      // 3. BUSCAR REGISTRO EXISTENTE
-      const docExistente = await getDoc(doc(db, 'juegosRankings', docId));
-      const ahora = new Date();
-      
-      let datosRanking = {
-        usuarioId: usuarioId,
-        juegoId: juegoId,
-        nombre: userName,
-        avatar: userAvatar,
-        mejorPuntuacion: puntuacion,
-        ultimaPuntuacion: puntuacion,
-        fechaUltimoIntento: ahora,
-        totalIntentos: 1,
-        rachaMaxima: datosSession.mejorRacha || 0,
-        ultimaActualizacion: ahora
-      };
-
-      // 4. ACTUALIZAR O CREAR REGISTRO
-      if (docExistente.exists()) {
-        const dataActual = docExistente.data();
-        const mejorActual = dataActual.mejorPuntuacion || 0;
-        
-        datosRanking.mejorPuntuacion = Math.max(mejorActual, puntuacion);
-        datosRanking.totalIntentos = (dataActual.totalIntentos || 0) + 1;
-        datosRanking.rachaMaxima = Math.max(dataActual.rachaMaxima || 0, datosSession.mejorRacha || 0);
-        
-        console.log("✅ Actualizando puntuación existente:", docId);
-      } else {
-        console.log("✅ Creando nueva puntuación:", docId);
-      }
-
-      await setDoc(doc(db, 'juegosRankings', docId), datosRanking);
-
-      // 5. GUARDAR SESIÓN DE JUEGO
-      const sessionData = {
-        usuarioId: usuarioId,
-        juegoId: juegoId,
-        puntuacionFinal: puntuacion,
-        rachaMaxima: datosSession.mejorRacha || 0,
-        preguntasRespondidas: datosSession.preguntasRespondidas || 0,
-        fechaSession: ahora,
-        duracion: datosSession.duracion || 0,
-        detalles: datosSession.detalles || {}
-      };
-
-      await addDoc(collection(db, 'juegosSessions'), sessionData);
-
-      console.log("✅ Puntuación guardada exitosamente para juego:", juegoId);
-      return { 
-        success: true, 
-        mejorPuntuacion: datosRanking.mejorPuntuacion,
-        esNuevoRecord: !docExistente.exists() || puntuacion > dataActual.mejorPuntuacion
-      };
-
-    } catch (error) {
-      console.error("❌ Error guardando puntuación de juego:", error);
-      throw error;
+    // ✅ VERIFICACIONES CRÍTICAS
+    if (!usuarioId) {
+      throw new Error('ID de usuario es requerido');
     }
-  },
+
+    if (!juegoId) {
+      throw new Error('ID de juego es requerido');
+    }
+
+    // 1. OBTENER DATOS DEL USUARIO
+    const userDoc = await getDoc(doc(db, 'usuarios', usuarioId));
+    if (!userDoc.exists()) {
+      throw new Error('Usuario no encontrado');
+    }
+
+    const userData = userDoc.data();
+    const userName = userData.nombre || 'Usuario';
+    const userAvatar = userData.avatar || '👤';
+
+    // 2. CREAR ID ÚNICO PARA EL REGISTRO
+    const docId = `${juegoId}_${usuarioId}`;
+    
+    // 3. BUSCAR REGISTRO EXISTENTE
+    const docExistente = await getDoc(doc(db, 'juegosRankings', docId));
+    const ahora = new Date();
+    
+    // ✅ NUEVO: INCLUIR MOVIMIENTOS EN DATOS DE RANKING
+    let datosRanking = {
+      usuarioId: usuarioId,
+      juegoId: juegoId,
+      nombre: userName,
+      avatar: userAvatar,
+      mejorPuntuacion: puntuacion,
+      ultimaPuntuacion: puntuacion,
+      fechaUltimoIntento: ahora,
+      totalIntentos: 1,
+      rachaMaxima: datosSession.mejorRacha || 0,
+      ultimaActualizacion: ahora,
+      // ✅ NUEVO CAMPOS PARA MEMORY GAME
+      movimientos: datosSession.movimientos || 0, // ✅ SE GUARDAN LOS MOVIMIENTOS
+      eficiencia: datosSession.detalles?.eficiencia || 'normal'
+    };
+
+    // 4. ACTUALIZAR O CREAR REGISTRO
+    if (docExistente.exists()) {
+      const dataActual = docExistente.data();
+      const mejorActual = dataActual.mejorPuntuacion || 0;
+      
+      datosRanking.mejorPuntuacion = Math.max(mejorActual, puntuacion);
+      datosRanking.totalIntentos = (dataActual.totalIntentos || 0) + 1;
+      datosRanking.rachaMaxima = Math.max(dataActual.rachaMaxima || 0, datosSession.mejorRacha || 0);
+      
+      // ✅ NUEVO: Actualizar movimientos solo si es mejor puntuación
+      if (puntuacion > mejorActual) {
+        datosRanking.movimientos = datosSession.movimientos || 0;
+        datosRanking.eficiencia = datosSession.detalles?.eficiencia || 'normal';
+      }
+      
+      console.log("✅ Actualizando puntuación existente:", docId);
+    } else {
+      console.log("✅ Creando nueva puntuación:", docId);
+    }
+
+    await setDoc(doc(db, 'juegosRankings', docId), datosRanking);
+
+    // 5. GUARDAR SESIÓN DE JUEGO CON MOVIMIENTOS
+    const sessionData = {
+      usuarioId: usuarioId,
+      juegoId: juegoId,
+      puntuacionFinal: puntuacion,
+      rachaMaxima: datosSession.mejorRacha || 0,
+      preguntasRespondidas: datosSession.preguntasRespondidas || 0,
+      // ✅ NUEVO: GUARDAR MOVIMIENTOS EN LA SESIÓN
+      movimientos: datosSession.movimientos || 0,
+      fechaSession: ahora,
+      duracion: datosSession.duracion || 0,
+      detalles: datosSession.detalles || {}
+    };
+
+    await addDoc(collection(db, 'juegosSessions'), sessionData);
+
+    console.log("✅ Puntuación guardada exitosamente para juego:", juegoId, "Movimientos:", datosSession.movimientos);
+    return { 
+      success: true, 
+      mejorPuntuacion: datosRanking.mejorPuntuacion,
+      esNuevoRecord: !docExistente.exists() || puntuacion > dataActual.mejorPuntuacion,
+      movimientos: datosSession.movimientos // ✅ NUEVO: Retornar movimientos
+    };
+
+  } catch (error) {
+    console.error("❌ Error guardando puntuación de juego:", error);
+    throw error;
+  }
+},
+
 
   // ✅ FUNCIÓN CORREGIDA: OBTENER RANKING CON CONSULTA SIMPLE
-  async obtenerRankingJuego(juegoId, limite = 10) {
-    try {
-      console.log("🏆 Obteniendo ranking para juego:", juegoId);
-      
-      const q = query(
-        collection(db, 'juegosRankings'),
-        where('juegoId', '==', juegoId),
-        orderBy('mejorPuntuacion', 'desc'),
-        limit(limite)
-      );
-      
-      const querySnapshot = await getDocs(q);
-      const ranking = querySnapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data()
-      }));
-      
-      console.log("✅ Ranking obtenido:", ranking.length, "jugadores");
-      return ranking;
-    } catch (error) {
-      console.error("❌ Error obteniendo ranking de juego:", error);
-      return [];
+ async obtenerRankingJuego(juegoId, limite = 10) {
+  try {
+    console.log("🏆 Obteniendo ranking CON MOVIMIENTOS para juego:", juegoId);
+    
+    const q = query(
+      collection(db, 'juegosRankings'),
+      where('juegoId', '==', juegoId),
+      orderBy('mejorPuntuacion', 'desc'),
+      limit(limite)
+    );
+    
+    const querySnapshot = await getDocs(q);
+    const ranking = querySnapshot.docs.map(doc => ({
+      id: doc.id,
+      ...doc.data(),
+      // ✅ NUEVO: Asegurar que siempre tenga campo movimientos
+      movimientos: doc.data().movimientos || 0
+    }));
+    
+    console.log("✅ Ranking obtenido con movimientos:", ranking.length, "jugadores");
+    
+    // ✅ DEBUG: Mostrar movimientos del primer jugador
+    if (ranking.length > 0) {
+      console.log("📊 Ejemplo de datos con movimientos:", {
+        nombre: ranking[0].nombre,
+        puntos: ranking[0].mejorPuntuacion,
+        movimientos: ranking[0].movimientos
+      });
     }
-  },
+    
+    return ranking;
+  } catch (error) {
+    console.error("❌ Error obteniendo ranking de juego:", error);
+    return [];
+  }
+},
 
   // ✅ FUNCIÓN CORREGIDA: OBTENER MEJOR PUNTUACIÓN PERSONAL
   async obtenerMejorPuntuacionPersonal(usuarioId, juegoId) {

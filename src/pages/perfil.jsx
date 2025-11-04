@@ -263,11 +263,11 @@ export default function Perfil() {
                         </button>
                       ))}
                     </div>
-                    {formData.avatar && (
-                      <p className="text-center mt-4 text-purple-700 font-semibold">
-                        Avatar seleccionado: {formData.avatar}
-                      </p>
-                    )}
+                  {formData.avatar && (
+  <p className="text-center mt-4 text-purple-700 font-semibold">
+    Avatar seleccionado
+  </p>
+)}
                   </div>
 
                   <div className="bg-green-50 border-2 border-green-200 rounded-xl p-6">
@@ -310,10 +310,10 @@ export default function Perfil() {
                 <div className="space-y-6">
                   <div className="bg-purple-50 border-2 border-purple-200 rounded-xl p-6">
                     <h3 className="text-lg font-bold text-purple-800 mb-2">🎨 Avatar Actual</h3>
-                    <div className="flex items-center gap-4">
-                      <span className="text-4xl">{usuario.avatar || "👤"}</span>
-                      <p className="text-gray-700">{usuario.avatar || "Avatar por defecto"}</p>
-                    </div>
+                   <div className="flex items-center gap-4">
+  <span className="text-4xl">{usuario.avatar || "👤"}</span>
+  <p className="text-gray-700">{usuario.avatar ? "Avatar personalizado" : "Avatar por defecto"}</p>
+</div>
                   </div>
 
                   <div className="bg-green-50 border-2 border-green-200 rounded-xl p-6">

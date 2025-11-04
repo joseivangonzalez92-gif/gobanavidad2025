@@ -266,7 +266,7 @@ export default function Challenges() {
       titulo: "💝 Búsqueda del Tesoro #2", 
       descripcion: "¿Cuál es la palabra oculta en NaviVibes?",
       tipo: "tesoro", 
-      respuestaCorrecta: "AMOR",
+      respuestaCorrecta: "Amor",
       puntos: 15
     },
     { 
@@ -314,68 +314,68 @@ export default function Challenges() {
     return -1; // Fuera de temporada
   };
 
- 
-// 🆕 FUNCIÓN CORREGIDA - TODOS CIERRAN DOMINGO 6:00PM
-const getEstadoReto = (reto, index, tipo) => {
-  const ahora = getFechaHonduras();
-  const semanaActual = getSemanaActual();
-  
-  if (semanaActual === -1) return "fuera_temporada";
-  
-  if (tipo === "foto") {
-    const semanaReto = index;
+  // 🆕 FUNCIÓN CORREGIDA - TODOS CIERRAN DOMINGO 6:00PM
+  const getEstadoReto = (reto, index, tipo) => {
+    const ahora = getFechaHonduras();
+    const semanaActual = getSemanaActual();
     
-    // Solo activo si es la semana correspondiente
-    if (semanaReto !== semanaActual) {
-      return semanaReto < semanaActual ? "cerrado" : "proxima_semana";
+    if (semanaActual === -1) return "fuera_temporada";
+    
+    if (tipo === "foto") {
+      const semanaReto = index;
+      
+      // Solo activo si es la semana correspondiente
+      if (semanaReto !== semanaActual) {
+        return semanaReto < semanaActual ? "cerrado" : "proxima_semana";
+      }
+      
+      const fechaApertura = fechasSemanales[index];
+      const fechaCierre = new Date(fechaApertura);
+      fechaCierre.setDate(fechaCierre.getDate() + 6); // Domingo
+      fechaCierre.setHours(18, 0, 0, 0); // Domingo 6:00pm
+      
+      if (ahora < fechaApertura) return "proximo";
+      if (ahora > fechaCierre) return "cerrado";
+      return "activo";
     }
     
-    const fechaApertura = fechasSemanales[index];
-    const fechaCierre = new Date(fechaApertura);
-    fechaCierre.setDate(fechaCierre.getDate() + 6); // Domingo
-    fechaCierre.setHours(18, 0, 0, 0); // Domingo 6:00pm
-    
-    if (ahora < fechaApertura) return "proximo";
-    if (ahora > fechaCierre) return "cerrado";
-    return "activo";
-  }
-  
-  if (tipo === "pregunta") {
-    const semanaReto = Math.floor(index / 2);
-    
-    // Solo activo si es la semana correspondiente
-    if (semanaReto !== semanaActual) {
-      return semanaReto < semanaActual ? "cerrado" : "proxima_semana";
+    if (tipo === "pregunta") {
+      const semanaReto = Math.floor(index / 2);
+      
+      // Solo activo si es la semana correspondiente
+      if (semanaReto !== semanaActual) {
+        return semanaReto < semanaActual ? "cerrado" : "proxima_semana";
+      }
+      
+      const fechaAperturaBase = fechasSemanales[semanaReto];
+      const fechaApertura = new Date(fechaAperturaBase);
+      
+      // Miércoles: +2 días, Viernes: +4 días
+      const diasSumar = index % 2 === 0 ? 2 : 4; // 0=Miércoles, 1=Viernes
+      fechaApertura.setDate(fechaApertura.getDate() + diasSumar);
+      fechaApertura.setHours(6, 0, 0, 0); // 6:00am
+      
+      // 🆕 TODOS CIERRAN DOMINGO 6:00PM
+      const fechaCierre = new Date(fechaAperturaBase);
+      fechaCierre.setDate(fechaCierre.getDate() + 6); // Domingo
+      fechaCierre.setHours(18, 0, 0, 0); // Domingo 6:00pm
+      
+      if (ahora < fechaApertura) return "proximo";
+      if (ahora > fechaCierre) return "cerrado";
+      return "activo";
     }
     
-    const fechaAperturaBase = fechasSemanales[semanaReto];
-    const fechaApertura = new Date(fechaAperturaBase);
+    if (tipo === "tesoro") {
+      return "activo"; // Siempre activos
+    }
     
-    // Miércoles: +2 días, Viernes: +4 días
-    const diasSumar = index % 2 === 0 ? 2 : 4; // 0=Miércoles, 1=Viernes
-    fechaApertura.setDate(fechaApertura.getDate() + diasSumar);
-    fechaApertura.setHours(6, 0, 0, 0); // 6:00am
-    
-    // 🆕 TODOS CIERRAN DOMINGO 6:00PM
-    const fechaCierre = new Date(fechaAperturaBase);
-    fechaCierre.setDate(fechaCierre.getDate() + 6); // Domingo
-    fechaCierre.setHours(18, 0, 0, 0); // Domingo 6:00pm
-    
-    if (ahora < fechaApertura) return "proximo";
-    if (ahora > fechaCierre) return "cerrado";
-    return "activo";
-  }
-  
-  if (tipo === "tesoro") {
-    return "activo"; // Siempre activos
-  }
-  
-  return "proxima_semana";
-};
+    return "proxima_semana";
+  };
 
   // 🆕 FUNCIÓN CORREGIDA PARA OBTENER RETOS DE LA SEMANA ACTUAL
   const getRetosSemanaActual = () => {
     const semanaActual = getSemanaActual();
+    const ahora = getFechaHonduras();
     const retosSemana = [];
     
     if (semanaActual === -1) return retosSemana;
@@ -391,27 +391,37 @@ const getEstadoReto = (reto, index, tipo) => {
       });
     }
     
-    // Preguntas de la semana actual
+    // Preguntas de la semana actual - SOLO MOSTRAR EN SU DÍA CORRESPONDIENTE
     const preguntasSemana = preguntasMiercolesViernes.slice(semanaActual * 2, (semanaActual * 2) + 2);
     preguntasSemana.forEach((pregunta, index) => {
       const indiceGlobal = (semanaActual * 2) + index;
       const estado = getEstadoReto(pregunta, indiceGlobal, "pregunta");
       const dia = index === 0 ? "Miércoles" : "Viernes";
+      
+      const fechaAperturaBase = fechasSemanales[semanaActual];
+      const fechaApertura = new Date(fechaAperturaBase);
+      const diasSumar = index === 0 ? 2 : 4; // Miércoles: +2, Viernes: +4
+      fechaApertura.setDate(fechaApertura.getDate() + diasSumar);
+      fechaApertura.setHours(6, 0, 0, 0);
+      
+      // Si aún no es el día de la pregunta, cambiar estado a "proximo"
+      const estadoFinal = ahora < fechaApertura ? "proximo" : estado;
+      
       retosSemana.push({
         ...pregunta,
-        estado: estado,
-          horario: `${dia} 6:00am a Domingo 6:00pm`
+        estado: estadoFinal,
+        horario: `${dia} 6:00am a Domingo 6:00pm`
       });
     });
     
     return retosSemana;
   };
 
-  // 🆕 FUNCIÓN CORREGIDA PARA OBTENER RETOS ACTIVOS
+  // 🆕 FUNCIÓN CORREGIDA PARA OBTENER RETOS ACTIVOS - SOLO MUESTRA PREGUNTAS EN SU DÍA CORRESPONDIENTE
   const getRetosActivos = () => {
     const retos = [];
     const semanaActual = getSemanaActual();
-    
+    const ahora = getFechaHonduras();
     
     // Agregar tesoros (siempre activos)
     preguntasTesoro.forEach(reto => {
@@ -423,9 +433,31 @@ const getEstadoReto = (reto, index, tipo) => {
     
     // Agregar retos de la semana actual que estén activos
     const retosSemana = getRetosSemanaActual();
+    
     retosSemana.forEach(reto => {
       if (reto.estado === "activo") {
-        retos.push(reto);
+        // Para preguntas semanales, verificar si ya es su día específico
+        if (reto.tipo === "pregunta") {
+          const indiceGlobal = preguntasMiercolesViernes.findIndex(p => p.id === reto.id);
+          if (indiceGlobal !== -1) {
+            const semanaReto = Math.floor(indiceGlobal / 2);
+            const fechaAperturaBase = fechasSemanales[semanaReto];
+            const fechaApertura = new Date(fechaAperturaBase);
+            
+            // Miércoles: +2 días, Viernes: +4 días
+            const diasSumar = indiceGlobal % 2 === 0 ? 2 : 4;
+            fechaApertura.setDate(fechaApertura.getDate() + diasSumar);
+            fechaApertura.setHours(6, 0, 0, 0); // 6:00am
+            
+            // Solo agregar si ya es el día correspondiente (miércoles o viernes)
+            if (ahora >= fechaApertura) {
+              retos.push(reto);
+            }
+          }
+        } else {
+          // Para fotos, agregar normalmente
+          retos.push(reto);
+        }
       }
     });
     
@@ -493,57 +525,57 @@ const getEstadoReto = (reto, index, tipo) => {
   };
 
   // 🆕 FUNCIÓN PARA SUBIR FOTO RESTAURADA
-const manejarSubidaFoto = async (retoId) => {
-  if (!imagenSubida || !usuarioActual) {
-    alert("❌ Por favor selecciona una foto primero");
-    return;
-  }
-
-  try {
-    setSubiendoFoto(true);
-    
-    // Subir imagen a ImgBB
-    const IMGBB_API_KEY = import.meta.env.VITE_IMGBB_API_KEY;
-    const formData = new FormData();
-    formData.append("image", imagenSubida);
-    
-    const imgbbResponse = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_API_KEY}`, {
-      method: "POST",
-      body: formData
-    });
-    
-    const imgbbData = await imgbbResponse.json();
-    
-    if (!imgbbData.success) {
-      throw new Error("Error al subir la imagen");
+  const manejarSubidaFoto = async (retoId) => {
+    if (!imagenSubida || !usuarioActual) {
+      alert("❌ Por favor selecciona una foto primero");
+      return;
     }
-    
-    const imageUrl = imgbbData.data.url;
-    
-    // Guardar en Firebase
-    const puntosObtenidos = await gobaService.completeChallenge(
-      usuarioActual.id,
-      retoId,
-      imageUrl,
-      10 // Puntos por subir foto
-    );
-    
-    alert(`✅ ¡Foto subida correctamente! Ganaste ${puntosObtenidos} puntos. Espera la aprobación del admin.`);
-    
-    // Limpiar estado
-    setImagenSubida(null);
-    
-    // Actualizar puntos y recargar datos
-    await actualizarPuntosUsuario();
-    loadChallengesData();
-    
-  } catch (error) {
-    console.error("❌ Error subiendo foto:", error);
-    alert("❌ Error al subir la foto. Intenta de nuevo.");
-  } finally {
-    setSubiendoFoto(false);
-  }
-};
+
+    try {
+      setSubiendoFoto(true);
+      
+      // Subir imagen a ImgBB
+      const IMGBB_API_KEY = import.meta.env.VITE_IMGBB_API_KEY;
+      const formData = new FormData();
+      formData.append("image", imagenSubida);
+      
+      const imgbbResponse = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_API_KEY}`, {
+        method: "POST",
+        body: formData
+      });
+      
+      const imgbbData = await imgbbResponse.json();
+      
+      if (!imgbbData.success) {
+        throw new Error("Error al subir la imagen");
+      }
+      
+      const imageUrl = imgbbData.data.url;
+      
+      // Guardar en Firebase
+      const puntosObtenidos = await gobaService.completeChallenge(
+        usuarioActual.id,
+        retoId,
+        imageUrl,
+        10 // Puntos por subir foto
+      );
+      
+      alert(`✅ ¡Foto subida correctamente! Ganaste ${puntosObtenidos} puntos. Puedes solicitar cambiar foto antes del Domingo 6pm.`);
+      
+      // Limpiar estado
+      setImagenSubida(null);
+      
+      // Actualizar puntos y recargar datos
+      await actualizarPuntosUsuario();
+      loadChallengesData();
+      
+    } catch (error) {
+      console.error("❌ Error subiendo foto:", error);
+      alert("❌ Error al subir la foto. Intenta de nuevo.");
+    } finally {
+      setSubiendoFoto(false);
+    }
+  };
 
   // Cargar usuario y datos al iniciar
   useEffect(() => {
@@ -556,63 +588,63 @@ const manejarSubidaFoto = async (retoId) => {
     loadChallengesData();
   }, [navigate]);
 
-const loadChallengesData = async () => {
-  try {
-    setLoading(true);
+  const loadChallengesData = async () => {
+    try {
+      setLoading(true);
 
-    // 1. OBTENER USUARIO ACTUAL
-    let usuarioLocal = JSON.parse(localStorage.getItem('usuarioActual'));
-    
-    if (!usuarioLocal || !usuarioLocal.id) {
-      console.log("❌ No hay usuario logueado");
-      navigate("/login");
-      return;
-    }
-    
-    console.log("🔍 Usuario local:", usuarioLocal.nombre, "Puntos:", usuarioLocal.puntos);
-
-    // 2. ACTUALIZAR DESDE FIREBASE
-    console.log("🔄 Buscando usuario en Firebase...");
-    const usuarioFirebase = await gobaService.obtenerUsuario(usuarioLocal.id);
-    
-    if (usuarioFirebase) {
-      console.log("✅ Usuario Firebase encontrado:", usuarioFirebase.nombre, "Puntos:", usuarioFirebase.puntos);
+      // 1. OBTENER USUARIO ACTUAL
+      let usuarioLocal = JSON.parse(localStorage.getItem('usuarioActual'));
       
-      // ACTUALIZAR LOCALSTORAGE Y STATE
-      localStorage.setItem('usuarioActual', JSON.stringify(usuarioFirebase));
-      setUsuarioActual(usuarioFirebase);
-      usuarioLocal = usuarioFirebase;
-    } else {
-      console.log("⚠️ No se encontró usuario en Firebase, usando datos locales");
-      setUsuarioActual(usuarioLocal);
+      if (!usuarioLocal || !usuarioLocal.id) {
+        console.log("❌ No hay usuario logueado");
+        navigate("/login");
+        return;
+      }
+      
+      console.log("🔍 Usuario local:", usuarioLocal.nombre, "Puntos:", usuarioLocal.puntos);
+
+      // 2. ACTUALIZAR DESDE FIREBASE
+      console.log("🔄 Buscando usuario en Firebase...");
+      const usuarioFirebase = await gobaService.obtenerUsuario(usuarioLocal.id);
+      
+      if (usuarioFirebase) {
+        console.log("✅ Usuario Firebase encontrado:", usuarioFirebase.nombre, "Puntos:", usuarioFirebase.puntos);
+        
+        // ACTUALIZAR LOCALSTORAGE Y STATE
+        localStorage.setItem('usuarioActual', JSON.stringify(usuarioFirebase));
+        setUsuarioActual(usuarioFirebase);
+        usuarioLocal = usuarioFirebase;
+      } else {
+        console.log("⚠️ No se encontró usuario en Firebase, usando datos locales");
+        setUsuarioActual(usuarioLocal);
+      }
+
+      // 3. CARGAR DATOS ADICIONALES
+      console.log("📊 Cargando ranking y retos completados...");
+      const [rankingData, completadosData, preguntasData] = await Promise.all([
+        gobaService.getRanking(),
+        gobaService.getUserCompletedChallenges(usuarioLocal.id),
+        gobaService.getCompletedQuestions(usuarioLocal.id)
+      ]);
+
+      setRanking(rankingData);
+      setRetosCompletados(completadosData);
+      setPreguntasCompletadas(preguntasData);
+      
+      // 4. CALCULAR RETOS
+      setRetosActivos(getRetosActivos());
+      setRetosSemanaActual(getRetosSemanaActual());
+      setRetosProximos(getRetosProximaSemana());
+
+      console.log("🎯 Datos cargados correctamente. Puntos actuales:", usuarioLocal.puntos);
+
+    } catch (error) {
+      console.error("❌ Error cargando datos de challenges:", error);
+      alert("Error al cargar los datos. Recarga la página.");
+    } finally {
+      setLoading(false);
     }
-
-    // 3. CARGAR DATOS ADICIONALES
-    console.log("📊 Cargando ranking y retos completados...");
-    const [rankingData, completadosData, preguntasData] = await Promise.all([
-      gobaService.getRanking(),
-      gobaService.getUserCompletedChallenges(usuarioLocal.id),
-      gobaService.getCompletedQuestions(usuarioLocal.id)
-    ]);
-
-    setRanking(rankingData);
-    setRetosCompletados(completadosData);
-    setPreguntasCompletadas(preguntasData);
-    
-    // 4. CALCULAR RETOS
-    setRetosActivos(getRetosActivos());
-    setRetosSemanaActual(getRetosSemanaActual());
-    setRetosProximos(getRetosProximaSemana());
-
-    console.log("🎯 Datos cargados correctamente. Puntos actuales:", usuarioLocal.puntos);
-
-  } catch (error) {
-    console.error("❌ Error cargando datos de challenges:", error);
-    alert("Error al cargar los datos. Recarga la página.");
-  } finally {
-    setLoading(false);
-  }
-};
+  };
 
   // 🆕 FUNCIÓN PARA VALIDAR RESPUESTAS
   const validarRespuesta = (retoId, respuestaUsuario) => {
@@ -639,52 +671,52 @@ const loadChallengesData = async () => {
   };
 
   // 🆕 FUNCIÓN CORREGIDA PARA COMPLETAR PREGUNTAS SEMANALES
-const completarPreguntaSemanal = async (retoId, respuesta) => {
-  if (!usuarioActual) return;
+  const completarPreguntaSemanal = async (retoId, respuesta) => {
+    if (!usuarioActual) return;
 
-  if (intentosPreguntas[retoId]) {
-    alert("❌ Ya respondiste esta pregunta. Solo tienes un intento.");
-    return;
-  }
-
-  try {
-    const esCorrecta = validarRespuesta(retoId, respuesta);
-    const puntos = esCorrecta ? 5 : 0;
-    
-    console.log("🔍 Enviando a Firebase:", { retoId, respuesta, esCorrecta, puntos });
-
-    setIntentosPreguntas(prev => ({
-      ...prev,
-      [retoId]: true
-    }));
-
-    const puntosObtenidos = await gobaService.completeChallenge(
-      usuarioActual.id, 
-      retoId, 
-      respuesta, 
-      puntos
-    );
-
-    if (esCorrecta) {
-      alert(`✅ ¡Correcto! Ganaste ${puntosObtenidos} puntos`);
-    } else {
-      const pregunta = preguntasMiercolesViernes.find(p => p.id === retoId);
-      alert(`❌ Respuesta incorrecta. La respuesta correcta era: "${pregunta?.respuestaCorrecta}". No ganaste puntos.`);
+    if (intentosPreguntas[retoId]) {
+      alert("❌ Ya respondiste esta pregunta. Solo tienes un intento.");
+      return;
     }
 
-    // 🆕 ACTUALIZAR PUNTOS INMEDIATAMENTE
-    await actualizarPuntosUsuario();
-    // Y luego recargar todo
-    loadChallengesData();
-    
-  } catch (error) {
-    setIntentosPreguntas(prev => ({
-      ...prev,
-      [retoId]: false
-    }));
-    alert(`❌ ${error.message}`);
-  }
-};
+    try {
+      const esCorrecta = validarRespuesta(retoId, respuesta);
+      const puntos = esCorrecta ? 5 : 0;
+      
+      console.log("🔍 Enviando a Firebase:", { retoId, respuesta, esCorrecta, puntos });
+
+      setIntentosPreguntas(prev => ({
+        ...prev,
+        [retoId]: true
+      }));
+
+      const puntosObtenidos = await gobaService.completeChallenge(
+        usuarioActual.id, 
+        retoId, 
+        respuesta, 
+        puntos
+      );
+
+      if (esCorrecta) {
+        alert(`✅ ¡Correcto! Ganaste ${puntosObtenidos} puntos`);
+      } else {
+        const pregunta = preguntasMiercolesViernes.find(p => p.id === retoId);
+        alert(`❌ Respuesta incorrecta. La respuesta correcta era: "${pregunta?.respuestaCorrecta}". No ganaste puntos.`);
+      }
+
+      // 🆕 ACTUALIZAR PUNTOS INMEDIATAMENTE
+      await actualizarPuntosUsuario();
+      // Y luego recargar todo
+      loadChallengesData();
+      
+    } catch (error) {
+      setIntentosPreguntas(prev => ({
+        ...prev,
+        [retoId]: false
+      }));
+      alert(`❌ ${error.message}`);
+    }
+  };
 
   // 🆕 FUNCIÓN PARA MANEJAR CAMBIO EN INPUTS INDIVIDUALES DE TESORO
   const manejarCambioRespuestaTesoro = (retoId, valor) => {
@@ -694,41 +726,41 @@ const completarPreguntaSemanal = async (retoId, respuesta) => {
     }));
   };
 
- // 🆕 FUNCIÓN PARA COMPLETAR TESORO CON INTENTOS ILIMITADOS
-const completarTesoro = async (retoId) => {
-  if (!usuarioActual || !respuestasTesoro[retoId]?.trim()) {
-    alert("❌ Por favor escribe tu respuesta");
-    return;
-  }
-
-  try {
-    const respuestaUsuario = respuestasTesoro[retoId];
-    const esCorrecta = validarRespuesta(retoId, respuestaUsuario);
-    
-    if (!esCorrecta) {
-      alert(`❌ Respuesta incorrecta. ¡Sigue buscando!`);
+  // 🆕 FUNCIÓN PARA COMPLETAR TESORO CON INTENTOS ILIMITADOS
+  const completarTesoro = async (retoId) => {
+    if (!usuarioActual || !respuestasTesoro[retoId]?.trim()) {
+      alert("❌ Por favor escribe tu respuesta");
       return;
     }
-    
-    const puntosObtenidos = await gobaService.completeChallenge(
-      usuarioActual.id, 
-      retoId, 
-      respuestaUsuario, 
-      15
-    );
-    
-    alert(`✅ ¡Correcto! Descubriste el tesoro y ganaste ${puntosObtenidos} puntos`);
-    manejarCambioRespuestaTesoro(retoId, "");
-    
-    // 🆕 ACTUALIZAR PUNTOS INMEDIATAMENTE
-    await actualizarPuntosUsuario();
-    // Y luego recargar todo
-    loadChallengesData();
-    
-  } catch (error) {
-    alert(`❌ ${error.message}`);
-  }
-};
+
+    try {
+      const respuestaUsuario = respuestasTesoro[retoId];
+      const esCorrecta = validarRespuesta(retoId, respuestaUsuario);
+      
+      if (!esCorrecta) {
+        alert(`❌ Respuesta incorrecta. ¡Sigue buscando!`);
+        return;
+      }
+      
+      const puntosObtenidos = await gobaService.completeChallenge(
+        usuarioActual.id, 
+        retoId, 
+        respuestaUsuario, 
+        15
+      );
+      
+      alert(`✅ ¡Correcto! Descubriste el tesoro y ganaste ${puntosObtenidos} puntos`);
+      manejarCambioRespuestaTesoro(retoId, "");
+      
+      // 🆕 ACTUALIZAR PUNTOS INMEDIATAMENTE
+      await actualizarPuntosUsuario();
+      // Y luego recargar todo
+      loadChallengesData();
+      
+    } catch (error) {
+      alert(`❌ ${error.message}`);
+    }
+  };
 
   const getTextoEstado = (estado) => {
     const estados = {
@@ -816,14 +848,14 @@ const completarTesoro = async (retoId) => {
         
         {/* Puntos acumulados - CONECTADO CON RANKING */}
         <div className="mt-4 bg-gradient-to-r from-green-100 to-blue-100 rounded-xl p-6 inline-block border-2 border-green-200">
-  <div className="flex flex-col items-center justify-center">
-    <p className="text-4xl font-bold text-green-600 mb-2">
-      {ranking.find(jugador => jugador.userId === usuarioActual.id)?.puntosTotales || 0}
-    </p>
-    <p className="text-lg font-semibold text-gray-800">⭐ Puntos Acumulados</p>
-    <p className="text-sm text-gray-600 mt-1">Retos semanales</p>
-  </div>
-</div>
+          <div className="flex flex-col items-center justify-center">
+            <p className="text-4xl font-bold text-green-600 mb-2">
+              {ranking.find(jugador => jugador.userId === usuarioActual.id)?.puntosTotales || 0}
+            </p>
+            <p className="text-lg font-semibold text-gray-800">⭐ Puntos Acumulados</p>
+            <p className="text-sm text-gray-600 mt-1">Retos semanales</p>
+          </div>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
@@ -1042,7 +1074,7 @@ const completarTesoro = async (retoId) => {
                           
                           {reto.tipo === "foto" && (
                             <p className="text-sm text-green-600 mt-1">
-                              Foto aprobada por el admin
+                              Validación Final todos los Domingo 6pm
                             </p>
                           )}
                         </div>

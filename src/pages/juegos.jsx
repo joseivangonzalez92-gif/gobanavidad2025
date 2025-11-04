@@ -81,7 +81,27 @@ const JuegoSimple = ({
 { pregunta: "👻🏠👦", opciones: ["Casper", "The Haunting", "The Amityville Horror", "Poltergeist"], respuesta: "Casper" },
 { pregunta: "🦕🏝️🔬", opciones: ["Jurassic Park", "The Lost World", "King Kong", "Godzilla"], respuesta: "Jurassic Park" },
 { pregunta: "👗👠💼", opciones: ["The Devil Wears Prada", "Legally Blonde", "Working Girl", "13 Going on 30"], respuesta: "The Devil Wears Prada" },
-{ pregunta: "🚀🤖👦", opciones: ["Big Hero 6", "Astro Boy", "Robots", "The Iron Giant"], respuesta: "Big Hero 6" }
+{ pregunta: "🚀🤖👦", opciones: ["Big Hero 6", "Astro Boy", "Robots", "The Iron Giant"], respuesta: "Big Hero 6" },
+{ pregunta: "👦🕷️🕸️", opciones: ["Spider-Man: Into the Spider-Verse", "Spider-Man", "The Amazing Spider-Man", "Spider-Man: Homecoming"], respuesta: "Spider-Man: Into the Spider-Verse" },
+{ pregunta: "👧🔥🏹", opciones: ["The Hunger Games", "Brave", "Divergent", "The Maze Runner"], respuesta: "The Hunger Games" },
+{ pregunta: "🤖💙👦", opciones: ["The Iron Giant", "Big Hero 6", "Astro Boy", "Robots"], respuesta: "The Iron Giant" },
+{ pregunta: "👻📱😱", opciones: ["The Ring", "The Grudge", "Poltergeist", "Paranormal Activity"], respuesta: "The Ring" },
+{ pregunta: "🚗🌍🏎️", opciones: ["Cars", "Speed Racer", "Talladega Nights", "Rush"], respuesta: "Cars" },
+{ pregunta: "👸❄️💖", opciones: ["Frozen", "Snow White", "The Snow Queen", "Ice Princess"], respuesta: "Frozen" },
+{ pregunta: "🦇🌃🤡", opciones: ["Joker", "The Dark Knight", "Batman Begins", "The Batman"], respuesta: "Joker" },
+{ pregunta: "👽🔫🌎", opciones: ["Independence Day", "War of the Worlds", "Battle: Los Angeles", "Arrival"], respuesta: "Independence Day" },
+{ pregunta: "🎭🎪🎶", opciones: ["Moulin Rouge!", "The Greatest Showman", "Chicago", "Burlesque"], respuesta: "Moulin Rouge!" },
+{ pregunta: "🐉🏯👦", opciones: ["Mulan", "Kung Fu Panda", "The Last Airbender", "Crouching Tiger Hidden Dragon"], respuesta: "Mulan" },
+{ pregunta: "🧙‍♂️⚡🏰", opciones: ["Harry Potter and the Sorcerer's Stone", "The Lord of the Rings", "The Chronicles of Narnia", "Percy Jackson"], respuesta: "Harry Potter and the Sorcerer's Stone" },
+{ pregunta: "🚀👨‍🚀🪐", opciones: ["The Martian", "Interstellar", "Gravity", "Apollo 13"], respuesta: "The Martian" },
+{ pregunta: "👻🔍🏠", opciones: ["The Conjuring", "Insidious", "The Amityville Horror", "Sinister"], respuesta: "The Conjuring" },
+{ pregunta: "🦸‍♂️🛡️🇺🇸", opciones: ["Captain America: The First Avenger", "Superman", "Iron Man", "The Avengers"], respuesta: "Captain America: The First Avenger" },
+{ pregunta: "🐠🔍👨", opciones: ["Finding Nemo", "Finding Dory", "The Little Mermaid", "Shark Tale"], respuesta: "Finding Nemo" },
+{ pregunta: "👧🐰🎩", opciones: ["Alice in Wonderland", "Pan's Labyrinth", "Coraline", "The Wizard of Oz"], respuesta: "Alice in Wonderland" },
+{ pregunta: "🚗💨🌉", opciones: ["The Fast and the Furious: Tokyo Drift", "The Fast and the Furious", "Need for Speed", "Baby Driver"], respuesta: "The Fast and the Furious: Tokyo Drift" },
+{ pregunta: "👻👻📞", opciones: ["Ghostbusters: Afterlife", "Ghostbusters", "The Ghost and Mr. Chicken", "Beetlejuice"], respuesta: "Ghostbusters: Afterlife" },
+{ pregunta: "🦁👑🌄", opciones: ["The Lion King (2019)", "The Lion King", "The Jungle Book", "Tarzan"], respuesta: "The Lion King (2019)" },
+{ pregunta: "🎵🎤🌟", opciones: ["A Star is Born", "La La Land", "The Voice", "American Idol"], respuesta: "A Star is Born" }
         ]
       },
       canciones: {
@@ -152,7 +172,27 @@ const JuegoSimple = ({
   { pregunta: "But it doesn't ____ like Christmas at all", opciones: ["feel", "look", "sound", "smell"], respuesta: "feel" },
   { pregunta: "El ____ que lleva a Belén", opciones: ["camino", "sendero", "portal", "rey"], respuesta: "camino" },
   { pregunta: "I really can't ____", opciones: ["stay", "go", "leave", "wait"], respuesta: "stay" },
-  { pregunta: "Navidad que vuelve, ____ del año", opciones: ["tradición", "alegría", "emoción", "ilusión"], respuesta: "tradición" }
+  { pregunta: "Navidad que vuelve, ____ del año", opciones: ["tradición", "alegría", "emoción", "ilusión"], respuesta: "tradición" },
+  { pregunta: "Santa Claus is coming to ___", opciones: ["town", "you", "home", "us"], respuesta: "town" },
+{ pregunta: "Let it snow, let it snow, let it ___", opciones: ["snow", "go", "flow", "glow"], respuesta: "snow" },
+{ pregunta: "Rockin' around the Christmas ___", opciones: ["tree", "time", "night", "world"], respuesta: "tree" },
+{ pregunta: "Have yourself a merry little ___", opciones: ["Christmas", "holiday", "winter", "night"], respuesta: "Christmas" },
+{ pregunta: "It's beginning to look a lot like ___", opciones: ["Christmas", "winter", "holidays", "snow"], respuesta: "Christmas" },
+{ pregunta: "Do you hear what I ___?", opciones: ["hear", "see", "feel", "know"], respuesta: "hear" },
+{ pregunta: "You're a mean one, Mr. ___", opciones: ["Grinch", "Scrooge", "Santa", "Frost"], respuesta: "Grinch" },
+{ pregunta: "Frosty the Snowman, was a ___ soul", opciones: ["jolly happy", "merry happy", "happy jolly", "cheerful happy"], respuesta: "jolly happy" },
+{ pregunta: "Mele Kalikimaka is the thing to say on a bright Hawaiian ___", opciones: ["Christmas Day", "New Year's Eve", "holy night", "summer day"], respuesta: "Christmas Day" },
+{ pregunta: "Just hear those sleigh bells ___", opciones: ["jingling", "ringing", "singing", "dancing"], respuesta: "jingling" },
+{ pregunta: "Have a holly jolly Christmas, it's the ___ time of the year", opciones: ["best", "most wonderful", "happiest", "brightest"], respuesta: "best" },
+{ pregunta: "Run, run Rudolph, Santa's got to ___ tonight", opciones: ["make it", "get there", "run fast", "fly high"], respuesta: "make it" },
+{ pregunta: "Baby, it's cold ___", opciones: ["outside", "in here", "tonight", "everywhere"], respuesta: "outside" },
+{ pregunta: "But it doesn't show signs of stopping, and I've bought some ___ for the ice", opciones: ["corn", "salt", "bags", "wood"], respuesta: "corn" },
+{ pregunta: "I really can't ___", opciones: ["stay", "go", "leave", "wait"], respuesta: "stay" },
+{ pregunta: "But it doesn't ___ like Christmas at all", opciones: ["feel", "look", "sound", "smell"], respuesta: "feel" },
+{ pregunta: "The ___ that leads to Bethlehem", opciones: ["road", "path", "way", "star"], respuesta: "road" },
+{ pregunta: "O come, all ye ___", opciones: ["faithful", "people", "children", "sinners"], respuesta: "faithful" },
+{ pregunta: "We three kings of ___ are", opciones: ["Orient", "the East", "the world", "Israel"], respuesta: "Orient" },
+{ pregunta: "What child is this, who laid to ___", opciones: ["rest", "sleep", "bed", "peace"], respuesta: "rest" }
 ]
       },
       quiz: {
@@ -223,7 +263,27 @@ const JuegoSimple = ({
 { pregunta: "La curiosidad mató...", opciones: ["al ratón", "al gato", "al perro", "al pájaro"], respuesta: "al gato" },
 { pregunta: "No dejes para mañana...", opciones: ["lo que puedes hacer hoy", "lo que puedes hacer después", "lo que puedes hacer nunca", "lo que puedes hacer pronto"], respuesta: "lo que puedes hacer hoy" },
 { pregunta: "Agua que no has de beber...", opciones: ["déjala correr", "tírala al mar", "guárdala bien", "ofrécesela a otro"], respuesta: "déjala correr" },
-{ pregunta: "Dios aprieta...", opciones: ["pero no ahorca", "pero no castiga", "pero no olvida", "pero no abandona"], respuesta: "pero no ahorca" }
+{ pregunta: "Dios aprieta...", opciones: ["pero no ahorca", "pero no castiga", "pero no olvida", "pero no abandona"], respuesta: "pero no ahorca" },
+{ pregunta: "A palabras necias...", opciones: ["oídos sordos", "mente cerrada", "boca cerrada", "corazón duro"], respuesta: "oídos sordos" },
+{ pregunta: "No hay peor ciego...", opciones: ["que el que no quiere ver", "que el que perdió la vista", "que el que se hace el ciego", "que el que no mira"], respuesta: "que el que no quiere ver" },
+{ pregunta: "El que tiene boca...", opciones: ["se equivoca", "puede hablar", "puede comer", "puede cantar"], respuesta: "se equivoca" },
+{ pregunta: "Cada oveja...", opciones: ["con su pareja", "en su corral", "con su cordero", "en su lugar"], respuesta: "con su pareja" },
+{ pregunta: "El que se fue a Sevilla...", opciones: ["perdió su silla", "encontró su camino", "volvió contento", "se quedó allí"], respuesta: "perdió su silla" },
+{ pregunta: "A mal tiempo...", opciones: ["buena cara", "paciencia", "resignación", "esperanza"], respuesta: "buena cara" },
+{ pregunta: "El que mucho duerme...", opciones: ["poco aprende", "poco trabaja", "poco vive", "poco sueña"], respuesta: "poco aprende" },
+{ pregunta: "A rey muerto...", opciones: ["rey puesto", "luto puesto", "corona nueva", "sucesor listo"], respuesta: "rey puesto" },
+{ pregunta: "El que no arriesga...", opciones: ["no gana", "no pierde", "no vive", "no aprende"], respuesta: "no gana" },
+{ pregunta: "A la cama no te irás...", opciones: ["sin saber una cosa más", "sin cenar", "sin rezar", "sin descansar"], respuesta: "sin saber una cosa más" },
+{ pregunta: "El que siembra vientos...", opciones: ["cosecha tempestades", "recoge aire", "siembra tormentas", "cosecha nada"], respuesta: "cosecha tempestades" },
+{ pregunta: "A falta de pan...", opciones: ["buenas son tortillas", "bueno es el arroz", "buenas son galletas", "buenas son frutas"], respuesta: "buenas son tortillas" },
+{ pregunta: "El que con niños se acuesta...", opciones: ["mojado amanece", "cansado amanece", "feliz amanece", "temprano amanece"], respuesta: "mojado amanece" },
+{ pregunta: "A cada cerdo...", opciones: ["le llega su San Martín", "le llega su día", "le llega su comida", "le llega su dueño"], respuesta: "le llega su San Martín" },
+{ pregunta: "El que guarda...", opciones: ["siempre tiene", "nunca pierde", "siempre encuentra", "nunca falta"], respuesta: "siempre tiene" },
+{ pregunta: "A Dios rogando...", opciones: ["y con el mazo dando", "y con fe esperando", "y con paciencia orando", "y con amor trabajando"], respuesta: "y con el mazo dando" },
+{ pregunta: "El que nace para tamal...", opciones: ["del cielo le caen las hojas", "siempre será tamal", "nunca será tortilla", "siempre será comida"], respuesta: "del cielo le caen las hojas" },
+{ pregunta: "A buen hambre...", opciones: ["no hay pan duro", "no hay mala comida", "no hay horario", "no hay mal sabor"], respuesta: "no hay pan duro" },
+{ pregunta: "El que persevera...", opciones: ["alcanza", "triunfa", "logra", "consigue"], respuesta: "alcanza" },
+{ pregunta: "A enemigo que huye...", opciones: ["puente de plata", "puerta abierta", "camino libre", "adios para siempre"], respuesta: "puente de plata" }
         ]
       }
     };
@@ -240,17 +300,20 @@ const JuegoSimple = ({
     };
   };
 
-  // Obtener 6 preguntas aleatorias únicas por sesión
-  const obtenerPreguntasAleatorias = (juegoId) => {
-    const banco = getBancoGrande();
-    const todasPreguntas = [...banco.preguntas];
-    
-    // Mezclar y tomar 6 únicas
-    const mezcladas = [...todasPreguntas].sort(() => Math.random() - 0.5);
-    const seleccionadas = mezcladas.slice(0, 6).map(p => mezclarOpciones(p));
-    
-    return seleccionadas;
-  };
+  // Obtener 10 preguntas aleatorias únicas por sesión
+ const obtenerPreguntasAleatorias = (juegoId) => {
+  const banco = getBancoGrande();
+  const todasPreguntas = [...banco.preguntas];
+  
+  // ✅ CAMBIO: 6 → 10 preguntas + mejor mezcla
+  const mezcladas = [...todasPreguntas]
+    .sort(() => Math.random() - 0.5)
+    .sort(() => Math.random() - 0.5); // Doble mezcla
+  
+  const seleccionadas = mezcladas.slice(0, 10).map(p => mezclarOpciones(p)); // 6 → 10
+  
+  return seleccionadas;
+};
 
   // Inicializar preguntas de la sesión
   useEffect(() => {
@@ -267,22 +330,31 @@ const JuegoSimple = ({
     }
   }, [preguntaActual, estado, mostrarResultado, preguntasSession]);
 
-  const calcularPuntos = (esCorrecta, tiempoRespuesta) => {
-    if (!esCorrecta) return 0;
+ const calcularPuntos = (esCorrecta, tiempoRespuesta, rachaActual) => {
+  if (!esCorrecta) return 0;
 
-    let puntos = 10; // Puntos base
-    
-    // Bono por velocidad (máximo 3 puntos)
-    const bonoVelocidad = tiempoRespuesta < 3000 ? 3 : 0; // Menos de 3 segundos
-    puntos += bonoVelocidad;
-    
-    // Bono por racha (solo a partir de 2 respuestas correctas consecutivas)
-    const bonoRacha = rachas >= 2 ? 3 : 0; // +3 puntos por racha (a partir de 2 correctas)
-    puntos += bonoRacha;
+  // ✅ CAMBIO: Puntos base aumentados
+  let puntos = 15; // 10 → 15 puntos base
+  
+  // ✅ CAMBIO: Bono velocidad mejorado
+  const bonoVelocidad = 
+    tiempoRespuesta < 1500 ? 6 :  // ⚡ Súper rápido: +6
+    tiempoRespuesta < 2500 ? 4 :  // 🔥 Rápido: +4
+    tiempoRespuesta < 4000 ? 2 :  // ✅ Normal: +2
+    0;
+  puntos += bonoVelocidad;
+  
+  // ✅ CAMBIO: Bono racha mejorado y progresivo
+  const bonoRacha = 
+    rachaActual >= 7 ? 7 :  // 🏆 7+ seguidos: +7
+    rachaActual >= 5 ? 5 :  // ⭐ 5-6 seguidos: +5
+    rachaActual >= 3 ? 3 :  // 🔥 3-4 seguidos: +3
+    rachaActual >= 2 ? 2 :  // 👍 2 seguidos: +2
+    0;                      // 0-1 seguidos: 0
+  puntos += bonoRacha;
 
-    return puntos;
-  };
-
+  return puntos;
+};
   const manejarRespuesta = (opcion) => {
     if (mostrarResultado || preguntasSession.length === 0) return;
     
@@ -297,7 +369,7 @@ const JuegoSimple = ({
     const esCorrecta = opcion === pregunta.respuesta;
     
     if (esCorrecta) {
-      const puntos = calcularPuntos(true, tiempoRespuesta);
+const puntos = calcularPuntos(true, tiempoRespuesta, rachas);
       setPuntosGanados(puntos);
       setPuntuacion(prev => prev + puntos);
       
@@ -474,10 +546,15 @@ const JuegoSimple = ({
               <div>
                 <div>✅ ¡Correcto! +{puntosGanados} puntos</div>
                 <div className="text-sm text-gray-600 mt-2">
-                  <div>Base: 10 puntos</div>
-                  {tiempoRespuestaRef.current < 3000 && <div>Velocidad: +3 puntos ⚡</div>}
-                  {rachas >= 2 && <div>Racha: +3 puntos 🔥</div>}
-                </div>
+  <div>Base: 15 puntos</div>
+  {tiempoRespuestaRef.current < 1500 && <div>Velocidad: +6 puntos ⚡</div>}
+  {tiempoRespuestaRef.current < 2500 && tiempoRespuestaRef.current >= 1500 && <div>Velocidad: +4 puntos 🔥</div>}
+  {tiempoRespuestaRef.current < 4000 && tiempoRespuestaRef.current >= 2500 && <div>Velocidad: +2 puntos ✅</div>}
+  {rachas >= 7 && <div>Racha: +7 puntos 🏆</div>}
+  {rachas >= 5 && rachas < 7 && <div>Racha: +5 puntos ⭐</div>}
+  {rachas >= 3 && rachas < 5 && <div>Racha: +3 puntos 🔥</div>}
+  {rachas === 2 && <div>Racha: +2 puntos 👍</div>}
+</div>
               </div>
             ) : (
               <div>
@@ -537,42 +614,38 @@ const MemoryGame = ({
     cargarMejorPuntuacion();
   }, []);
 
-  // SISTEMA DE PUNTOS MEJORADO - MÁS VARIABILIDAD
-  const calcularPuntuacionMemory = (totalMovimientos) => {
-    // Puntuación base por completar el juego
-    let puntuacionBase = 100;
-    
-   // BONUS POR EFICIENCIA - ESCALA GRANULAR COMPACTA
-let bonusEficiencia = 0;
-const movimientos = totalMovimientos;
+// SISTEMA DE PUNTOS MEMORY MEJORADO - CORREGIDO
+const calcularPuntuacionMemory = (totalMovimientos) => {
+  // Puntuación base por completar el juego - REDUCIDA para dar más peso al bonus
+  let puntuacionBase = 50;
+  
+  // BONUS POR EFICIENCIA - ESCALA GRANULAR MEJORADA
+  let bonusEficiencia = 0;
+  const movimientos = totalMovimientos;
 
-if (movimientos <= 16) bonusEficiencia = 100;       // Perfecto
-else if (movimientos <= 17) bonusEficiencia = 95;   // Casi perfecto  
-else if (movimientos <= 18) bonusEficiencia = 90;   // Excelente+
-else if (movimientos <= 19) bonusEficiencia = 85;   // Excelente
-else if (movimientos <= 20) bonusEficiencia = 80;   // Muy bueno+
-else if (movimientos <= 21) bonusEficiencia = 75;   // Muy bueno
-else if (movimientos <= 22) bonusEficiencia = 70;   // Bueno+
-else if (movimientos <= 23) bonusEficiencia = 65;   // Bueno
-else if (movimientos <= 24) bonusEficiencia = 60;   // Bueno-
-else if (movimientos <= 25) bonusEficiencia = 55;   // Normal+
-else if (movimientos <= 26) bonusEficiencia = 50;   // Normal
-else if (movimientos <= 27) bonusEficiencia = 45;   // Normal-
-else if (movimientos <= 28) bonusEficiencia = 40;   // Regular+
-else if (movimientos <= 29) bonusEficiencia = 35;   // Regular
-else if (movimientos <= 30) bonusEficiencia = 30;   // Regular-
-else if (movimientos <= 31) bonusEficiencia = 25;   // Básico+
-else if (movimientos <= 32) bonusEficiencia = 20;   // Básico
-else if (movimientos <= 33) bonusEficiencia = 15;   // Básico-
-else if (movimientos <= 34) bonusEficiencia = 10;   // Principiante+
-else if (movimientos <= 35) bonusEficiencia = 5;    // Principiante
-else bonusEficiencia = 0;                           // Sin bonus
-    // PUNTUACIÓN FINAL CON MÁS VARIABILIDAD
-    const puntuacionFinal = puntuacionBase + bonusEficiencia;
-    
-    // Asegurar mínimo de puntos
-    return Math.max(50, puntuacionFinal);
-  };
+  if (movimientos <= 16) bonusEficiencia = 150;       // Perfecto - 200 total
+  else if (movimientos <= 17) bonusEficiencia = 140;  // Excelente+ - 190 total
+  else if (movimientos <= 18) bonusEficiencia = 130;  // Excelente - 180 total
+  else if (movimientos <= 19) bonusEficiencia = 120;  // Muy bueno+ - 170 total
+  else if (movimientos <= 20) bonusEficiencia = 110;  // Muy bueno - 160 total
+  else if (movimientos <= 21) bonusEficiencia = 100;  // Bueno+ - 150 total
+  else if (movimientos <= 22) bonusEficiencia = 90;   // Bueno - 140 total
+  else if (movimientos <= 23) bonusEficiencia = 80;   // Regular+ - 130 total
+  else if (movimientos <= 24) bonusEficiencia = 70;   // Regular - 120 total
+  else if (movimientos <= 25) bonusEficiencia = 60;   // Normal+ - 110 total
+  else if (movimientos <= 26) bonusEficiencia = 50;   // Normal - 100 total
+  else if (movimientos <= 27) bonusEficiencia = 40;   // Básico+ - 90 total
+  else if (movimientos <= 28) bonusEficiencia = 30;   // Básico - 80 total
+  else if (movimientos <= 30) bonusEficiencia = 20;   // Principiante+ - 70 total
+  else if (movimientos <= 32) bonusEficiencia = 10;   // Principiante - 60 total
+  else bonusEficiencia = 0;                           // Sin bonus - 50 total
+
+  // PUNTUACIÓN FINAL CON MÁS VARIABILIDAD
+  const puntuacionFinal = puntuacionBase + bonusEficiencia;
+  
+  // Asegurar mínimo de puntos
+  return Math.max(50, puntuacionFinal);
+};
 
   useEffect(() => {
     iniciarJuego();
@@ -630,7 +703,8 @@ else bonusEficiencia = 0;                           // Sin bonus
                   eficiencia: totalMovimientos <= 16 ? "perfecto" : 
                             totalMovimientos <= 20 ? "excelente" :
                             totalMovimientos <= 24 ? "muy bueno" : 
-                            totalMovimientos <= 28 ? "bueno" : "normal"
+                            totalMovimientos <= 28 ? "bueno" : "normal",
+                             movimientosRealizados: totalMovimientos 
                 }
               };
               
@@ -1024,7 +1098,10 @@ export default function Juegos() {
             🎮 Zona de Juegos Navideños
           </h1>
           <p className="text-xl text-gray-600 mb-8 font-light">
-            Compite por la mejor marca personal. ¡Supera tus propios récords!
+            Competitividad mejorada. ¡Supera tus propios récords!
+          </p>
+           <p className="text-xl text-gray-600 mb-8 font-light">
+           ⭐ "Premios para Líderes de rankings los Domingos"
           </p>
           
           {mensaje && (
