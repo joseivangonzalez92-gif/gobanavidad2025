@@ -616,35 +616,29 @@ const MemoryGame = ({
 
 // SISTEMA DE PUNTOS MEMORY MEJORADO - CORREGIDO
 const calcularPuntuacionMemory = (totalMovimientos) => {
-  // Puntuación base por completar el juego - REDUCIDA para dar más peso al bonus
-  let puntuacionBase = 50;
-  
-  // BONUS POR EFICIENCIA - ESCALA GRANULAR MEJORADA
-  let bonusEficiencia = 0;
-  const movimientos = totalMovimientos;
+  const base = 50;
+  let bonus = 0;
+  const m = totalMovimientos;
 
-  if (movimientos <= 16) bonusEficiencia = 150;       // Perfecto - 200 total
-  else if (movimientos <= 17) bonusEficiencia = 140;  // Excelente+ - 190 total
-  else if (movimientos <= 18) bonusEficiencia = 130;  // Excelente - 180 total
-  else if (movimientos <= 19) bonusEficiencia = 120;  // Muy bueno+ - 170 total
-  else if (movimientos <= 20) bonusEficiencia = 110;  // Muy bueno - 160 total
-  else if (movimientos <= 21) bonusEficiencia = 100;  // Bueno+ - 150 total
-  else if (movimientos <= 22) bonusEficiencia = 90;   // Bueno - 140 total
-  else if (movimientos <= 23) bonusEficiencia = 80;   // Regular+ - 130 total
-  else if (movimientos <= 24) bonusEficiencia = 70;   // Regular - 120 total
-  else if (movimientos <= 25) bonusEficiencia = 60;   // Normal+ - 110 total
-  else if (movimientos <= 26) bonusEficiencia = 50;   // Normal - 100 total
-  else if (movimientos <= 27) bonusEficiencia = 40;   // Básico+ - 90 total
-  else if (movimientos <= 28) bonusEficiencia = 30;   // Básico - 80 total
-  else if (movimientos <= 30) bonusEficiencia = 20;   // Principiante+ - 70 total
-  else if (movimientos <= 32) bonusEficiencia = 10;   // Principiante - 60 total
-  else bonusEficiencia = 0;                           // Sin bonus - 50 total
+  if (m <= 16) bonus = 150;        // Perfecto
+  else if (m === 17) bonus = 135;  // Elite
+  else if (m === 18) bonus = 125;  // Excelente+
+  else if (m === 19) bonus = 115;  // Excelente
+  else if (m === 20) bonus = 105;  // Muy bueno+
+  else if (m === 21) bonus = 95;   // Muy bueno
+  else if (m === 22) bonus = 85;   // Bueno+
+  else if (m === 23) bonus = 75;   // Bueno
+  else if (m === 24) bonus = 65;   // Regular+
+  else if (m === 25) bonus = 55;   // Regular
+  else if (m === 26) bonus = 45;   // Normal+
+  else if (m === 27) bonus = 35;   // Normal
+  else if (m === 28) bonus = 25;   // Básico+
+  else if (m === 29) bonus = 20;   // Básico
+  else if (m <= 32) bonus = 10;    // Principiante
+  else bonus = 0;                  // Sin bonus
 
-  // PUNTUACIÓN FINAL CON MÁS VARIABILIDAD
-  const puntuacionFinal = puntuacionBase + bonusEficiencia;
-  
-  // Asegurar mínimo de puntos
-  return Math.max(50, puntuacionFinal);
+  const final = base + bonus;
+  return Math.max(50, final);
 };
 
   useEffect(() => {
