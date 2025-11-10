@@ -56,61 +56,78 @@ const JuegoSimple = ({
       peliculas: {
         titulo: "🎬 Adivina la Película",
         preguntas: [
-          { pregunta: "🦁👑🌅", opciones: ["El Rey León", "Aladdin", "La Bella y la Bestia", "El Libro de la Selva"], respuesta: "El Rey León" },
-          { pregunta: "🚀👨‍🚀🌌", opciones: ["Interestelar", "Gravedad", "Marte", "Apollo 13"], respuesta: "Interestelar" },
-          { pregunta: "🏰👸🐸", opciones: ["La Princesa y el Sapo", "Shrek", "Encantada", "Enredados"], respuesta: "La Princesa y el Sapo" },
-          { pregunta: "🎭🕴️🔫", opciones: ["Matrix", "John Wick", "James Bond", "Misión Imposible"], respuesta: "Matrix" },
-          { pregunta: "🧙‍♂️⚡👓", opciones: ["Harry Potter", "El Señor de los Anillos", "Las Crónicas de Narnia", "Percy Jackson"], respuesta: "Harry Potter" },
-          { pregunta: "🚗🌇🏁", opciones: ["Rápidos y Furiosos", "The Fast and the Furious: Tokyo Drift", "Need for Speed", "Gone in 60 Seconds"], respuesta: "Rápidos y Furiosos" },
-          { pregunta: "🦇🏙️🤡", opciones: ["El Caballero Oscuro", "Batman Inicia", "Joker", "The Batman"], respuesta: "El Caballero Oscuro" },
-          { pregunta: "👽📞🏠", opciones: ["E.T.", "Encuentros Cercanos", "Arrival", "El Día que la Tierra se Detuvo"], respuesta: "E.T." },
-          { pregunta: "🚢❤️🌊", opciones: ["Titanic", "La Aventura del Poseidón", "La Tormenta Perfecta", "El Abismo"], respuesta: "Titanic" },
-          { pregunta: "🔍🕵️‍♂️🔫", opciones: ["Sherlock Holmes", "El Código Da Vinci", "Tesoro Nacional", "Identidad Bourne"], respuesta: "Sherlock Holmes" },
-          { pregunta: "🎵🎤🎹", opciones: ["La La Land", "Nace una Estrella", "Bohemian Rhapsody", "El Gran Showman"], respuesta: "La La Land" },
-          { pregunta: "👻🏠👦", opciones: ["Casper", "La Mansión Encantada", "El Horror de Amityville", "Poltergeist"], respuesta: "Casper" },
-          { pregunta: "🦕🏝️🔬", opciones: ["Parque Jurásico", "El Mundo Perdido", "King Kong", "Godzilla"], respuesta: "Parque Jurásico" },
-          { pregunta: "👗👠💼", opciones: ["El Diablo viste de Prada", "Legalmente Rubia", "Working Girl", "13 Going on 30"], respuesta: "El Diablo viste de Prada" },
-          { pregunta: "🚀🤖👦", opciones: ["Big Hero 6", "Astro Boy", "Robots", "El Gigante de Hierro"], respuesta: "Big Hero 6" },
-          { pregunta: "👦🕷️🕸️", opciones: ["Spider-Man: Into the Spider-Verse", "Spider-Man", "The Amazing Spider-Man", "Spider-Man: Homecoming"], respuesta: "Spider-Man: Into the Spider-Verse" },
-          { pregunta: "👧🔥🏹", opciones: ["Los Juegos del Hambre", "Valiente", "Divergente", "El Corredor del Laberinto"], respuesta: "Los Juegos del Hambre" },
-          { pregunta: "🤖💙👦", opciones: ["El Gigante de Hierro", "Big Hero 6", "Astro Boy", "Robots"], respuesta: "El Gigante de Hierro" },
-          { pregunta: "👻📱😱", opciones: ["The Ring", "The Grudge", "Poltergeist", "Actividad Paranormal"], respuesta: "The Ring" },
-          { pregunta: "🚗🌍🏎️", opciones: ["Cars", "Speed Racer", "Talladega Nights", "Rush"], respuesta: "Cars" },
-          { pregunta: "👸❄️💖", opciones: ["Frozen", "Blancanieves", "La Reina de las Nieves", "Ice Princess"], respuesta: "Frozen" },
-          { pregunta: "🦇🌃🤡", opciones: ["Joker", "El Caballero Oscuro", "Batman Inicia", "The Batman"], respuesta: "Joker" },
-          { pregunta: "👽🔫🌎", opciones: ["Día de la Independencia", "La Guerra de los Mundos", "Battle: Los Angeles", "Arrival"], respuesta: "Día de la Independencia" },
-          { pregunta: "🎭🎪🎶", opciones: ["Moulin Rouge!", "El Gran Showman", "Chicago", "Burlesque"], respuesta: "Moulin Rouge!" },
-          { pregunta: "🐉🏯👦", opciones: ["Mulan", "Kung Fu Panda", "El Último Maestro del Aire", "Tigre y Dragón"], respuesta: "Mulan" }
+       [
+  { pregunta: "🐭🐱🏃‍♂️💥", opciones: ["Tom y Jerry", "Pinky y Cerebro", "Sylvester y Tweety", "Itchy y Scratchy"], respuesta: "Tom y Jerry" },
+  { pregunta: "👧🎒🦊🗺️", opciones: ["Dora la Exploradora", "Go Diego Go", "Maya la Abeja", "Las Tres Mellizas"], respuesta: "Dora la Exploradora" },
+  { pregunta: "🍌👕🛏️🎵", opciones: ["Bananas en Pijamas", "Los Backyardigans", "Los Teletubbies", "Barney y sus amigos"], respuesta: "Bananas en Pijamas" },
+  { pregunta: "👦⌚🦸‍♂️💚", opciones: ["Ben 10", "Danny Phantom", "Static Shock", "Los Jóvenes Titanes"], respuesta: "Ben 10" },
+  { pregunta: "🐶💜😨👵👴", opciones: ["Coraje el Perro Cobarde", "Scooby-Doo", "Pluto", "Goofy"], respuesta: "Coraje el Perro Cobarde" },
+  { pregunta: "👦🏽🍂🏙️🏈", opciones: ["Hey Arnold", "Doug", "As Told by Ginger", "Recess"], respuesta: "Hey Arnold" },
+  { pregunta: "👨‍🏫📚🎨🏫", opciones: ["Zona Tiza", "El Club de los Tigritos", "La Banda del Patio", "Los Simpson"], respuesta: "Zona Tiza" },
+  { pregunta: "👶👶👶🚼", opciones: ["Rugrats", "Los Picapiedra", "Los Supersónicos", "Los Thornberrys"], respuesta: "Rugrats" },
+  { pregunta: "🐻🏠🔵🌳", opciones: ["El Oso y la Casa Azul", "Winnie the Pooh", "Yogi Bear", "Los Picapiedra"], respuesta: "El Oso y la Casa Azul" },
+  { pregunta: "🤖🔴🌀🏠", opciones: ["Rolie Polie Olie", "Los Robots", "Astro Boy", "Megaman"], respuesta: "Rolie Polie Olie" },
+  { pregunta: "🌈📺👶🍼", opciones: ["Teletubbies", "Barney", "Los Backyardigans", "Pocoyó"], respuesta: "Teletubbies" },
+  { pregunta: "💪🔴🏃‍♂️🍎", opciones: ["Lazy Town", "Los Deportivos", "Los Campeones", "Rocket Power"], respuesta: "Lazy Town" },
+  { pregunta: "👧🏼🎓📱🏰", opciones: ["Zoey 101", "iCarly", "Hannah Montana", "Lizzie McGuire"], respuesta: "Zoey 101" },
+  { pregunta: "👦👦🏨🎪", opciones: ["Zack y Cody", "Drake & Josh", "Los Hermanos Hardy", "Kenan & Kel"], respuesta: "Zack y Cody" },
+  { pregunta: "👦🧠🚀💡", opciones: ["Jimmy Neutrón", "Dexter's Laboratory", "Phineas y Ferb", "Los Sustitutos"], respuesta: "Jimmy Neutrón" },
+  { pregunta: "💪👓💇‍♂️😎", opciones: ["Johnny Bravo", "He-Man", "Thor", "Superman"], respuesta: "Johnny Bravo" },
+  { pregunta: "👧📹🌐🎬", opciones: ["iCarly", "Hannah Montana", "Lizzie McGuire", "Drake & Josh"], respuesta: "iCarly" },
+  { pregunta: "👦👦🔺🔧🎢", opciones: ["Phineas y Ferb", "Jimmy Neutrón", "Los Sustitutos", "Dexter's Laboratory"], respuesta: "Phineas y Ferb" },
+  { pregunta: "🐕🔍👣💙", opciones: ["Pistas de Blue", "Paw Patrol", "Go Diego Go", "Dora la Exploradora"], respuesta: "Pistas de Blue" },
+  { pregunta: "👦🤖👽🦍👧", opciones: ["Jóvenes Titanes", "Los Vengadores", "Liga de la Justicia", "X-Men"], respuesta: "Jóvenes Titanes" },
+  { pregunta: "🏀👦🏙️🎵", opciones: ["Chicos del Barrio", "Los Fresh Prince", "Kenan & Kel", "Moesha"], respuesta: "Chicos del Barrio" },
+  { pregunta: "👦👧💀😈", opciones: ["Billy y Mandy", "Scooby-Doo", "Casper", "Los Cazafantasmas"], respuesta: "Billy y Mandy" },
+  { pregunta: "👦👧🔬🧪💥", opciones: ["Dexter's Laboratory", "Jimmy Neutrón", "Phineas y Ferb", "Los Sustitutos"], respuesta: "Dexter's Laboratory" },
+{ pregunta: "👧👧👧🎀💖", opciones: ["Las Winx", "W.I.T.C.H.", "Lolirock", "Sailor Moon"], respuesta: "Las Winx" },
+{ pregunta: "👦🦇🌃🦸‍♂️", opciones: ["Batman", "Spiderman", "Superman", "Iron Man"], respuesta: "Batman" },
+{ pregunta: "👦👦🎤🎸🎵", opciones: ["Drake & Josh", "Kenan & Kel", "The Hardy Boys", "Zack & Cody"], respuesta: "Drake & Josh" },
+{ pregunta: "👧👑🏰🐸💋", opciones: ["La Princesa y el Sapo", "Shrek", "Frozen", "Cenicienta"], respuesta: "La Princesa y el Sapo" },
+  { pregunta: "🟢🔴🧚‍♂️✨", opciones: ["Los Padrinos Mágicos", "Fairy OddParents", "Sabrina", "Hechiceras"], respuesta: "Los Padrinos Mágicos" },
+  { pregunta: "👧👧👧💪", opciones: ["Las Chicas Superpoderosas", "Las Winx", "W.I.T.C.H.", "Lolirock"], respuesta: "Las Chicas Superpoderosas" },
+  { pregunta: "🧽🍍🏠🌊", opciones: ["Bob Esponja", "Los Padrinos Mágicos", "La Vida Moderna de Rocko", "Los Simpson"], respuesta: "Bob Esponja" },
+  { pregunta: "🦛🦌🐧🎵", opciones: ["Los Backyardigans", "Los Backyardigans", "Wonder Pets", "Little Einsteins"], respuesta: "Los Backyardigans" },
+  { pregunta: "👦🛹🚲🏄‍♂️🌊", opciones: ["Rocket Power", "Sk8", "Rocket Power", "Los Deportivos"], respuesta: "Rocket Power" },
+  { pregunta: "👦🔵⬆️🌪️", opciones: ["Avatar: La Leyenda de Aang", "Dragon Ball", "Naruto", "One Piece"], respuesta: "Avatar: La Leyenda de Aang" }
+]
         ]
       },
       canciones: {
         titulo: "🎵 Completa la Canción",
         preguntas: [
-          { pregunta: "Feliz Navidad, Feliz Navidad, ____", opciones: ["Feliz Navidad", "te deseo yo", "con amor", "y prosperidad"], respuesta: "Feliz Navidad" },
-          { pregunta: "Noche de paz, noche de ____", opciones: ["amor", "sueño", "alegría", "fe"], respuesta: "amor" },
-          { pregunta: "Campana sobre campana, y sobre campana ____", opciones: ["una", "dos", "tres", "cuatro"], respuesta: "una" },
-          { pregunta: "Mi burrito sabanero, vamos a ____", opciones: ["Belén", "la fiesta", "cantar", "pasear"], respuesta: "Belén" },
-          { pregunta: "Los peces en el río, pero mira cómo ____", opciones: ["beben", "nadan", "saltan", "juegan"], respuesta: "beben" },
-          { pregunta: "Arre borriquito, vamos a ____", opciones: ["Belén", "cantar", "bailar", "correr"], respuesta: "Belén" },
-          { pregunta: "Blanca Navidad, yo ____ soñé", opciones: ["la", "te", "se", "me"], respuesta: "la" },
-          { pregunta: "Ven a ____ casa, es Navidad", opciones: ["mi", "tu", "nuestra", "la"], respuesta: "mi" },
-          { pregunta: "Navidad, Navidad, dulce ____", opciones: ["Navidad", "momentos", "fiesta", "alegría"], respuesta: "Navidad" },
-          { pregunta: "Los ____ pasan, llevan flores", opciones: ["pastores", "reyes", "niños", "ángeles"], respuesta: "pastores" },
-          { pregunta: "Ande, ande, ande, la ____", opciones: ["marimorena", "navidad", "fiesta", "alegría"], respuesta: "marimorena" },
-          { pregunta: "En el portal de ____", opciones: ["Belén", "Jerusalén", "Nazaret", "Galilea"], respuesta: "Belén" },
-          { pregunta: "____, campana sobre campana", opciones: ["Campana", "Suena", "Brilla", "Canta"], respuesta: "Campana" },
-          { pregunta: "Vamos, vamos, ____", opciones: ["pastores", "amigos", "hermanos", "niños"], respuesta: "pastores" },
-          { pregunta: "La ____ está en el portal", opciones: ["Virgen", "Madre", "Señora", "Reina"], respuesta: "Virgen" },
-          { pregunta: "____, José con el niño", opciones: ["María", "La Virgen", "Santa", "Madre"], respuesta: "María" },
-          { pregunta: "Ya ____ la Navidad", opciones: ["llegó", "vino", "está", "viene"], respuesta: "llegó" },
-          { pregunta: "Con mi ____ cantaré", opciones: ["burrito", "caballo", "perrito", "gatito"], respuesta: "burrito" },
-          { pregunta: "A ____ me voy", opciones: ["Belén", "casa", "la fiesta", "la iglesia"], respuesta: "Belén" },
-          { pregunta: "____ de la rosa", opciones: ["Flor", "Rey", "Canto", "Belleza"], respuesta: "Flor" },
-          { pregunta: "____, qué noche tan linda", opciones: ["Navidad", "Amigos", "Fiesta", "Alegría"], respuesta: "Navidad" },
-          { pregunta: "Vuela, vuela, vuela, la ____", opciones: ["mariposa", "campana", "estrella", "paloma"], respuesta: "campana" },
-          { pregunta: "____, José, no te dé cuidado", opciones: ["María", "Mujer", "Esposa", "Querida"], respuesta: "María" },
-          { pregunta: "El ____ al niño le trae", opciones: ["burrito", "pastor", "rey", "ángel"], respuesta: "burrito" },
-          { pregunta: "I'm dreaming of a white ____", opciones: ["Christmas", "holiday", "winter", "snow"], respuesta: "Christmas" }
+         { pregunta: "Feliz año nuevo a todos, pero no tan ____", opciones: ["feliz", "alegre", "bueno", "festejado"], respuesta: "feliz" },
+  { pregunta: "¿Te digo la verdad? Te extraño el ____ y en la navidad", opciones: ["14", "24", "31", "1ero"], respuesta: "14" },
+  { pregunta: "Te dieron un ____ a las 12 y no fui yo quien te lo di", opciones: ["beso", "abrazo", "regalo", "anillo"], respuesta: "beso" },
+  { pregunta: "Año nuevo, ____", opciones: ["vida nueva", "vieja nueva", "suerte nueva", "casa nueva"], respuesta: "vida nueva" },
+  { pregunta: "Feliz, feliz navidad, te deseo de ____", opciones: ["corazón", "amor", "alma", "verdad"], respuesta: "corazón" },
+  { pregunta: "Mi burrito sabanero va camino de ____", opciones: ["Belén", "la sierra", "la arena", "la loma"], respuesta: "Belén" },
+  { pregunta: "Campana sobre campana, y sobre campana una, ¿asómate a la ____?", opciones: ["ventana", "reja", "esquina", "puerta"], respuesta: "ventana" },
+  { pregunta: "Navidad, qué bonito es, todo el mundo con su ____", opciones: ["amor", "verdad", "dolor", "fe"], respuesta: "dolor" },
+  { pregunta: "¡Ande, Ande, Ande  la ____!", opciones: ["fiesta", "calle", "noche", "marimorena"], respuesta: "marimorena" },
+  { pregunta: "Ven a mi casa esta navidad, que ya está todo ____", opciones: ["preparado", "cocinado", "helado", "iluminado"], respuesta: "preparado" },
+  { pregunta: "Pero mira cómo beben los peces en el ____", opciones: ["río", "mar", "lago", "charco"], respuesta: "río" },
+  { pregunta: "Esta noche es navidad, vamos a ____", opciones: ["rockear", "gritar", "llorar", "gozar"], respuesta: "rockear" },
+  { pregunta: "Navidad sin ti, no es ____", opciones: ["navidad", "nada", "feliz", "igual"], respuesta: "navidad" },
+  { pregunta: "Yo soy un pobre tamborilero, toco el ____", opciones: ["tambor", "bombo", "piano", "acordeón"], respuesta: "tambor" },
+  { pregunta: "Esta noche es de ____, vamos a celebrar", opciones: ["navidad", "alegría", "amor", "fiesta"], respuesta: "navidad" },
+  { pregunta: "Noche de paz, noche de ____", opciones: ["amor", "fe", "alegría", "silencio"], respuesta: "amor" },
+  { pregunta: "En estas navidades quiero ____", opciones: ["bailar", "cantar", "reír", "amar"], respuesta: "bailar" },
+  { pregunta: "¡Ay, Dios! No hay cama pa' tanta ____", opciones: ["gente", "cosa", "felicidad", "persona"], respuesta: "gente" },
+  { pregunta: "El año viejo se nos va, llega el año ____", opciones: ["nuevo", "feliz", "bueno", "lindo"], respuesta: "nuevo" },
+  { pregunta: "Esta noche es nochebuena, mañana será ____", opciones: ["navidad", "año nuevo", "día", "fiesta"], respuesta: "navidad" },
+  { pregunta: "Diciembre me gustó para que te ____", opciones: ["vayas", "vengas", "quedes", "rías"], respuesta: "vayas" },
+  { pregunta: "Arbolito lindo de navidad,  ____", opciones: ["Qué me vas a dar", "Dame mucha paz", "Regalos me traeras", "Brilla sin cesar"], respuesta: "Qué me vas a dar" },
+  { pregunta: "Los pastores a Belén corren ____", opciones: ["presurosos", "alegres", "cantando", "dormidos"], respuesta: "presurosos" },
+  { pregunta: "Faltan cinco pa' las doce,  ____", opciones: ["llega navidad", "e año va a terminar", "a brindar", "a cenar"], respuesta: "el año va a terminar" },
+  { pregunta: "Triste navidad, sin ____", opciones: ["ti", "amor", "alegría", "regalos"], respuesta: "ti" },
+  { pregunta: "Quiero pasar la navidad con mi ____", opciones: ["gente", "amor", "familia", "pareja"], respuesta: "gente" },
+  { pregunta: "Feliz navidad, feliz navidad, te deseo de ____", opciones: ["corazón", "alma", "amor", "verdad"], respuesta: "corazón" },
+  { pregunta: "Esta noche Santa Claus va a ____", opciones: ["bailar", "reír", "cantar", "dormir"], respuesta: "bailar" },
+  { pregunta: "Veinticuatro de diciembre, noche de ____", opciones: ["alegría", "amor", "paz", "fiesta"], respuesta: "alegría" },
+  { pregunta: "Jingle bells, jingle bells, jingle all the ____", opciones: ["way", "day", "night", "time"], respuesta: "way" },
+   { pregunta: "Naranjas y Limas,  ____", opciones: ["Limas y Limones", "Fresas y Melones", "Tamales y Ronpopo", "Fresco y Chicharrones"], respuesta: "Limas y Limones" },
+  { pregunta: "Tú serás mi ____", opciones: ["navidad", "verdad", "felicidad", "realidad"], respuesta: "navidad" }
         ]
       },
       quiz: {
@@ -146,31 +163,36 @@ const JuegoSimple = ({
       familia: {
         titulo: "Completa el Refrán!!",
         preguntas: [
-          { pregunta: "Al que madruga...", opciones: ["Dios le ayuda", "le caen las manzanas", "nadie le ve", "le sale el sol"], respuesta: "Dios le ayuda" },
-          { pregunta: "No por mucho madrugar...", opciones: ["se duerme más", "se amanece más temprano", "se hace más rico", "se vive mejor"], respuesta: "se amanece más temprano" },
-          { pregunta: "A quien le pica...", opciones: ["se rasca", "se aguanta", "se queja", "se cura"], respuesta: "se rasca" },
-          { pregunta: "Más vale pájaro en mano...", opciones: ["que dos volando", "que cien en el suelo", "que diez en el nido", "que ciento volando"], respuesta: "que ciento volando" },
-          { pregunta: "Ojos que no ven...", opciones: ["boca que no come", "manos que no trabajan", "corazón que no siente", "oídos que no escuchan"], respuesta: "corazón que no siente" },
-          { pregunta: "Cuando el río suena...", opciones: ["piedras lleva", "agua lleva", "peces lleva", "arena lleva"], respuesta: "piedras lleva" },
-          { pregunta: "En boca cerrada...", opciones: ["no hay dolor", "no hay risa", "no entran moscas", "no salen palabras"], respuesta: "no entran moscas" },
-          { pregunta: "Dime con quién andas...", opciones: ["y te diré quién eres", "y te diré adónde vas", "y te diré qué haces", "y te diré cómo estás"], respuesta: "y te diré quién eres" },
-          { pregunta: "Camarón que se duerme...", opciones: ["se lo come el pez", "se lo lleva la corriente", "se despierta tarde", "no desayuna"], respuesta: "se lo lleva la corriente" },
-          { pregunta: "A lo hecho...", opciones: ["pecho", "derecho", "hecho", "techo"], respuesta: "pecho" },
-          { pregunta: "Más vale maña...", opciones: ["que belleza", "que dinero", "que fuerza", "que fama"], respuesta: "que fuerza" },
-          { pregunta: "El que mucho abarca...", opciones: ["poco aprieta", "poco alcanza", "poco entiende", "poco disfruta"], respuesta: "poco aprieta" },
-          { pregunta: "No hay mal que por bien...", opciones: ["no venga", "no vaya", "venga", "no salga"], respuesta: "no venga" },
-          { pregunta: "Al no haber pan...", opciones: ["Tortillas", "buenas son galletas", "bueno es el arroz", "buenas son las frutas"], respuesta: "Tortillas" },
-          { pregunta: "Donde hay humo...", opciones: ["hay fuego", "hay calor", "hay gente", "hay cocina"], respuesta: "hay fuego" },
-          { pregunta: "Perro que ladra...", opciones: ["no duerme", "no come", "no muerde", "no juega"], respuesta: "no muerde" },
-          { pregunta: "A buen entendedor...", opciones: ["pocas palabras", "muchas palabras", "buen hablador", "mejor oyente"], respuesta: "pocas palabras" },
-          { pregunta: "El que ríe último...", opciones: ["ríe mejor", "más fuerte ríe", "más tarde ríe", "más feliz es"], respuesta: "ríe mejor" },
-          { pregunta: "A caballo regalado...", opciones: ["no se le ve el colmillo", "no se le busca lado", "no se le cambia", "no se le vende"], respuesta: "no se le busca lado" },
-          { pregunta: "Del árbol caído...", opciones: ["todos hacen leña", "todos recogen frutas", "todos se alejan", "todos tienen sombra"], respuesta: "todos hacen leña" },
-          { pregunta: "Cría cuervos...", opciones: ["y te sacarán los ojos", "y te comerán el pan", "y te quitarán el sueño", "y te robarán el alma"], respuesta: "y te sacarán los ojos" },
-          { pregunta: "La curiosidad mató...", opciones: ["al ratón", "al gato", "al perro", "al pájaro"], respuesta: "al gato" },
-          { pregunta: "No dejes para mañana...", opciones: ["lo que puedes hacer hoy", "lo que puedes hacer después", "lo que puedes hacer nunca", "lo que puedes hacer pronto"], respuesta: "lo que puedes hacer hoy" },
-          { pregunta: "Agua que no has de beber...", opciones: ["déjala correr", "tírala al mar", "guárdala bien", "ofrécesela a otro"], respuesta: "déjala correr" },
-          { pregunta: "Dios aprieta...", opciones: ["pero no ahorca", "pero no castiga", "pero no olvida", "pero no abandona"], respuesta: "pero no ahorca" }
+          { pregunta: "Camarón que se duerme...", opciones: ["Se lo lleva la corriente", "Se lo come el pez", "Se despierta tarde", "No desayuna"], respuesta: "Se lo lleva la corriente" },
+  { pregunta: "Al mal tiempo...", opciones: ["Buena cara", "Paciencia", "Resignación", "Esperanza"], respuesta: "Buena cara" },
+  { pregunta: "Dime con quien andas...", opciones: ["Y te diré quién eres", "Y te diré adónde vas", "Y te diré qué haces", "Y te diré cómo estás"], respuesta: "Y te diré quién eres" },
+  { pregunta: "Arbol que nace torcido...", opciones: ["Jamás su rama endereza", "Siempre será torcido", "Nunca dará frutos", "Crecerá inclinado"], respuesta: "Jamás su rama endereza" },
+  { pregunta: "Aprendiz de mucho...", opciones: ["Maestro de nada", "Sabe de todo", "Nunca aprende", "Mucho trabaja"], respuesta: "Maestro de nada" },
+  { pregunta: "El que tiene vergüenza...", opciones: ["Ni come, ni almuerza", "No progresa", "Siempre pierde", "Nunca gana"], respuesta: "Ni come, ni almuerza" },
+  { pregunta: "El que sabe sabe...", opciones: ["Y el que no inventa", "Y el que no calla", "Y el que no aprende", "Y el que no entiende"], respuesta: "Y el que no inventa" },
+  { pregunta: "Gallo que no canta...", opciones: ["Algo tiene en la garganta", "No es gallo", "Está enfermo", "No tiene dueño"], respuesta: "Algo tiene en la garganta" },
+  { pregunta: "No hay que dure 100 años...", opciones: ["Ni cuerpo que lo aguante", "Ni vida eterna", "Ni juventud perpetua", "Ni salud completa"], respuesta: "Ni cuerpo que lo aguante" },
+  { pregunta: "Quien da pan a perro ajeno...", opciones: ["Pierde el pan y el perro", "Gana un amigo", "Pierde su tiempo", "No tiene perro"], respuesta: "Pierde el pan y el perro" },
+  { pregunta: "Pa dar una vuelta...", opciones: ["Cualquier bicicleta es buena", "Cualquier camino sirve", "Cualquier día es bueno", "Cualquier hora vale"], respuesta: "Cualquier bicicleta es buena" },
+  { pregunta: "La ropa sucia...", opciones: ["Se lava en casa", "No se muestra", "Se esconde bien", "Se tira lejos"], respuesta: "Se lava en casa" },
+  { pregunta: "Tropezando y cayendo...", opciones: ["Se va aprendiendo", "Se hace camino", "Se conoce la vida", "Se gana experiencia"], respuesta: "Se va aprendiendo" },
+  { pregunta: "A Dios rogando...", opciones: ["Y con el mazo dando", "Y con fe esperando", "Y con paciencia orando", "Y con amor trabajando"], respuesta: "Y con el mazo dando" },
+  { pregunta: "Al no haber pan...", opciones: ["Tortillas", "Buenas son galletas", "Bueno es el arroz", "Buenas son frutas"], respuesta: "Tortillas" },
+  { pregunta: "El que tenga tienda...", opciones: ["Que la atienda, o sino que la venda", "Que la cuide bien", "Que no la descuide", "Que la mantenga"], respuesta: "Que la atienda, o sino que la venda" },
+  { pregunta: "Cría cuervos...", opciones: ["Y te sacarán los ojos", "Y te comerán el pan", "Y te quitarán el sueño", "Y te robarán el alma"], respuesta: "Y te sacarán los ojos" },
+  { pregunta: "El que quiera comer pescado...", opciones: ["Que se moje el", "Que vaya al mar", "Que aprenda a pescar", "Que compre fresco"], respuesta: "Que se moje el" },
+  { pregunta: "Haz el bien...", opciones: ["Y no mires a quien", "Sin esperar nada", "Con todo corazón", "Siempre y cuando"], respuesta: "Y no mires a quien" },
+  { pregunta: "Lo que Juan dice de Pedro...", opciones: ["Dice más de Juan que de Pedro", "Habla mal de ambos", "No tiene importancia", "Es puro chisme"], respuesta: "Dice más de Juan que de Pedro" },
+  { pregunta: "De las aguas mansas...", opciones: ["Líbreme señor, que de las turbias me libro yo", "Cuidado con ellas", "No te confíes", "Son peligrosas"], respuesta: "Líbreme señor, que de las turbias me libro yo" },
+  { pregunta: "En tiempos de guerra...", opciones: ["Cualquier agujero es trinchera", "Todo vale", "No hay reglas", "Se improvisa"], respuesta: "Cualquier agujero es trinchera" },
+  { pregunta: "El que no conoce a Dios...", opciones: ["A cualquier santo le reza", "En cualquier cosa cree", "No tiene fe", "Busca respuestas"], respuesta: "A cualquier santo le reza" },
+  { pregunta: "De lo que escuches nada...", opciones: ["Y de lo que veas la mitad", "Y de lo que hables poco", "Y de lo que creas menos", "Y de lo que sepas todo"], respuesta: "Y de lo que veas la mitad" },
+  { pregunta: "De poeta y locos...", opciones: ["Todos tenemos un poco", "Nadie se salva", "El mundo está lleno", "Es difícil distinguir"], respuesta: "Todos tenemos un poco" },
+  { pregunta: "Del árbol caído...", opciones: ["Todos hacen leña", "Todos recogen frutas", "Todos se alejan", "Todos tienen sombra"], respuesta: "Todos hacen leña" },
+  { pregunta: "En boca cerrada...", opciones: ["No entran moscas", "No hay dolor", "No hay risa", "No salen palabras"], respuesta: "No entran moscas" },
+  { pregunta: "Muerto el perro...", opciones: ["Se acaba la rabia", "Se acabó el problema", "Todo termina", "Ya no hay peligro"], respuesta: "Se acaba la rabia" },
+  { pregunta: "En el país de los ciegos...", opciones: ["El tuerto es el rey", "El que ve manda", "Todos son iguales", "No hay diferencias"], respuesta: "El tuerto es el rey" },
+  { pregunta: "Al perro que no conozcas...", opciones: ["No le toques las orejas", "No lo molestes", "Aléjate de él", "Ten cuidado"], respuesta: "No le toques las orejas" }
         ]
       }
     };
@@ -1008,13 +1030,13 @@ export default function Juegos() {
         
         <div className="text-center mb-12">
           <h1 className="text-5xl font-bold text-gray-800 mb-4 bg-gradient-to-r from-purple-600 via-pink-500 to-blue-600 bg-clip-text text-transparent">
-            🎮 Zona de Juegos Navideños
+            🎮 Zona de Juegos 1
           </h1>
           <p className="text-xl text-gray-600 mb-8 font-light">
-            Competitividad mejorada. ¡Supera tus propios récords!
+           ¡Supera tus propios récords!
           </p>
           <p className="text-xl text-gray-600 mb-8 font-light">
-           ⭐ "Premios para Líderes de rankings los Domingos"
+           ⭐ "Premios para 1er lugar de cada rankings"
           </p>
           
           {mensaje && (
@@ -1029,7 +1051,7 @@ export default function Juegos() {
           
           <div className="bg-yellow-100 border border-yellow-400 rounded-lg p-3 inline-block">
             <p className="text-yellow-700 text-sm">
-              ⏰ <strong>Regla:</strong> Los juegos de preguntas solo se pueden jugar 1 vez al día
+              ⏰ Rankings se reinician semanalmente
             </p>
           </div>
         </div>

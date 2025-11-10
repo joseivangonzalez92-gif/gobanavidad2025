@@ -272,7 +272,7 @@ export default function Challenges() {
     { 
       id: "tesoro_3", 
       titulo: "🎯 Búsqueda del Tesoro #3", 
-      descripcion: "Encuentra el código secreto en los recuerdos",
+      descripcion: "Encuentra la clave escondida en la sección de recuerdos",
       tipo: "tesoro",
       respuestaCorrecta: "El Pechocho",
       puntos: 15
@@ -280,7 +280,7 @@ export default function Challenges() {
     { 
       id: "tesoro_4", 
       titulo: "🏠 Búsqueda del Tesoro #4", 
-      descripcion: "La respuesta está en casa Goba - ¿Cuál es el secreto familiar?",
+      descripcion: "La respuesta está en casa Goba - ¿Cuál es el secreto en el árbol familiar?",
       tipo: "tesoro",
       respuestaCorrecta: "OliRaf",
       puntos: 15
@@ -491,7 +491,7 @@ export default function Challenges() {
       proximos.push({
         id: pregunta.id,
         titulo: pregunta.titulo,
-        descripcion: "❓ La pregunta se revelará el día del reto",
+        descripcion: "❓ La pregunta se revelará la próxima semana",
         tipo: "pregunta",
         puntos: 5,
         estado: "proxima_semana",

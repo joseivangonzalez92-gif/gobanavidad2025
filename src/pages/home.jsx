@@ -6,6 +6,44 @@ export default function Home() {
   // Obtener usuario actual para personalizar
   const usuarioActual = JSON.parse(localStorage.getItem("usuarioActual") || "{}");
 
+  // 🆕 NUEVO: Función para calcular días hasta Navidad y Año Nuevo
+  const getInfoFechas = () => {
+    const ahora = new Date();
+    
+    // Configurar hora de Honduras (UTC-6)
+    const opcionesHonduras = {
+      timeZone: 'America/Tegucigalpa',
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+      weekday: 'long'
+    };
+    
+    const fechaHonduras = ahora.toLocaleDateString('es-ES', opcionesHonduras);
+    const horaHonduras = ahora.toLocaleTimeString('es-ES', {
+      timeZone: 'America/Tegucigalpa',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+
+    // Calcular días hasta Navidad
+    const navidad = new Date(ahora.getFullYear(), 11, 25); // 25 de diciembre
+    const diasHastaNavidad = Math.ceil((navidad - ahora) / (1000 * 60 * 60 * 24));
+    
+    // Calcular días hasta Año Nuevo
+    const añoNuevo = new Date(ahora.getFullYear() + 1, 0, 1); // 1 de enero del próximo año
+    const diasHastaAñoNuevo = Math.ceil((añoNuevo - ahora) / (1000 * 60 * 60 * 24));
+
+    return {
+      fechaFormateada: fechaHonduras,
+      hora: horaHonduras,
+      diasNavidad: diasHastaNavidad,
+      diasAñoNuevo: diasHastaAñoNuevo
+    };
+  };
+
+  const infoFechas = getInfoFechas();
+
   const handleCerrarSesion = () => {
     localStorage.removeItem('usuarioActual');
     navigate("/login");
@@ -45,6 +83,47 @@ export default function Home() {
               <div className="text-2xl font-bold text-purple-600">100%</div>
               <div className="text-sm text-gray-600">Familiar</div>
             </div>
+          </div>
+        </div>
+      </div>
+
+      {/* 🆕 NUEVO: Información de fechas */}
+      <div className="max-w-4xl mx-auto px-4 mb-12">
+        <div className="bg-gradient-to-r from-green-500 via-red-500 to-purple-500 rounded-2xl p-1 shadow-2xl">
+          <div className="bg-white rounded-xl p-6 text-center">
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 items-center">
+              
+              {/* Fecha actual */}
+              <div className="text-center">
+                <p className="text-sm text-gray-600 mb-1">Hoy es</p>
+                <p className="font-bold text-gray-800 text-lg leading-tight">
+                  {infoFechas.fechaFormateada}
+                </p>
+              </div>
+
+              {/* Días hasta Navidad */}
+              <div className="text-center">
+             
+               
+                <p className="font-bold text-red-600 text-2xl">
+                     <div className="text-3xl mb-2">🎄</div>
+                  {infoFechas.diasNavidad} día{infoFechas.diasNavidad !== 1 ? 's' : ''}
+                </p>
+                 <p className="text-sm text-gray-600 mb-1">Faltan para Navidad</p>
+              </div>
+
+              {/* Días hasta Año Nuevo */}
+              <div className="text-center">
+                <div className="text-3xl mb-2">🎆</div>
+           
+                <p className="font-bold text-purple-600 text-2xl">
+                  {infoFechas.diasAñoNuevo} día{infoFechas.diasAñoNuevo !== 1 ? 's' : ''}
+                </p>
+                     <p className="text-sm text-gray-600 mb-1">Faltan para Año Nuevo</p>
+              </div>
+
+            </div>
+            
           </div>
         </div>
       </div>
@@ -207,7 +286,7 @@ export default function Home() {
             </div>
           </Link>
 
-               {/* 🎮 MUY PRONTO - TEMPORALMENTE DESHABILITADO */}
+          {/* 🎮 MUY PRONTO - TEMPORALMENTE DESHABILITADO */}
           <div className="group cursor-not-allowed opacity-60">
             <div className="bg-gradient-to-br from-blue-50 to-purple-50 rounded-3xl p-8 text-center border-2 border-blue-200 h-full flex flex-col justify-center relative overflow-hidden">
               

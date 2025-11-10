@@ -29,6 +29,9 @@ export default function Rankings() {
   const [opcionesPoll, setOpcionesPoll] = useState(["", ""]);
   const [peliculaSugerida, setPeliculaSugerida] = useState("");
 
+  // 🆕 NUEVO: Estado para imagen ampliada
+  const [imagenAmpliada, setImagenAmpliada] = useState(null);
+
   // 🆕 MEJORADO: Emojis con mejor espaciado y 2 nuevos emojis
   const reaccionesDisponibles = ["❤️", "😂", "😮", "🎄", "✨", "👏", "🔥", "🎁", "🤗", "😊", "🥰"];
   const categorias = ["general", "peliculas", "musica", "recuerdos", "divertido", "reflexiones"];
@@ -308,6 +311,18 @@ export default function Rankings() {
     }
   };
 
+  // 🆕 NUEVO: Función para abrir imagen en grande
+  const abrirImagenAmpliada = (imagenUrl, titulo) => {
+    setImagenAmpliada({ url: imagenUrl, titulo });
+  };
+
+  // 🆕 NUEVO: Función para cerrar imagen ampliada
+  const cerrarImagenAmpliada = (e) => {
+    if (e.target === e.currentTarget) {
+      setImagenAmpliada(null);
+    }
+  };
+
   // FUNCIONES AUXILIARES
   const agregarOpcionPoll = () => {
     if (opcionesPoll.length < 6) {
@@ -463,7 +478,9 @@ export default function Rankings() {
                     </div>
                   </div>
                   
-                  <p className="text-gray-700 leading-relaxed">{post.contenido}</p>
+                  <p className="text-gray-700 leading-relaxed whitespace-pre-wrap break-words">
+                    {post.contenido}
+                  </p>
                   
                   {/* Información específica del tipo */}
                   {post.tipo === "pelicula" && post.pelicula && (
@@ -490,8 +507,8 @@ export default function Rankings() {
                             className="w-full text-left p-3 bg-white rounded-lg border border-gray-200 hover:border-green-300 transition-colors"
                           >
                             <div className="flex justify-between items-center">
-                              <span>{opcion.texto}</span>
-                              <span className="text-sm text-gray-500">
+                              <span className="break-words flex-1 mr-2">{opcion.texto}</span>
+                              <span className="text-sm text-gray-500 whitespace-nowrap">
                                 {opcion.votos || 0} votos ({porcentaje}%)
                               </span>
                             </div>
@@ -514,12 +531,21 @@ export default function Rankings() {
                 )}
 
                 {post.tipo === "imagen" && post.imagenUrl && (
-                  <div className="border-b">
-                    <img 
-                      src={post.imagenUrl} 
-                      alt={post.titulo}
-                      className="w-full h-auto max-h-96 object-cover"
-                    />
+                  <div className="border-b p-4">
+                    {/* 🆕 MEJORADO: Imagen clickeable con mejor estilo */}
+                    <div 
+                      className="cursor-pointer overflow-hidden rounded-lg border-2 border-gray-200 hover:border-green-300 transition-all duration-300 transform hover:scale-[1.02]"
+                      onClick={() => abrirImagenAmpliada(post.imagenUrl, post.titulo)}
+                    >
+                      <img 
+                        src={post.imagenUrl} 
+                        alt={post.titulo}
+                        className="w-full h-auto max-h-96 object-contain bg-gray-50"
+                      />
+                    </div>
+                    <p className="text-xs text-gray-500 text-center mt-2">
+                      👆 Haz clic en la imagen para verla en grande
+                    </p>
                   </div>
                 )}
 
@@ -580,6 +606,11 @@ export default function Rankings() {
                           ...prev, 
                           [post.id]: e.target.value 
                         }))}
+                        onKeyPress={(e) => {
+                          if (e.key === 'Enter') {
+                            agregarComentario(post.id);
+                          }
+                        }}
                       />
                       <button
                         onClick={() => agregarComentario(post.id)}
@@ -590,36 +621,45 @@ export default function Rankings() {
                     </div>
                   </div>
 
-                  {/* Comentarios existentes - VERSIÓN ACTUALIZADA */}
+                  {/* 🆕 MEJORADO: Comentarios mejor organizados */}
                   {post.comentarios && post.comentarios.length > 0 && (
                     <div className="mt-4 space-y-3">
                       {post.comentarios.slice(-3).map((coment, idx) => (
-                        <div key={idx} className="bg-gray-50 p-3 rounded-lg">
-                          <div className="flex items-start gap-3 mb-2">
-                            {/* AVATAR ACTUALIZADO EN COMENTARIO */}
-                            <div className="text-lg">{getDatosUsuario(coment.usuarioId).avatar}</div>
-                            <div className="flex-1">
-                              <div className="flex justify-between items-start">
-                                <span className="font-semibold text-gray-800 text-sm">
+                        <div key={idx} className="bg-gray-50 p-3 rounded-lg border border-gray-200">
+                          <div className="flex items-start gap-3">
+                            {/* Avatar */}
+                            <div className="text-lg flex-shrink-0">
+                              {getDatosUsuario(coment.usuarioId).avatar}
+                            </div>
+                            
+                            {/* Contenido del comentario */}
+                            <div className="flex-1 min-w-0">
+                              {/* Header del comentario */}
+                              <div className="flex flex-wrap items-baseline gap-1 mb-1">
+                                <span className="font-semibold text-gray-800 text-sm whitespace-nowrap">
                                   {getDatosUsuario(coment.usuarioId).nombre}
                                 </span>
-                                <span className="text-xs text-gray-500">
+                                <span className="text-xs text-green-600 font-medium whitespace-nowrap">
+                                  {getDatosUsuario(coment.usuarioId).pais}
+                                </span>
+                                <span className="text-xs text-gray-500 whitespace-nowrap">
                                   {coment.fechaFormateada || coment.fecha}
                                 </span>
                               </div>
-                              {/* PAÍS ACTUALIZADO EN COMENTARIO CON "de" */}
-                              <p className="text-xs text-green-600 font-medium">
-                                {getDatosUsuario(coment.usuarioId).pais}
+                              
+                              {/* Texto del comentario */}
+                              <p className="text-gray-600 text-sm break-words leading-relaxed">
+                                {coment.texto}
                               </p>
                             </div>
                           </div>
-                          <p className="text-gray-600 text-sm mt-1">{coment.texto}</p>
                         </div>
                       ))}
+                      
                       {post.comentarios.length > 3 && (
                         <button
                           onClick={() => setPostSeleccionado(post)}
-                          className="text-green-600 text-sm font-medium hover:text-green-700"
+                          className="text-green-600 text-sm font-medium hover:text-green-700 w-full text-center py-2 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
                         >
                           Ver todos los comentarios ({post.comentarios.length})
                         </button>
@@ -644,6 +684,42 @@ export default function Rankings() {
             >
               ✨ Crear Primera Publicación
             </button>
+          </div>
+        )}
+
+        {/* 🆕 NUEVO: Modal para imagen ampliada */}
+        {imagenAmpliada && (
+          <div 
+            className="fixed inset-0 bg-black bg-opacity-90 flex items-center justify-center z-50 p-4 cursor-zoom-out"
+            onClick={cerrarImagenAmpliada}
+          >
+            <div className="relative max-w-4xl max-h-full">
+              <button
+                onClick={() => setImagenAmpliada(null)}
+                className="absolute -top-12 right-0 bg-red-500 text-white w-10 h-10 rounded-full flex items-center justify-center hover:bg-red-600 z-10"
+              >
+                ✕
+              </button>
+              
+              <div className="bg-white rounded-lg overflow-hidden">
+                <img 
+                  src={imagenAmpliada.url} 
+                  alt={imagenAmpliada.titulo}
+                  className="w-full h-auto max-h-[80vh] object-contain"
+                />
+                {imagenAmpliada.titulo && (
+                  <div className="p-4 bg-white border-t">
+                    <p className="text-gray-800 font-semibold text-center">
+                      {imagenAmpliada.titulo}
+                    </p>
+                  </div>
+                )}
+              </div>
+              
+              <p className="text-white text-center mt-4 text-sm">
+                Haz clic fuera de la imagen para cerrar
+              </p>
+            </div>
           </div>
         )}
 
@@ -751,7 +827,8 @@ export default function Rankings() {
                         <img 
                           src={URL.createObjectURL(imagenSubida)} 
                           alt="Preview" 
-                          className="max-h-32 mx-auto rounded-lg shadow-md mt-2"
+                          className="max-h-32 mx-auto rounded-lg shadow-md mt-2 cursor-pointer"
+                          onClick={() => abrirImagenAmpliada(URL.createObjectURL(imagenSubida), "Vista previa")}
                         />
                       </div>
                     )}
@@ -883,7 +960,9 @@ export default function Rankings() {
                   </div>
                 </div>
 
-                <p className="text-gray-700 text-lg mb-6">{postSeleccionado.contenido}</p>
+                <p className="text-gray-700 text-lg mb-6 whitespace-pre-wrap break-words">
+                  {postSeleccionado.contenido}
+                </p>
 
                 {/* Contenido específico en modal */}
                 {postSeleccionado.tipo === "poll" && postSeleccionado.opciones && (
@@ -897,8 +976,8 @@ export default function Rankings() {
                         return (
                           <div key={index} className="bg-gray-50 p-3 rounded-lg">
                             <div className="flex justify-between items-center mb-1">
-                              <span className="font-medium">{opcion.texto}</span>
-                              <span className="text-sm text-gray-600">
+                              <span className="font-medium break-words flex-1 mr-2">{opcion.texto}</span>
+                              <span className="text-sm text-gray-600 whitespace-nowrap">
                                 {opcion.votos || 0} votos ({porcentaje}%)
                               </span>
                             </div>
@@ -915,7 +994,7 @@ export default function Rankings() {
                   </div>
                 )}
 
-                {/* Comentarios en modal - VERSIÓN ACTUALIZADA */}
+                {/* 🆕 MEJORADO: Comentarios en modal mejor organizados */}
                 <div className="border-t pt-6">
                   <h4 className="font-semibold text-gray-800 mb-4">
                     Comentarios ({postSeleccionado.comentarios?.length || 0})
@@ -923,26 +1002,34 @@ export default function Rankings() {
                   {postSeleccionado.comentarios && postSeleccionado.comentarios.length > 0 ? (
                     <div className="space-y-4">
                       {postSeleccionado.comentarios.map((coment, idx) => (
-                        <div key={idx} className="bg-gray-50 p-4 rounded-lg">
-                          <div className="flex items-start gap-3 mb-2">
-                            {/* AVATAR ACTUALIZADO EN MODAL */}
-                            <div className="text-xl">{getDatosUsuario(coment.usuarioId).avatar}</div>
-                            <div className="flex-1">
-                              <div className="flex justify-between items-start mb-1">
+                        <div key={idx} className="bg-gray-50 p-4 rounded-lg border border-gray-200">
+                          <div className="flex items-start gap-3">
+                            {/* Avatar */}
+                            <div className="text-xl flex-shrink-0">
+                              {getDatosUsuario(coment.usuarioId).avatar}
+                            </div>
+                            
+                            {/* Contenido */}
+                            <div className="flex-1 min-w-0">
+                              {/* Header */}
+                              <div className="flex flex-wrap items-baseline gap-2 mb-2">
                                 <span className="font-semibold text-gray-800">
                                   {getDatosUsuario(coment.usuarioId).nombre}
+                                </span>
+                                <span className="text-sm text-green-600 font-medium">
+                                  {getDatosUsuario(coment.usuarioId).pais}
                                 </span>
                                 <span className="text-sm text-gray-500">
                                   {coment.fechaFormateada || coment.fecha}
                                 </span>
                               </div>
-                              {/* PAÍS ACTUALIZADO EN MODAL CON "de" */}
-                              <p className="text-sm text-green-600 font-medium">
-                                {getDatosUsuario(coment.usuarioId).pais}
+                              
+                              {/* Texto del comentario */}
+                              <p className="text-gray-600 break-words leading-relaxed">
+                                {coment.texto}
                               </p>
                             </div>
                           </div>
-                          <p className="text-gray-600">{coment.texto}</p>
                         </div>
                       ))}
                     </div>
