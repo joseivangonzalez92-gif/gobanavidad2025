@@ -8,12 +8,12 @@ import Fotos from "./pages/fotos.jsx";
 import Votaciones from "./pages/votaciones.jsx";
 import Admin from "./pages/admin.jsx";
 import Login from "./pages/login.jsx";
-// import BotObservador from "./components/BotObservador.jsx"; // DESACTIVADO TEMPORALMENTE
 import Navidad from './pages/navidad.jsx';
 import Juegos from './pages/juegos.jsx';
 import Rankings from './pages/rankings.jsx';
-import ConcursoRapido from "./pages/concurso-rapido.jsx";
-import Perfil from "./pages/perfil.jsx"; 
+import Juegos2 from "./pages/juegos2.jsx";
+import Perfil from "./pages/perfil.jsx";
+import TiendaPage from './pages/tiendapage.jsx';
 
 // 🧱 Componente para rutas privadas
 function RutaPrivada({ children }) {
@@ -112,8 +112,9 @@ function App() {
                   <Route path="/navidad" element={<Navidad />} />
                   <Route path="/juegos" element={<Juegos />} />
                   <Route path="/rankings" element={<Rankings />} />
-                  <Route path="/concurso-rapido" element={<ConcursoRapido />} />
+                  <Route path="/juegos2" element={<Juegos2 />} />
                   <Route path="/perfil" element={<Perfil />} />
+                 <Route path="/tienda" element={<TiendaPage />} />
                   
                   {/* ✅ Ruta por defecto para área privada */}
                   <Route path="*" element={<Navigate to="/home" replace />} />
@@ -127,8 +128,8 @@ function App() {
                 </p>
               </footer>
 
-              {/* Bot desactivado temporalmente */}
-              {/* <BotObservador /> */}
+           
+          
             </RutaPrivada>
           }
         />

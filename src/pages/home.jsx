@@ -206,8 +206,53 @@ export default function Home() {
               </div>
             </div>
           </Link>
-        </div>
 
+               {/* 🎮 MUY PRONTO - TEMPORALMENTE DESHABILITADO */}
+          <div className="group cursor-not-allowed opacity-60">
+            <div className="bg-gradient-to-br from-blue-50 to-purple-50 rounded-3xl p-8 text-center border-2 border-blue-200 h-full flex flex-col justify-center relative overflow-hidden">
+              
+              <div className="absolute inset-0 bg-gradient-to-br from-blue-100/20 to-purple-100/20"></div>
+              
+              <div className="relative z-10">
+                <div className="text-5xl mb-4 opacity-70">🚀</div>
+                <p className="text-gray-700 text-lg font-semibold mb-1">
+                  Muy pronto
+                </p>
+                <p className="text-gray-500 text-sm">
+                  Estreno: <span className="font-mono text-gray-600">17 Nov</span>
+                </p>
+              </div>
+
+              <div className="absolute bottom-3 right-3 text-gray-400 text-sm">
+                ✨
+              </div>
+            </div>
+          </div>
+
+          {/* 🏪 TIENDA NAVIDEÑA - TEMPORALMENTE DESHABILITADA */}
+          <div className="group cursor-not-allowed opacity-60">
+            <div className="bg-gradient-to-br from-green-50 to-red-50 rounded-3xl p-8 text-center border-2 border-green-200 h-full flex flex-col justify-center relative overflow-hidden">
+              
+              <div className="absolute inset-0 bg-gradient-to-br from-green-100/20 to-red-100/20"></div>
+              
+              <div className="relative z-10">
+                <div className="text-5xl mb-4 opacity-70">🎁</div>
+                <p className="text-gray-700 text-lg font-semibold mb-1">
+                  Preparando sorpresa
+                </p>
+                <p className="text-gray-500 text-sm">
+                  Estreno: <span className="font-mono text-gray-600">1 Dic</span>
+                </p>
+              </div>
+
+              <div className="absolute bottom-3 right-3 text-gray-400 text-sm">
+                ✨
+              </div>
+            </div>
+          </div>
+
+        </div>
+        
         {/* Información adicional */}
         <div className="mt-16 bg-white rounded-3xl p-8 shadow-2xl border-2 border-green-200">
           <h3 className="text-2xl font-bold text-center text-gray-800 mb-6">📢 Información Importante</h3>

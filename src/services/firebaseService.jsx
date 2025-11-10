@@ -15,7 +15,8 @@ import {
   updateDoc,
   addDoc,
   increment,
-  limit
+  limit,
+  runTransaction 
 } from 'firebase/firestore';
 
 console.log("🔧 firebaseService - db:", db ? "✅ DEFINIDO" : "❌ UNDEFINED");
@@ -2421,5 +2422,345 @@ async iniciarConcursoSimple(concursoId = 'navidad_rapido') {
       console.error("❌ Error actualizando usuario:", error);
       return false;
     }
+    },
+   // =============================================
+// 🏪 SISTEMA DE TIENDA Y PUNTOS
+// =============================================
+
+// 🎯 SERVICIO DE PUNTOS
+puntosService: {
+  async gastarPuntosConValidacion(usuarioId, puntosAGastar, producto) {
+    try {
+      console.log("🎯 Gastando puntos...", { usuarioId, puntosAGastar });
+      
+      const usuarioRef = doc(db, 'usuarios', usuarioId);
+      const usuarioDoc = await getDoc(usuarioRef);
+      
+      if (!usuarioDoc.exists()) {
+        throw new Error("Usuario no encontrado");
+      }
+
+      const usuarioData = usuarioDoc.data();
+      const puntosActuales = usuarioData.puntos || 0;
+
+      console.log("📊 Puntos actuales:", puntosActuales, "Puntos a gastar:", puntosAGastar);
+
+      if (puntosActuales < puntosAGastar) {
+        throw new Error(`Puntos insuficientes. Tienes: ${puntosActuales}, Necesitas: ${puntosAgastar}`);
+      }
+
+      const nuevosPuntos = puntosActuales - puntosAGastar;
+      
+      // ✅ ACTUALIZAR PUNTOS (forma simple)
+      await updateDoc(usuarioRef, {
+        puntos: nuevosPuntos,
+        ultimaActualizacion: new Date()
+      });
+
+      // ✅ CREAR PEDIDO
+      const pedidoRef = await addDoc(collection(db, 'pedidos'), {
+        usuarioId: usuarioId,
+        usuarioNombre: usuarioData.nombre,
+        producto: producto,
+        puntosGastados: puntosAGastar,
+        estado: 'pendiente',
+        fecha: new Date(),
+        fechaEntrega: null
+      });
+
+      console.log("✅ Puntos gastados exitosamente. Nuevos puntos:", nuevosPuntos);
+      
+      return {
+        success: true,
+        nuevosPuntos: nuevosPuntos,
+        message: `¡Pedido realizado! Gastaste ${puntosAGastar} puntos. Te quedan ${nuevosPuntos} puntos.`
+      };
+      
+    } catch (error) {
+      console.error("❌ Error en gastarPuntosConValidacion:", error);
+      return {
+        success: false,
+        message: error.message
+      };
+    }
+  },
+
+  async obtenerPuntosReales(usuarioId) {
+    try {
+      const usuarioDoc = await getDoc(doc(db, 'usuarios', usuarioId));
+      if (usuarioDoc.exists()) {
+        return usuarioDoc.data().puntos || 0;
+      }
+      return 0;
+    } catch (error) {
+      console.error("Error obteniendo puntos:", error);
+      return 0;
+    }
+  },
+
+  async ganarPuntos(usuarioId, puntos, fuente = 'estrella') {
+    try {
+      console.log("🎯 Ganando puntos...", { usuarioId, puntos, fuente });
+      
+      const usuarioRef = doc(db, 'usuarios', usuarioId);
+      const usuarioDoc = await getDoc(usuarioRef);
+      
+      if (!usuarioDoc.exists()) {
+        throw new Error("Usuario no encontrado");
+      }
+
+      const usuarioData = usuarioDoc.data();
+      const puntosActuales = usuarioData.puntos || 0;
+      const nuevosPuntos = puntosActuales + puntos;
+
+      // ✅ ACTUALIZAR PUNTOS (forma simple)
+      await updateDoc(usuarioRef, {
+        puntos: nuevosPuntos,
+        ultimaActualizacion: new Date()
+      });
+
+      // ✅ REGISTRAR TRANSACCIÓN
+      await addDoc(collection(db, 'puntosTransacciones'), {
+        usuarioId: usuarioId,
+        puntos: puntos,
+        tipo: 'ganancia',
+        fuente: fuente,
+        fecha: new Date(),
+        puntosAnteriores: puntosActuales,
+        puntosNuevos: nuevosPuntos
+      });
+
+      console.log("✅ Puntos ganados exitosamente. Nuevos puntos:", nuevosPuntos);
+      
+      return {
+        success: true,
+        nuevosPuntos: nuevosPuntos,
+        message: `¡Ganaste ${puntos} puntos! Ahora tienes ${nuevosPuntos} puntos.`
+      };
+      
+    } catch (error) {
+      console.error("❌ Error ganando puntos:", error);
+      return {
+        success: false,
+        message: error.message
+      };
+    }
   }
+},
+
+// 🎯 SERVICIO DE CÓDIGOS DE REGALO
+codigosService: {
+  async verificarCodigoCanjeado(usuarioId, codigo) {
+    try {
+      const docRef = doc(db, 'usuarios', usuarioId, 'codigosCanjeados', codigo);
+      const docSnap = await getDoc(docRef);
+      return docSnap.exists();
+    } catch (error) {
+      console.error("Error verificando código:", error);
+      return false;
+    }
+  },
+
+  async verificarPremioCanjeado(codigo) {
+    try {
+      const docRef = doc(db, 'premiosCanjeados', codigo);
+      const docSnap = await getDoc(docRef);
+      return docSnap.exists();
+    } catch (error) {
+      console.error("Error verificando premio:", error);
+      return false;
+    }
+  },
+
+  async marcarCodigoCanjeado(usuarioId, codigo, puntos, tipo) {
+    try {
+      const docRef = doc(db, 'usuarios', usuarioId, 'codigosCanjeados', codigo);
+      await setDoc(docRef, {
+        codigo: codigo,
+        puntos: puntos,
+        tipo: tipo,
+        fechaCanje: new Date()
+      });
+      return true;
+    } catch (error) {
+      console.error("Error marcando código:", error);
+      return false;
+    }
+  },
+
+  async marcarPremioCanjeado(usuarioId, codigo, puntos) {
+    try {
+      const docRef = doc(db, 'premiosCanjeados', codigo);
+      await setDoc(docRef, {
+        codigo: codigo,
+        usuarioId: usuarioId,
+        puntos: puntos,
+        fechaCanje: new Date()
+      });
+      return true;
+    } catch (error) {
+      console.error("Error marcando premio:", error);
+      return false;
+    }
+  }
+},
+// 🎯 SERVICIO DE TIENDA
+tiendaService: {
+  productos: [
+    { id: 1, nombre: "🍫 Chocolate", precio: 5 },
+    { id: 2, nombre: "🌯 Churro", precio: 3 },
+    { id: 3, nombre: "🥤 Refresco 2L", precio: 2 },
+    { id: 4, nombre: "🍕 Pizza Familiar", precio: 15 },
+    { id: 5, nombre: "🥩 Carne de la colocha (1kg)", precio: 25 },
+    { id: 6, nombre: " Pop Corn", precio: 4 },
+    { id: 7, nombre: "🍪 Galletas Navideñas", precio: 6 },
+    { id: 8, nombre: "☕ Café Especial", precio: 3 },
+    { id: 9, nombre: "🎂 Pastel Individual", precio: 8 },
+    { id: 10, nombre: "🌭 Hot Dog Especial", precio: 4 }
+  ],
+
+  async obtenerTodosPedidos() {
+    try {
+      console.log("🛒 Obteniendo todos los pedidos...");
+      
+      const querySnapshot = await getDocs(collection(db, 'pedidos'));
+      const pedidos = querySnapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      }));
+      
+      console.log("✅ Pedidos obtenidos:", pedidos.length);
+      return pedidos;
+    } catch (error) {
+      console.error("❌ Error obteniendo pedidos:", error);
+      return [];
+    }
+  },
+
+  escucharPedidos(callback) {
+    try {
+      const q = query(collection(db, 'pedidos'), orderBy('fecha', 'desc'));
+      return onSnapshot(q, (snapshot) => {
+        const pedidos = snapshot.docs.map(doc => ({
+          id: doc.id,
+          ...doc.data()
+        }));
+        callback(pedidos);
+      });
+    } catch (error) {
+      console.error("Error escuchando pedidos:", error);
+      callback([]);
+    }
+  },
+
+  async marcarEntregado(pedidoId) {
+    try {
+      const pedidoRef = doc(db, 'pedidos', pedidoId);
+      await updateDoc(pedidoRef, {
+        estado: 'entregado',
+        fechaEntrega: new Date(),
+        fechaActualizacion: new Date().toISOString()
+      });
+      console.log("✅ Pedido marcado como entregado:", pedidoId);
+      return { success: true, message: "Pedido marcado como entregado" };
+    } catch (error) {
+      console.error("Error marcando pedido como entregado:", error);
+      return { success: false, message: error.message };
+    }
+  },
+
+  async marcarPreparando(pedidoId) {
+    try {
+      const pedidoRef = doc(db, 'pedidos', pedidoId);
+      await updateDoc(pedidoRef, {
+        estado: 'preparando',
+        fechaActualizacion: new Date().toISOString()
+      });
+      console.log("✅ Pedido marcado como preparando:", pedidoId);
+      return { success: true, message: "Pedido en preparación" };
+    } catch (error) {
+      console.error("❌ Error marcando pedido como preparando:", error);
+      return { success: false, message: error.message };
+    }
+  },
+async cancelarPedido(pedidoId) {
+  try {
+    console.log("❌ Cancelando pedido y devolviendo puntos:", pedidoId);
+    
+    // 1. Primero obtener los datos del pedido
+    const pedidoRef = doc(db, 'pedidos', pedidoId);
+    const pedidoDoc = await getDoc(pedidoRef);
+    
+    if (!pedidoDoc.exists()) {
+      throw new Error('Pedido no encontrado');
+    }
+    
+    const pedidoData = pedidoDoc.data();
+    const usuarioId = pedidoData.usuarioId;
+    const puntosGastados = pedidoData.puntosGastados || pedidoData.puntosCoste || 0;
+    
+    console.log("📊 Datos del pedido a cancelar:", {
+      usuarioId,
+      puntosGastados,
+      producto: pedidoData.producto
+    });
+    
+    // 2. Si hay puntos gastados, devolverlos al usuario
+    if (puntosGastados > 0 && usuarioId) {
+      console.log("🔄 Devolviendo puntos al usuario:", puntosGastados);
+      
+      // Obtener usuario actual
+      const usuarioRef = doc(db, 'usuarios', usuarioId);
+      const usuarioDoc = await getDoc(usuarioRef);
+      
+      if (usuarioDoc.exists()) {
+        const usuarioData = usuarioDoc.data();
+        const puntosActuales = usuarioData.puntos || 0;
+        const nuevosPuntos = puntosActuales + puntosGastados;
+        
+        // Actualizar puntos del usuario
+        await updateDoc(usuarioRef, {
+          puntos: nuevosPuntos,
+          ultimaActualizacion: new Date()
+        });
+        
+        console.log("✅ Puntos devueltos. Nuevo total:", nuevosPuntos);
+        
+        // Registrar transacción de devolución
+        await addDoc(collection(db, 'puntosTransacciones'), {
+          usuarioId: usuarioId,
+          puntos: puntosGastados,
+          tipo: 'devolucion',
+          fuente: 'cancelacion_pedido',
+          fecha: new Date(),
+          puntosAnteriores: puntosActuales,
+          puntosNuevos: nuevosPuntos,
+          pedidoId: pedidoId,
+          motivo: 'Pedido cancelado'
+        });
+      }
+    }
+    
+    // 3. Marcar pedido como cancelado
+    await updateDoc(pedidoRef, {
+      estado: 'cancelado, puntos devueltos',
+      fechaActualizacion: new Date().toISOString(),
+      puntosDevueltos: puntosGastados, // Registrar que se devolvieron puntos
+      motivoCancelacion: 'Cancelado por administrador'
+    });
+    
+    console.log("✅ Pedido cancelado y puntos devueltos:", pedidoId);
+    return { 
+      success: true, 
+      message: `Pedido cancelado. Se devolvieron ${puntosGastados} puntos al usuario.` 
+    };
+    
+  } catch (error) {
+    console.error("❌ Error cancelando pedido:", error);
+    return { success: false, message: error.message };
+  }
+}
+} 
+   
 };
+ 

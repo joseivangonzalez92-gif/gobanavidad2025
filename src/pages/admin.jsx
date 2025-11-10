@@ -12,6 +12,7 @@ export default function Admin() {
   const [pendingPhotos, setPendingPhotos] = useState([]);
   const [pendingGalleryPhotos, setPendingGalleryPhotos] = useState([]);
   const [eventos, setEventos] = useState([]);
+  const [pedidos, setPedidos] = useState([]);
   const [activeSection, setActiveSection] = useState('solicitudes');
   
   const [mostrarFormularioEvento, setMostrarFormularioEvento] = useState(false);
@@ -57,13 +58,21 @@ export default function Admin() {
           gobaService.obtenerTodosEventos()
         ]);
         
+        // Cargar pedidos por separado para evitar que falle todo si hay error
+        let pedidosData = [];
+        try {
+          pedidosData = await gobaService.tiendaService.obtenerTodosPedidos();
+        } catch (error) {
+          console.log("⚠️ Pedidos no disponibles aún:", error);
+        }
+        
         setFirebaseUsers(users);
         setPendingRequests(requests);
-        console.log("🎯 ESTRUCTURA DE MARÍA:", requests[0]);
         setNominaciones(allNominaciones);
         setPendingPhotos(challengePhotos);
         setPendingGalleryPhotos(galleryPhotos);
         setEventos(eventosData);
+        setPedidos(pedidosData);
         
         console.log("✅ Datos cargados:", {
           usuarios: users.length,
@@ -71,7 +80,8 @@ export default function Admin() {
           nominaciones: Object.keys(allNominaciones).length,
           fotosChallengePendientes: challengePhotos.length,
           fotosGaleriaPendientes: galleryPhotos.length,
-          eventos: eventosData.length
+          eventos: eventosData.length,
+          pedidos: pedidosData.length
         });
       } catch (error) {
         console.error("Error cargando datos:", error);
@@ -80,6 +90,44 @@ export default function Admin() {
 
     initializeAdmin();
   }, []);
+
+  // Función para manejar pedidos
+  const manejarPedido = async (pedidoId, accion) => {
+    try {
+      if (accion === 'entregado') {
+        await gobaService.tiendaService.marcarEntregado(pedidoId);
+        alert('✅ Pedido marcado como entregado');
+      } else if (accion === 'preparando') {
+        await gobaService.tiendaService.marcarPreparando(pedidoId);
+        alert('👨‍🍳 Pedido en preparación');
+      } else if (accion === 'cancelar') {
+        if (confirm('¿Cancelar este pedido?')) {
+          await gobaService.tiendaService.cancelarPedido(pedidoId);
+          alert('❌ Pedido cancelado');
+        }
+      }
+      
+      // Recargar pedidos
+      const pedidosActualizados = await gobaService.tiendaService.obtenerTodosPedidos();
+      setPedidos(pedidosActualizados);
+    } catch (error) {
+      console.error('Error manejando pedido:', error);
+      alert('❌ Error al procesar pedido');
+    }
+  };
+
+  // Función para obtener estadísticas de pedidos
+  const obtenerEstadisticasPedidos = () => {
+    const total = pedidos.length;
+    const pendientes = pedidos.filter(p => p.estado === 'pendiente').length;
+    const preparando = pedidos.filter(p => p.estado === 'preparando').length;
+    const entregados = pedidos.filter(p => p.estado === 'entregado').length;
+    const puntosCanjeados = pedidos
+      .filter(p => p.estado !== 'cancelado')
+      .reduce((total, pedido) => total + (pedido.puntosCoste || 0), 0);
+
+    return { total, pendientes, preparando, entregados, puntosCanjeados };
+  };
 
   // FUNCIONES PARA GESTIÓN DE EVENTOS
   const handleInputChangeEvento = (e) => {
@@ -187,11 +235,9 @@ export default function Admin() {
       id: newUserId,
       nombre: request.nombreSolicitado,
       codigoSecreto: request.codigoSecretoSolicitado,
-      // 🎨🎯 NUEVOS CAMPOS AGREGADOS
-      avatar: request.avatar || '👤', // Usar el avatar de la solicitud o uno por defecto
-      pais: request.pais || 'República del Café de Mamá', // Usar el país de la solicitud o uno por defecto
-      frase: request.frase || "", // Frase puede estar vacía
-      // 🎨🎯 FIN NUEVOS CAMPOS
+      avatar: request.avatar || '👤',
+      pais: request.pais || 'República del Café de Mamá',
+      frase: request.frase || "",
       puntos: 0,
       fechaRegistro: new Date().toISOString(),
       esAdmin: false,
@@ -210,6 +256,18 @@ export default function Admin() {
       alert("❌ Error al aprobar usuario.");
     }
   };
+
+  const obtenerPuntosUsuarios = () => {
+    return firebaseUsers.map(usuario => ({
+      id: usuario.id,
+      nombre: usuario.nombre,
+      avatar: usuario.avatar || '👤',
+      puntos: usuario.puntos || 0,
+      pais: usuario.pais || 'No asignado',
+      fechaRegistro: usuario.fechaRegistro
+    })).sort((a, b) => b.puntos - a.puntos);
+  };
+
 
   // Rechazar solicitud
   const handleRejectRequest = async (requestId, nombreSolicitado) => {
@@ -328,6 +386,9 @@ export default function Admin() {
   // TOTAL FOTOS PENDIENTES
   const totalFotosPendientes = pendingPhotos.length + pendingGalleryPhotos.length;
 
+  // Estadísticas de pedidos
+  const statsPedidos = obtenerEstadisticasPedidos();
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -378,7 +439,7 @@ export default function Admin() {
         </div>
 
         {/* Estadísticas Rápidas */}
-        <div className="grid grid-cols-1 md:grid-cols-6 gap-4 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-7 gap-4 mb-8">
           <div className="bg-white rounded-xl p-4 shadow border-l-4 border-blue-500">
             <h3 className="font-semibold text-gray-600">👥 Usuarios</h3>
             <p className="text-2xl font-bold">{firebaseUsers.length}</p>
@@ -403,11 +464,19 @@ export default function Admin() {
             <h3 className="font-semibold text-gray-600">📅 Eventos</h3>
             <p className="text-2xl font-bold">{eventos.length}</p>
           </div>
+          {/* Nueva estadística de pedidos */}
+          <div className="bg-white rounded-xl p-4 shadow border-l-4 border-orange-500">
+            <h3 className="font-semibold text-gray-600">🛒 Pedidos</h3>
+            <p className="text-2xl font-bold">{statsPedidos.total}</p>
+            <p className="text-xs text-orange-600">
+              {statsPedidos.pendientes} pendientes
+            </p>
+          </div>
         </div>
 
         {/* Navegación */}
         <div className="flex space-x-2 mb-6 bg-white rounded-lg p-1 shadow overflow-x-auto">
-          {['solicitudes', 'usuarios', 'nominaciones', 'fotos_challenges', 'fotos_galeria', 'eventos', 'configuracion'].map((section) => (
+          {['solicitudes', 'usuarios', 'nominaciones','puntos_usuarios', 'fotos_challenges', 'fotos_galeria', 'eventos', 'pedidos', 'configuracion'].map((section) => (
             <button
               key={section}
               onClick={() => setActiveSection(section)}
@@ -420,9 +489,11 @@ export default function Admin() {
               {section === 'solicitudes' && '📝 Solicitudes'}
               {section === 'usuarios' && '👥 Usuarios'}
               {section === 'nominaciones' && '🗳️ Nominaciones'}
+              {section === 'puntos_usuarios' && '🏆 Puntos Usuarios'}
               {section === 'fotos_challenges' && '🎮 Fotos Challenges'}
               {section === 'fotos_galeria' && '📸 Fotos Galería'}
               {section === 'eventos' && '📅 Eventos'}
+              {section === 'pedidos' && '🛒 Pedidos Tienda'}
               {section === 'configuracion' && '⚙️ Configuración'}
             </button>
           ))}
@@ -887,6 +958,217 @@ export default function Admin() {
             </div>
           )}
 
+          {/* NUEVA SECCIÓN: PEDIDOS DE LA TIENDA */}
+          {activeSection === 'pedidos' && (
+            <div>
+              <h2 className="text-2xl font-bold mb-6">🛒 Pedidos de la Tienda</h2>
+              
+              {/* Estadísticas de Pedidos */}
+              <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-6">
+                <div className="bg-blue-50 p-3 rounded-lg text-center">
+                  <p className="text-2xl font-bold text-blue-600">{statsPedidos.total}</p>
+                  <p className="text-blue-700 text-sm">Total</p>
+                </div>
+                <div className="bg-yellow-50 p-3 rounded-lg text-center">
+                  <p className="text-2xl font-bold text-yellow-600">{statsPedidos.pendientes}</p>
+                  <p className="text-yellow-700 text-sm">Pendientes</p>
+                </div>
+                <div className="bg-orange-50 p-3 rounded-lg text-center">
+                  <p className="text-2xl font-bold text-orange-600">{statsPedidos.preparando}</p>
+                  <p className="text-orange-700 text-sm">Preparando</p>
+                </div>
+                <div className="bg-green-50 p-3 rounded-lg text-center">
+                  <p className="text-2xl font-bold text-green-600">{statsPedidos.entregados}</p>
+                  <p className="text-green-700 text-sm">Entregados</p>
+                </div>
+                <div className="bg-purple-50 p-3 rounded-lg text-center">
+                  <p className="text-2xl font-bold text-purple-600">{statsPedidos.puntosCanjeados}</p>
+                  <p className="text-purple-700 text-sm">Puntos Canjeados</p>
+                </div>
+              </div>
+
+              {pedidos.length === 0 ? (
+                <div className="text-center py-12">
+                  <div className="text-6xl mb-4">🛒</div>
+                  <h3 className="text-xl font-semibold text-gray-600 mb-2">
+                    No hay pedidos aún
+                  </h3>
+                  <p className="text-gray-500">
+                    Los pedidos aparecerán aquí cuando los usuarios canjeen puntos.
+                  </p>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {pedidos
+                    .sort((a, b) => new Date(b.fechaPedido) - new Date(a.fechaPedido))
+                    .map(pedido => {
+                      const usuario = firebaseUsers.find(user => user.id === pedido.usuarioId);
+                      return (
+                        <div key={pedido.id} className={`border-2 rounded-xl p-4 ${
+                          pedido.estado === 'pendiente' ? 'border-yellow-300 bg-yellow-50' :
+                          pedido.estado === 'preparando' ? 'border-orange-300 bg-orange-50' :
+                          pedido.estado === 'entregado' ? 'border-green-300 bg-green-50' :
+                          'border-red-300 bg-red-50'
+                        }`}>
+                          <div className="flex justify-between items-start mb-3">
+                            <div className="flex-1">
+                              <div className="flex items-center gap-3 mb-2">
+                                <span className="text-2xl">{usuario?.avatar || '👤'}</span>
+                                <div>
+                                  <h3 className="font-bold text-lg">{pedido.producto.nombre}</h3>
+                                  <p className="text-gray-600">
+                                    Cliente: {usuario ? usuario.nombre : 'Usuario no encontrado'}
+                                  </p>
+                                </div>
+                              </div>
+                              
+                              <div className="grid grid-cols-1 md:grid-cols-3 gap-2 text-sm text-gray-600">
+                                <p><strong>💰 Coste:</strong> {pedido.puntosCoste} puntos</p>
+                                <p><strong>📅 Pedido:</strong> {new Date(pedido.fechaPedido).toLocaleString()}</p>
+                                <p><strong>🆔 ID:</strong> {pedido.id}</p>
+                              </div>
+                            </div>
+                            
+                            <div className="text-right">
+                              <span className={`px-3 py-1 rounded-full text-sm font-semibold ${
+                                pedido.estado === 'pendiente' ? 'bg-yellow-100 text-yellow-700' :
+                                pedido.estado === 'preparando' ? 'bg-orange-100 text-orange-700' :
+                                pedido.estado === 'entregado' ? 'bg-green-100 text-green-700' :
+                                'bg-red-100 text-red-700'
+                              }`}>
+                                {pedido.estado}
+                              </span>
+                            </div>
+                          </div>
+
+                          <div className="flex gap-2 flex-wrap">
+                            {pedido.estado === 'pendiente' && (
+                              <>
+                                <button
+                                  onClick={() => manejarPedido(pedido.id, 'preparando')}
+                                  className="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-lg font-medium transition-colors"
+                                >
+                                  👨‍🍳 Preparando
+                                </button>
+                                <button
+                                  onClick={() => manejarPedido(pedido.id, 'cancelar')}
+                                  className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg font-medium transition-colors"
+                                >
+                                  ❌ Cancelar
+                                </button>
+                              </>
+                            )}
+                            
+                            {pedido.estado === 'preparando' && (
+                              <button
+                                onClick={() => manejarPedido(pedido.id, 'entregado')}
+                                className="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg font-medium transition-colors"
+                              >
+                                ✅ Marcar Entregado
+                              </button>
+                            )}
+                            
+                            <button className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg font-medium transition-colors">
+                              📞 Contactar
+                            </button>
+                            
+                            {pedido.estado === 'entregado' && (
+                              <span className="bg-green-100 text-green-700 px-3 py-2 rounded-lg font-medium">
+                                🎉 Entregado
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                      );
+                    })}
+                </div>
+              )}
+            </div>
+          )}
+{activeSection === 'puntos_usuarios' && (
+  <div>
+    <h2 className="text-2xl font-bold mb-6">🏆 Puntos de Usuarios</h2>
+    
+    {/* Estadísticas rápidas */}
+    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+      <div className="bg-yellow-50 p-4 rounded-xl text-center border-l-4 border-yellow-500">
+        <p className="text-2xl font-bold text-yellow-600">
+          {firebaseUsers.filter(u => (u.puntos || 0) > 0).length}
+        </p>
+        <p className="text-yellow-700 text-sm">Usuarios con puntos</p>
+      </div>
+      <div className="bg-green-50 p-4 rounded-xl text-center border-l-4 border-green-500">
+        <p className="text-2xl font-bold text-green-600">
+          {firebaseUsers.reduce((total, user) => total + (user.puntos || 0), 0)}
+        </p>
+        <p className="text-green-700 text-sm">Puntos totales</p>
+      </div>
+      <div className="bg-blue-50 p-4 rounded-xl text-center border-l-4 border-blue-500">
+        <p className="text-2xl font-bold text-blue-600">
+          {Math.max(...firebaseUsers.map(u => u.puntos || 0))}
+        </p>
+        <p className="text-blue-700 text-sm">Máximo puntos</p>
+      </div>
+      <div className="bg-purple-50 p-4 rounded-xl text-center border-l-4 border-purple-500">
+        <p className="text-2xl font-bold text-purple-600">
+          {Math.round(firebaseUsers.reduce((total, user) => total + (user.puntos || 0), 0) / Math.max(firebaseUsers.length, 1))}
+        </p>
+        <p className="text-purple-700 text-sm">Promedio por usuario</p>
+      </div>
+    </div>
+{/* Tabla de usuarios */}
+<div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
+  <table className="min-w-full divide-y divide-gray-200">
+    <thead className="bg-gray-50">
+      <tr>
+        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+          Usuario
+        </th>
+        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+          País
+        </th>
+        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+          Puntos
+        </th>
+      </tr>
+    </thead>
+    <tbody className="bg-white divide-y divide-gray-200">
+      {obtenerPuntosUsuarios().map((usuario, index) => (
+        <tr key={usuario.id} className={index < 3 ? 'bg-yellow-50' : 'hover:bg-gray-50'}>
+          <td className="px-6 py-4 whitespace-nowrap">
+            <div className="flex items-center">
+              <div className="text-2xl mr-3">{usuario.avatar}</div>
+              <div>
+                <div className="text-sm font-medium text-gray-900">
+                  {usuario.nombre}
+                  {index === 0 && <span className="ml-2 text-yellow-500">👑</span>}
+                  {index === 1 && <span className="ml-2 text-gray-400">🥈</span>}
+                  {index === 2 && <span className="ml-2 text-orange-500">🥉</span>}
+                </div>
+                <div className="text-sm text-gray-500">ID: {usuario.id}</div>
+              </div>
+            </div>
+          </td>
+          <td className="px-6 py-4 whitespace-nowrap">
+            <div className="text-sm text-gray-900">{usuario.pais}</div>
+          </td>
+          <td className="px-6 py-4 whitespace-nowrap">
+            <div className="text-sm font-bold text-green-600">{usuario.puntos} pts</div>
+          </td>
+        </tr>
+      ))}
+    </tbody>
+  </table>
+</div>
+   
+
+    {/* Leyenda */}
+    <div className="mt-4 text-sm text-gray-600">
+      <p>🎯 <strong>Equivalencia:</strong> 1 punto = L. 1.00</p>
+      <p>💰 <strong>Presupuesto total: L.1,000.00</strong> </p>
+    </div>
+  </div>
+)}
           {/* SECCIÓN: CONFIGURACIÓN */}
           {activeSection === 'configuracion' && (
             <div>
@@ -909,6 +1191,7 @@ export default function Admin() {
                     <p>• Fotos galería pendientes: {pendingGalleryPhotos.length}</p>
                     <p>• Eventos del calendario: {eventos.length}</p>
                     <p>• Total nominaciones: {totalNominaciones}</p>
+                    <p>• Pedidos tienda: {statsPedidos.total} (📦{statsPedidos.pendientes} pendientes)</p>
                   </div>
                 </div>
                 
@@ -916,80 +1199,6 @@ export default function Admin() {
                   <h3 className="font-bold mb-4 text-lg">🎮 Control de Concursos y Juegos</h3>
                   
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-               
-          
-{/* CONTROL CONCURSO RÁPIDO */}
-<div className="bg-blue-50 p-4 rounded-lg">
-  <h4 className="font-semibold mb-3 text-blue-800">⚡ Concurso Rápido</h4>
-  <div className="space-y-2">
-    <Link 
-      to="/concurso-rapido"
-      className="block w-full bg-green-500 hover:bg-green-600 text-white text-center py-2 px-4 rounded transition-colors"
-    >
-      🎯 Ir al Concurso Rápido
-    </Link>
-    
-    {/* BOTÓN INICIAR CONCURSO SIMPLE */}
-    <button
-      onClick={async () => {
-        if (confirm('¿Iniciar concurso rápido? Se iniciará el conteo de 5 segundos.')) {
-          try {
-            await gobaService.iniciarConcursoSimple('navidad_rapido');
-            alert('¡Concurso iniciado! Countdown de 5 segundos empezó.');
-          } catch (error) {
-            console.error('❌ Error:', error);
-            alert('Error: ' + error.message);
-          }
-        }
-      }}
-      className="w-full bg-green-600 hover:bg-green-700 text-white py-3 px-4 rounded transition-colors font-bold"
-    >
-      🚀 INICIAR CONCURSO
-    </button>
-
-    {/* BOTÓN INICIAR CON PREGUNTA */}
-    <button
-      onClick={async () => {
-        const pregunta = prompt('Escribe la pregunta para el concurso rápido:');
-        if (pregunta && pregunta.trim()) {
-          if (confirm(`¿Iniciar concurso con la pregunta: "${pregunta}"?`)) {
-            try {
-              await gobaService.iniciarConcursoConPregunta('navidad_rapido', pregunta.trim());
-              alert('¡Concurso iniciado con pregunta!');
-            } catch (error) {
-              console.error('❌ Error:', error);
-              alert('Error: ' + error.message);
-            }
-          }
-        } else if (pregunta !== null) {
-          alert('La pregunta no puede estar vacía');
-        }
-      }}
-      className="w-full bg-purple-500 hover:bg-purple-600 text-white py-2 px-4 rounded transition-colors font-semibold"
-    >
-      ❓ Iniciar con Pregunta
-    </button>
-
-    {/* BOTÓN REINICIAR */}
-    <button
-      onClick={async () => {
-        if (confirm('¿Reiniciar concurso rápido?')) {
-          try {
-            await gobaService.reiniciarConcurso('navidad_rapido');
-            alert('Concurso reiniciado');
-          } catch (error) {
-            console.error('❌ Error reiniciando:', error);
-            alert('Error: ' + error.message);
-          }
-        }
-      }}
-      className="w-full bg-orange-500 hover:bg-orange-600 text-white py-2 px-4 rounded transition-colors font-semibold"
-    >
-      🔄 Reiniciar Todo
-    </button>
-  </div>
-</div>
-
                     {/* CONTROL JUEGOS */}
                     <div className="bg-purple-50 p-4 rounded-lg">
                       <h4 className="font-semibold mb-3 text-purple-800">🎪 Juegos Navideños</h4>

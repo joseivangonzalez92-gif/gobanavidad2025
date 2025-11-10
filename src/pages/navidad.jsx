@@ -10,6 +10,8 @@ export default function Navidad() {
   const [loading, setLoading] = useState(true);
   const [contenidoAdviento, setContenidoAdviento] = useState([]);
   const [reflexionesAdviento, setReflexionesAdviento] = useState([]);
+  const [puertaAbierta, setPuertaAbierta] = useState(null);
+  const [diasAbiertos, setDiasAbiertos] = useState(new Set());
 
   // Villancicos con acordes y letras COMPLETAS
   const villancicos = [
@@ -395,16 +397,77 @@ Voy camino de Belén`,
     }
   ];
 
-  // FUNCIÓN CORREGIDA: Crear fecha en zona horaria local
+  // ORACIONES PARA CADA DÍA DEL ADVIENTO
+  const oracionesAdviento = {
+    1: `Señor Jesús, en este primer día de Adviento,\nencendemos la antorcha de la esperanza.\nIlumina nuestros corazones para prepararnos\nde manera digna para tu venida. Amén.`,
+    2: `Ven, Luz del mundo,\ndisipa las tinieblas de nuestro corazón\ny guíanos por el camino de la verdad.\nQue tu luz brille en nuestras vidas. Amén.`,
+    3: `María, enséñanos a decir "sí"\ncomo tú lo hiciste,\npara que Cristo pueda nacer\nen nuestros corazones cada día. Amén.`,
+    4: `Jesús, ayúdanos a preparar el camino\nen nuestros corazones y en nuestro mundo.\nQue seamos instrumentos de tu paz. Amén.`,
+    5: `Señor de la paz,\ntranquiliza nuestros corazones agitados\ny danos la serenidad que solo Tú puedes dar\nen medio de las tormentas. Amén.`,
+    6: `Dios de amor, enséñanos a amar\ncomo Tú nos amas.\nQue nuestro corazón sea un pesebre\nlisto para recibirte. Amén.`,
+    7: `Espíritu Santo, ilumina nuestra fe\ncomo iluminaste a María.\nDanos la gracia de reconocer a Jesús\nen los más necesitados. Amén.`,
+    8: `Jesús, Príncipe de la Paz,\nven a reinar en nuestros corazones.\nTransforma nuestras guerras interiores\nen oasis de tu amor. Amén.`,
+    9: `María Inmaculada, purifica nuestros corazones\ncomo el tuyo fue purificado.\nPrepáranos para recibir a tu Hijo. Amén.`,
+    10: `Estrella de Belén, guíanos\nhacia el verdadero tesoro:\nJesús Eucaristía, nuestro Salvador. Amén.`,
+    11: `Señor, llena nuestros labios de alabanza\ny nuestros corazones de gratitud.\nQue todo nuestro ser te glorifique. Amén.`,
+    12: `Jesús, bendice nuestras familias.\nQue nuestro hogar sea un pequeño Belén\ndonde Tú puedas nacer cada día. Amén.`,
+    13: `Dios de la alegría, inunda nuestro espíritu\nde gozo verdadero que nace de tu amor.\nQue seamos testigos de tu alegría. Amén.`,
+    14: `Cristo Rey humilde, enséñanos\nla verdadera humildad del pesebre.\nQue busquemos servir y no ser servidos. Amén.`,
+    15: `Ángeles del cielo, unid vuestros cantos\na nuestras oraciones.\nLlevad nuestro amor al Niño Dios. Amén.`,
+    16: `Señor, fortalece nuestra esperanza\nen tus promesas.\nQue confiemos plenamente en tu Palabra. Amén.`,
+    17: `Jesús, despierta en nosotros\nel deseo de la caridad.\nQue veamos tu rostro en los pobres. Amén.`,
+    18: `Dios de amor infinito, expande\nnuestra capacidad de amar.\nQue amemos como Tú nos amas. Amén.`,
+    19: `Niño Jesús, en estos días previos\na tu nacimiento, prepara nuestro corazón\npara ser tu morada. Amén.`,
+    20: `Sagrada Familia, bendice nuestros hogares.\nDanos la unidad, el amor y la paz\nque caracterizaron vuestra casa. Amén.`,
+    21: `Señor, acepta nuestros dones espirituales\ncomo los pastores te ofrecieron\nsu sencillez y amor. Amén.`,
+    22: `Dios de la esperanza, renueva\nnuestra confianza en Ti.\nQue esperemos con gozo tu venida. Amén.`,
+    23: `En esta Nochebuena, Jesús,\nace en lo más profundo de nuestro ser.\nTransforma nuestra oscuridad en luz. Amén.`,
+    24: `¡Niño Dios! Hoy naces para nosotros.\nGracias por el don de tu vida.\nQue nuestro corazón sea tu pesebre. Amén.`,
+    25: `¡Gloria a Dios en el cielo!\nY en la tierra paz a los hombres.\nGracias, Jesús, por nacer para salvarnos.\nQue esta Navidad transforme nuestras vidas. Amén.`
+  };
+
+  // FRASES CORTAS DE ADVIENTO
+  const frasesAdviento = {
+    1: "La esperanza es la vela que ilumina nuestro camino hacia Belén.",
+    2: "Cada día nos acerca al misterio del Amor que se hizo carne.",
+    3: "Preparad el camino del Señor, allanad sus senderos.",
+    4: "El Adviento es el tiempo de la espera gozosa.",
+    5: "La paz de Cristo reine en nuestros corazones.",
+    6: "Dios prepara un corazón puro para nacer en él.",
+    7: "María nos enseña a esperar con corazón disponible.",
+    8: "La paz comienza con una sonrisa y un corazón reconciliado.",
+    9: "Purifica nuestro corazón, Señor, para recibte.",
+    10: "Como la estrella, seamos luz que guía hacia Jesús.",
+    11: "Alabemos al Señor que viene a salvarnos.",
+    12: "La familia es el primer pesebre donde nace Jesús.",
+    13: "El gozo del Señor es nuestra fortaleza.",
+    14: "Jesús viene como Rey humilde y servidor.",
+    15: "Gloria a Dios en el cielo y en la tierra paz.",
+    16: "Confiemos en las promesas del Señor.",
+    17: "La caridad es el camino excelente hacia Belén.",
+    18: "Dios es amor, y quien permanece en el amor permanece en Dios.",
+    19: "¡Ya casi está aquí! Preparemos el corazón.",
+    20: "La Sagrada Familia, modelo de amor y entrega.",
+    21: "Ofrezcamos a Jesús lo mejor de nosotros mismos.",
+    22: "Mantengamos viva la llama de la esperanza.",
+    23: "¡Feliz Nochebuena! El Salvador ya está aquí.",
+    24: "Hoy nos ha nacido un Salvador: el Mesías, el Señor.",
+    25: "¡Feliz Navidad! Hoy nos ha nacido el Salvador."
+  };
+
+  // FUNCIÓN MEJORADA: Crear fecha en zona horaria de Honduras (UTC-6)
   const crearFechaLocal = (año, mes, dia) => {
-    return new Date(año, mes, dia, 12, 0, 0);
+    // Honduras está en UTC-6, creamos la fecha ajustada
+    const fecha = new Date(año, mes, dia, 12, 0, 0); // Medio día para evitar problemas de zona horaria
+    return fecha;
   };
 
   // GENERAR LAS FECHAS REALES DEL ADVIENTO (30 Nov - 25 Dic)
   const generarFechasAdviento = () => {
     const fechas = [];
-    const inicio = crearFechaLocal(2025, 10, 30);
-    const fin = crearFechaLocal(2025, 11, 25);
+    const inicio = crearFechaLocal(2025, 10, 30); // Noviembre es mes 10 (0-indexed)
+    const fin = crearFechaLocal(2025, 11, 25);    // Diciembre es mes 11
+    
     const fechaActual = new Date(inicio);
     
     while (fechaActual <= fin) {
@@ -425,6 +488,18 @@ Voy camino de Belén`,
     "2025-12-21": "4to Domingo de Adviento - Amor",
     "2025-12-24": "Nochebuena - Misa de Gallo",
     "2025-12-25": "Navidad del Señor"
+  };
+
+  // Función para manejar la apertura de puertas
+  const abrirPuerta = (dia) => {
+    if (dia <= diaAdvientoActual) {
+      setPuertaAbierta(dia);
+      setDiasAbiertos(prev => {
+        const nuevoSet = new Set(prev);
+        nuevoSet.add(dia);
+        return nuevoSet;
+      });
+    }
   };
 
   useEffect(() => {
@@ -455,9 +530,11 @@ Voy camino de Belén`,
 
         setUsuarioActual(usuario);
         
-        // Calcular día actual de Adviento
+        // Calcular día actual de Adviento con zona horaria Honduras
         const hoy = new Date();
-        const hoyNormalizado = crearFechaLocal(hoy.getFullYear(), hoy.getMonth(), hoy.getDate());
+        // Ajustar a zona horaria de Honduras (UTC-6)
+        const hoyHonduras = new Date(hoy.getTime() - (6 * 60 * 60 * 1000));
+        const hoyNormalizado = crearFechaLocal(hoyHonduras.getFullYear(), hoyHonduras.getMonth(), hoyHonduras.getDate());
         
         const inicioAdviento = crearFechaLocal(2025, 10, 30);
         const finAdviento = crearFechaLocal(2025, 11, 25);
@@ -590,10 +667,13 @@ Voy camino de Belén`,
   // OBTENER FECHA FORMATEADA
   const getFechaFormateada = (fechaStr) => {
     const fecha = new Date(fechaStr);
-    const diaSemana = fecha.toLocaleDateString('es-ES', { weekday: 'long' });
-    const diaMes = fecha.getDate();
-    const mes = fecha.toLocaleDateString('es-ES', { month: 'long' });
-    return `${diaSemana} ${diaMes} de ${mes}`;
+    const opciones = { 
+      weekday: 'long', 
+      day: 'numeric', 
+      month: 'long',
+      timeZone: 'America/Tegucigalpa'
+    };
+    return fecha.toLocaleDateString('es-ES', opciones);
   };
 
   // Obtener el día actual del Adviento
@@ -604,7 +684,7 @@ Voy camino de Belén`,
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-purple-50 via-blue-50 to-green-50">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-500 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Cargando el Adviento...</p>
+          <p className="mt-4 text-gray-600">Cargando el Advierto...</p>
         </div>
       </div>
     );
@@ -714,29 +794,91 @@ Voy camino de Belén`,
                 </div>
               )}
 
-              {/* Grid de días del Adviento - RESPONSIVE */}
-              <div className="grid grid-cols-4 sm:grid-cols-6 gap-2 sm:gap-3">
-                {contenidoAdviento.map((dia) => (
-                  <div
-                    key={dia.dia}
-                    className={`aspect-square rounded-lg sm:rounded-xl border-2 flex items-center justify-center transition-all duration-300 ${
-                      dia.dia === diaAdvientoActual
-                        ? 'bg-gradient-to-br from-purple-500 to-blue-500 text-white border-white shadow-lg transform scale-105'
-                        : dia.dia < diaAdvientoActual
-                        ? dia.esDomingo
-                          ? 'bg-gradient-to-br from-yellow-400 to-orange-400 text-white border-white'
-                          : dia.eventoLiturgico
-                          ? 'bg-gradient-to-br from-red-400 to-pink-400 text-white border-white'
-                          : 'bg-gradient-to-br from-green-400 to-emerald-400 text-white border-white'
-                        : 'bg-gradient-to-br from-gray-100 to-gray-200 border-gray-300 text-gray-400'
-                    }`}
-                    title={`${getFechaFormateada(dia.fecha)}${dia.eventoLiturgico ? '\n' + dia.eventoLiturgico : ''}`}
-                  >
-                    <span className="text-base sm:text-lg font-bold">
-                      {getDiaDelMes(dia.fechaObj)}
-                    </span>
-                  </div>
-                ))}
+              {/* NUEVO GRID DE PUERTAS DEL CALENDARIO */}
+              <div className="grid grid-cols-4 sm:grid-cols-6 lg:grid-cols-8 gap-2 sm:gap-3">
+                {contenidoAdviento.map((dia) => {
+                  const estaAbierto = diasAbiertos.has(dia.dia);
+                  const puedeAbrir = dia.dia <= diaAdvientoActual;
+                  
+                  return (
+                    <div
+                      key={dia.dia}
+                      className={`aspect-square rounded-lg sm:rounded-xl border-2 transition-all duration-500 cursor-pointer ${
+                        puedeAbrir 
+                          ? 'hover:scale-105 hover:shadow-lg' 
+                          : 'cursor-not-allowed opacity-60'
+                      } ${
+                        dia.dia === diaAdvientoActual
+                          ? 'bg-gradient-to-br from-purple-500 to-blue-500 border-white shadow-lg'
+                          : dia.dia < diaAdvientoActual
+                          ? dia.esDomingo
+                            ? 'bg-gradient-to-br from-yellow-400 to-orange-400 border-white'
+                            : dia.eventoLiturgico
+                            ? 'bg-gradient-to-br from-red-400 to-pink-400 border-white'
+                            : 'bg-gradient-to-br from-green-400 to-emerald-400 border-white'
+                          : 'bg-gradient-to-br from-gray-100 to-gray-200 border-gray-300'
+                      }`}
+                      onClick={() => abrirPuerta(dia.dia)}
+                    >
+                      {/* PUERTA DEL CALENDARIO */}
+                      <div className={`relative w-full h-full rounded-lg sm:rounded-xl overflow-hidden ${
+                        estaAbierto ? 'puerta-abierta' : 'puerta-cerrada'
+                      }`}>
+                        
+                        {/* LADO FRONTAL - PUERTA CERRADA */}
+                        {!estaAbierto && (
+                          <div className="w-full h-full flex flex-col items-center justify-center p-1">
+                            {/* Número del día */}
+                            <span className={`text-lg sm:text-xl font-bold ${
+                              puedeAbrir ? 'text-white' : 'text-gray-400'
+                            }`}>
+                              {getDiaDelMes(dia.fechaObj)}
+                            </span>
+                            
+                            {/* Decoración navideña pequeña */}
+                            {puedeAbrir && (
+                              <div className="text-white opacity-80 mt-1 text-xs">
+                                {dia.dia % 3 === 0 ? '🎄' : 
+                                 dia.dia % 3 === 1 ? '⭐' : '🕯️'}
+                              </div>
+                            )}
+                          </div>
+                        )}
+                        
+                        {/* LADO INTERIOR - CONTENIDO AL ABRIR */}
+                        {estaAbierto && (
+                          <div className="w-full h-full bg-gradient-to-br from-amber-50 to-yellow-100 p-2 overflow-y-auto">
+                            <div className="text-center">
+                              {/* Número del día */}
+                              <div className="text-xs text-amber-600 font-bold mb-1">
+                                Día {dia.dia}
+                              </div>
+                              
+                              {/* Frase del día */}
+                              <p className="text-xs text-amber-800 italic leading-tight mb-2">
+                                "{frasesAdviento[dia.dia] || 'Ven, Señor Jesús, no tardes.'}"
+                              </p>
+                              
+                              {/* Oración */}
+                              <div className="bg-white/70 rounded p-1 mb-1">
+                                <p className="text-[10px] leading-tight text-amber-900 whitespace-pre-line">
+                                  {oracionesAdviento[dia.dia] || 'Ven, Señor Jesús.'}
+                                </p>
+                              </div>
+                              
+                              {/* Acción del día mini */}
+                              <div className="bg-green-50 rounded p-1 border-l-2 border-green-400">
+                                <p className="text-[9px] leading-tight text-green-800">
+                                  {dia.accion}
+                                </p>
+                              </div>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
             </div>
           </div>
@@ -847,6 +989,65 @@ Voy camino de Belén`,
                       ? "Ideal para practicar. Ve lento y disfruta el proceso."
                       : "Desafío intermedio. Perfecto para mejorar tu técnica."}
                   </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* NUEVO MODAL PARA PUERTAS ABIERTAS */}
+        {puertaAbierta && (
+          <div className="fixed inset-0 bg-black/90 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+            <div className="bg-gradient-to-br from-amber-100 to-yellow-200 rounded-2xl max-w-md w-full max-h-[80vh] overflow-auto border-4 border-amber-300 shadow-2xl">
+              
+              {/* Encabezado del modal con estilo navideño */}
+              <div className="bg-gradient-to-r from-green-600 to-green-800 text-white p-4 rounded-t-2xl">
+                <div className="flex justify-between items-center">
+                  <div>
+                    <h2 className="text-xl font-bold">Día {puertaAbierta}</h2>
+                    <p className="text-amber-200 text-sm">
+                      {getFechaFormateada(contenidoAdviento[puertaAbierta-1]?.fecha)}
+                    </p>
+                  </div>
+                  <button 
+                    onClick={() => setPuertaAbierta(null)}
+                    className="bg-white/20 hover:bg-white/30 rounded-full p-2 transition-all"
+                  >
+                    ✕
+                  </button>
+                </div>
+              </div>
+              
+              {/* Contenido del modal */}
+              <div className="p-6">
+                {/* Frase destacada */}
+                <div className="bg-white/80 rounded-xl p-4 mb-4 border-l-4 border-amber-500">
+                  <p className="text-lg italic text-amber-800 text-center">
+                    "{frasesAdviento[puertaAbierta]}"
+                  </p>
+                </div>
+                
+                {/* Oración */}
+                <div className="bg-amber-50 rounded-xl p-4 mb-4 border-2 border-amber-200">
+                  <h3 className="font-bold text-amber-700 mb-2 text-center">Oración del Día</h3>
+                  <p className="text-gray-700 whitespace-pre-line leading-relaxed text-center">
+                    {oracionesAdviento[puertaAbierta]}
+                  </p>
+                </div>
+                
+                {/* Acción del día */}
+                <div className="bg-green-50 rounded-xl p-4 border-2 border-green-200">
+                  <h3 className="font-bold text-green-700 mb-2 text-center">💝 Acción para Hoy</h3>
+                  <p className="text-gray-700 text-center">
+                    {contenidoAdviento[puertaAbierta-1]?.accion}
+                  </p>
+                </div>
+                
+                {/* Decoración navideña */}
+                <div className="text-center mt-4 text-2xl">
+                  {puertaAbierta % 4 === 0 ? '🎁' : 
+                   puertaAbierta % 4 === 1 ? '🌟' :
+                   puertaAbierta % 4 === 2 ? '🕊️' : '❤️'}
                 </div>
               </div>
             </div>
