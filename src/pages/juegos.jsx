@@ -56,7 +56,7 @@ const JuegoSimple = ({
       peliculas: {
         titulo: "🎬 Adivina la Película",
         preguntas: [
-       [
+       
   { pregunta: "🐭🐱🏃‍♂️💥", opciones: ["Tom y Jerry", "Pinky y Cerebro", "Sylvester y Tweety", "Itchy y Scratchy"], respuesta: "Tom y Jerry" },
   { pregunta: "👧🎒🦊🗺️", opciones: ["Dora la Exploradora", "Go Diego Go", "Maya la Abeja", "Las Tres Mellizas"], respuesta: "Dora la Exploradora" },
   { pregunta: "🍌👕🛏️🎵", opciones: ["Bananas en Pijamas", "Los Backyardigans", "Los Teletubbies", "Barney y sus amigos"], respuesta: "Bananas en Pijamas" },
@@ -91,7 +91,6 @@ const JuegoSimple = ({
   { pregunta: "👦🛹🚲🏄‍♂️🌊", opciones: ["Rocket Power", "Sk8", "Rocket Power", "Los Deportivos"], respuesta: "Rocket Power" },
   { pregunta: "👦🔵⬆️🌪️", opciones: ["Avatar: La Leyenda de Aang", "Dragon Ball", "Naruto", "One Piece"], respuesta: "Avatar: La Leyenda de Aang" }
 ]
-        ]
       },
       canciones: {
         titulo: "🎵 Completa la Canción",
@@ -1036,7 +1035,7 @@ export default function Juegos() {
            ¡Supera tus propios récords!
           </p>
           <p className="text-xl text-gray-600 mb-8 font-light">
-           ⭐ "Premios para 1er lugar de cada rankings"
+            "Premio para 1er lugar de cada ranking"
           </p>
           
           {mensaje && (
