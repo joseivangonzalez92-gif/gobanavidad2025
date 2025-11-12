@@ -7,6 +7,7 @@ export default function Admin() {
   const [isAdmin, setIsAdmin] = useState(false);
   const [loading, setLoading] = useState(true);
   const [firebaseUsers, setFirebaseUsers] = useState([]);
+    const [userTimeStats, setUserTimeStats] = useState({});
   const [pendingRequests, setPendingRequests] = useState([]);
   const [nominaciones, setNominaciones] = useState({});
   const [pendingPhotos, setPendingPhotos] = useState([]);
@@ -90,6 +91,29 @@ export default function Admin() {
 
     initializeAdmin();
   }, []);
+
+   // 🆕 NUEVO: Cargar estadísticas de tiempo cuando hay usuarios
+  useEffect(() => {
+    if (firebaseUsers.length > 0 && activeSection === 'usuarios') {
+      cargarEstadisticasTiempo();
+    }
+  }, [firebaseUsers, activeSection]);
+
+  // 🆕 NUEVO: Función para cargar estadísticas de tiempo
+  const cargarEstadisticasTiempo = async () => {
+    try {
+      const stats = {};
+      
+      for (const user of firebaseUsers) {
+        const userStats = await gobaService.obtenerEstadisticasTiempoUsuario(user.id);
+        stats[user.id] = userStats;
+      }
+      
+      setUserTimeStats(stats);
+    } catch (error) {
+      console.error("Error cargando estadísticas de tiempo:", error);
+    }
+  };
 
   // Función para manejar pedidos
   const manejarPedido = async (pedidoId, accion) => {
@@ -564,6 +588,8 @@ export default function Admin() {
           {activeSection === 'usuarios' && (
             <div>
               <h2 className="text-2xl font-bold mb-6">👥 Usuarios Registrados en Firebase</h2>
+
+              
               
               {firebaseUsers.length === 0 ? (
                 <div className="text-center py-12">
@@ -577,42 +603,99 @@ export default function Admin() {
                 </div>
               ) : (
                 <div className="space-y-3">
-                  {firebaseUsers.map((user) => (
-                    <div key={user.id} className="border border-gray-200 rounded-xl p-4 hover:shadow-md transition-shadow">
-                      <div className="flex justify-between items-center">
-                        <div className="flex items-center space-x-4">
-                          <div className="text-3xl">{user.avatar || '👤'}</div>
-                          <div>
-                            <h3 className="font-bold text-lg">
-                              {user.nombre}
-                              {user.esAdmin && <span className="ml-2 text-red-600 text-sm">👑 ADMIN</span>}
-                            </h3>
-                            <div className="text-sm text-gray-600 space-y-1">
-                              <p><strong>🔒 Código:</strong> {user.codigoSecreto}</p>
-                              <p><strong>🗺️ País:</strong> {user.pais || 'No asignado'}</p>
-                              {user.frase && (
-                                <p><strong>💬 Frase:</strong> "{user.frase}"</p>
-                              )}
-                              <p><strong>🆔 ID:</strong> {user.id}</p>
-                              <p className="text-xs text-gray-500">
-                                📅 Registrado: {new Date(user.fechaRegistro).toLocaleDateString()}
-                              </p>
-                            </div>
-                          </div>
-                        </div>
-                        <div className="flex space-x-2">
-                          {!user.esAdmin && (
-                            <button
-                              onClick={() => handleDeleteUser(user.id, user.nombre)}
-                              className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded text-sm transition-colors"
-                            >
-                              🗑️ Eliminar
-                            </button>
-                          )}
-                        </div>
-                      </div>
+                 {firebaseUsers.map((user) => {
+  const stats = userTimeStats[user.id] || {};
+  
+  return (
+    <div key={user.id} className="border border-gray-200 rounded-xl p-4 hover:shadow-md transition-shadow">
+      <div className="flex justify-between items-start">
+        <div className="flex items-center space-x-4 flex-1">
+          <div className="text-3xl">{user.avatar || '👤'}</div>
+          <div className="flex-1">
+            <h3 className="font-bold text-lg">
+              {user.nombre}
+              {user.esAdmin && <span className="ml-2 text-red-600 text-sm">👑 ADMIN</span>}
+            </h3>
+            
+            {/* INFORMACIÓN BÁSICA */}
+            <div className="text-sm text-gray-600 space-y-1 mb-3">
+              <p><strong>🔒 Código:</strong> {user.codigoSecreto}</p>
+              <p><strong>🗺️ País:</strong> {user.pais || 'No asignado'}</p>
+              {user.frase && (
+                <p><strong>💬 Frase:</strong> "{user.frase}"</p>
+              )}
+              <p><strong>🆔 ID:</strong> {user.id}</p>
+              <p className="text-xs text-gray-500">
+                📅 Registrado: {new Date(user.fechaRegistro).toLocaleDateString()}
+              </p>
+            </div>
+            
+            {/* 🆕 NUEVA INFORMACIÓN DE ACTIVIDAD */}
+            <div className="bg-gray-50 p-3 rounded-lg border border-red-200">
+              <h4 className="font-semibold text-sm mb-2 text-red-700">🔒 INFORMACIÓN PRIVADA - SOLO ADMIN</h4>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-2 text-xs">
+                <div>
+                  <strong>🕐 Última conexión:</strong>
+                  <div className="text-green-600 font-medium">
+                    {stats.ultimaConexionLegible && stats.ultimaConexionLegible !== 'Nunca' 
+                      ? gobaService.calcularTiempoDesdeUltimaConexion(stats.ultimaConexion)
+                      : 'Nunca'
+                    }
+                  </div>
+                  {stats.ultimaConexionLegible && stats.ultimaConexionLegible !== 'Nunca' && (
+                    <div className="text-gray-500 text-xs">
+                      {new Date(stats.ultimaConexionLegible).toLocaleString()}
                     </div>
-                  ))}
+                  )}
+                </div>
+                
+                <div>
+                  <strong>⏱️ Tiempo total:</strong>
+                  <div className="text-blue-600 font-medium">
+                    {stats.tiempoFormateado || '0 min'}
+                  </div>
+                  <div className="text-gray-500 text-xs">
+                    {stats.totalSesiones || 0} sesión{stats.totalSesiones !== 1 ? 'es' : ''}
+                  </div>
+                </div>
+                
+                <div>
+                  <strong>📈 Estado:</strong>
+                  <div className={`font-medium ${
+                    stats.ultimaConexion && (Date.now() - stats.ultimaConexion) < 5 * 60 * 1000
+                      ? 'text-green-600'
+                      : stats.ultimaConexion && (Date.now() - stats.ultimaConexion) < 24 * 60 * 60 * 1000
+                      ? 'text-yellow-600'
+                      : 'text-red-600'
+                  }`}>
+                    {stats.ultimaConexion && (Date.now() - stats.ultimaConexion) < 5 * 60 * 1000
+                      ? '🟢 En línea'
+                      : stats.ultimaConexion && (Date.now() - stats.ultimaConexion) < 24 * 60 * 60 * 1000
+                      ? '🟡 Reciente'
+                      : '🔴 Inactivo'
+                    }
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <div className="flex space-x-2">
+          {!user.esAdmin && (
+            <button
+              onClick={() => handleDeleteUser(user.id, user.nombre)}
+              className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded text-sm transition-colors"
+            >
+              🗑️ Eliminar
+            </button>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+})}
+
                 </div>
               )}
             </div>
@@ -1181,6 +1264,17 @@ export default function Admin() {
                     Admin autenticado correctamente en Firebase
                   </p>
                 </div>
+
+                    {/* ⬇️⬇️⬇️ PEGA AQUÍ EL BOTÓN ⬇️⬇️⬇️ */}
+      {/* BOTÓN SIMPLE DE PRUEBA */}
+      <div className="p-4 border border-yellow-200 rounded-lg bg-yellow-50">
+        <button 
+          onClick={() => console.log("gobaService:", Object.keys(gobaService).filter(key => key.includes('Tiempo') || key.includes('tracking')))}
+          className="bg-yellow-500 hover:bg-yellow-600 text-white font-medium py-2 px-4 rounded"
+        >
+          🔍 Ver Funciones Time
+        </button>
+      </div>
                 
                 <div className="p-4 border border-gray-200 rounded-lg">
                   <h3 className="font-bold mb-2">📊 Estadísticas del Sistema</h3>

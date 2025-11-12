@@ -1,6 +1,7 @@
 import React from "react";
 import { HashRouter, Routes, Route, Navigate, useLocation, Link } from "react-router-dom";
 
+
 import Home from "./pages/home.jsx";
 import Calendario from "./pages/calendario.jsx";
 import Challenges from "./pages/challenges.jsx";
@@ -14,6 +15,7 @@ import Rankings from './pages/rankings.jsx';
 import Juegos2 from "./pages/juegos2.jsx";
 import Perfil from "./pages/perfil.jsx";
 import TiendaPage from './pages/tiendapage.jsx';
+import Juegos3 from "./pages/juegos3.jsx";
 
 // 🧱 Componente para rutas privadas
 function RutaPrivada({ children }) {
@@ -24,6 +26,23 @@ function RutaPrivada({ children }) {
 function App() {
   const location = useLocation();
   const usuario = JSON.parse(localStorage.getItem("usuarioActual") || "null");
+
+  // Tracking simple sin React
+document.addEventListener('DOMContentLoaded', function() {
+  const usuario = JSON.parse(localStorage.getItem('usuarioActual'));
+  if (usuario && usuario.id && window.gobaService) {
+    window.gobaService.iniciarTrackingTiempo(usuario.id);
+    console.log("✅ Tracking iniciado para:", usuario.nombre);
+  }
+});
+
+window.addEventListener('beforeunload', function() {
+  const usuario = JSON.parse(localStorage.getItem('usuarioActual'));
+  if (usuario && usuario.id && window.gobaService) {
+    window.gobaService.finalizarTrackingTiempo(usuario.id);
+    console.log("✅ Tracking finalizado para:", usuario.nombre);
+  }
+});
 
   return (
     <div className="min-h-screen bg-white relative">
@@ -115,6 +134,7 @@ function App() {
                   <Route path="/juegos2" element={<Juegos2 />} />
                   <Route path="/perfil" element={<Perfil />} />
                  <Route path="/tienda" element={<TiendaPage />} />
+                  <Route path="/juegos3" element={<Juegos3 />} />
                   
                   {/* ✅ Ruta por defecto para área privada */}
                   <Route path="*" element={<Navigate to="/home" replace />} />

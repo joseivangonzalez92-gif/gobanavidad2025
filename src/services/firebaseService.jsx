@@ -2760,7 +2760,166 @@ async cancelarPedido(pedidoId) {
     return { success: false, message: error.message };
   }
 }
-} 
+},
    
+
+// =============================================
+// 🕐 SISTEMA DE TRACKING DE TIEMPO (SOLO ADMIN)
+// =============================================
+
+// Actualizar última conexión
+async actualizarUltimaConexion(userId) {
+  try {
+    await updateDoc(doc(db, 'usuarios', userId), {
+      ultimaConexion: new Date().toISOString(),
+      ultimaConexionTimestamp: Date.now()
+    });
+    console.log("✅ Última conexión actualizada:", userId);
+    return true;
+  } catch (error) {
+    console.error("❌ Error actualizando última conexión:", error);
+    return false;
+  }
+},
+
+// Iniciar tracking de tiempo activo
+async iniciarTrackingTiempo(userId) {
+  try {
+    const sessionRef = doc(collection(db, 'userSessions'));
+    await setDoc(sessionRef, {
+      userId: userId,
+      inicio: new Date().toISOString(),
+      inicioTimestamp: Date.now(),
+      estado: 'activo',
+      tipo: 'session'
+    });
+    console.log("✅ Tracking iniciado:", userId);
+    return sessionRef.id;
+  } catch (error) {
+    console.error("❌ Error iniciando tracking:", error);
+    return null;
+  }
+},
+
+// Finalizar tracking de tiempo activo
+async finalizarTrackingTiempo(userId) {
+  try {
+    const q = query(
+      collection(db, 'userSessions'),
+      where('userId', '==', userId),
+      where('estado', '==', 'activo')
+    );
+    
+    const snapshot = await getDocs(q);
+    const ahora = Date.now();
+    
+    const updates = [];
+    snapshot.forEach((docSnap) => {
+      const session = docSnap.data();
+      const inicio = session.inicioTimestamp || new Date(session.inicio).getTime();
+      const duracion = ahora - inicio;
+      
+      updates.push(
+        updateDoc(doc(db, 'userSessions', docSnap.id), {
+          fin: new Date().toISOString(),
+          finTimestamp: ahora,
+          duracion: duracion,
+          estado: 'completado'
+        })
+      );
+      
+      // Actualizar tiempo total del usuario
+      updates.push(
+        updateDoc(doc(db, 'usuarios', userId), {
+          tiempoTotalPlataforma: increment(duracion),
+          ultimaActualizacionTiempo: new Date().toISOString()
+        })
+      );
+    });
+    
+    await Promise.all(updates);
+    console.log("✅ Tracking finalizado:", userId, "sesiones:", snapshot.size);
+    return true;
+  } catch (error) {
+    console.error("❌ Error finalizando tracking:", error);
+    return false;
+  }
+},
+
+// Obtener estadísticas de tiempo de usuario
+async obtenerEstadisticasTiempoUsuario(userId) {
+  try {
+    const userDoc = await getDoc(doc(db, 'usuarios', userId));
+    if (!userDoc.exists()) {
+      return this.estadisticasTiempoPorDefecto();
+    }
+    
+    const userData = userDoc.data();
+    
+    // Obtener sesiones del usuario
+    const q = query(
+      collection(db, 'userSessions'),
+      where('userId', '==', userId)
+    );
+    
+    const sessionsSnapshot = await getDocs(q);
+    const totalSesiones = sessionsSnapshot.size;
+    
+    const tiempoTotal = userData.tiempoTotalPlataforma || 0;
+    
+    return {
+      ultimaConexion: userData.ultimaConexionTimestamp || null,
+      ultimaConexionLegible: userData.ultimaConexion || 'Nunca',
+      tiempoTotalPlataforma: tiempoTotal,
+      totalSesiones: totalSesiones,
+      tiempoFormateado: this.formatearTiempo(tiempoTotal)
+    };
+  } catch (error) {
+    console.error("❌ Error obteniendo estadísticas:", error);
+    return this.estadisticasTiempoPorDefecto();
+  }
+},
+
+// Función auxiliar para formatear tiempo
+formatearTiempo(ms) {
+  if (!ms || ms === 0) return '0 min';
+  
+  const segundos = Math.floor(ms / 1000);
+  const minutos = Math.floor(segundos / 60);
+  const horas = Math.floor(minutos / 60);
+  const dias = Math.floor(horas / 24);
+  
+  if (dias > 0) return `${dias}d ${horas % 24}h`;
+  if (horas > 0) return `${horas}h ${minutos % 60}m`;
+  if (minutos > 0) return `${minutos} min`;
+  return `${segundos} seg`;
+},
+
+// Calcular tiempo desde última conexión
+calcularTiempoDesdeUltimaConexion(ultimaConexion) {
+  if (!ultimaConexion) return 'Nunca';
+  
+  const ahora = Date.now();
+  const diferencia = ahora - ultimaConexion;
+  
+  const minutos = Math.floor(diferencia / (1000 * 60));
+  const horas = Math.floor(minutos / 60);
+  const dias = Math.floor(horas / 24);
+  
+  if (dias > 0) return `Hace ${dias} día${dias > 1 ? 's' : ''}`;
+  if (horas > 0) return `Hace ${horas} hora${horas > 1 ? 's' : ''}`;
+  if (minutos > 0) return `Hace ${minutos} minuto${minutos > 1 ? 's' : ''}`;
+  return 'Hace unos segundos';
+},
+
+// Estadísticas por defecto
+estadisticasTiempoPorDefecto() {
+  return {
+    ultimaConexion: null,
+    ultimaConexionLegible: 'Nunca',
+    tiempoTotalPlataforma: 0,
+    totalSesiones: 0,
+    tiempoFormateado: '0 min'
+  };
+}
 };
- 
