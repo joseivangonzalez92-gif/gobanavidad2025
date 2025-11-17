@@ -304,7 +304,7 @@ const WordleNavideno = ({ volverASeleccion, guardarEnRanking }) => {
             <div className="grid grid-cols-4 gap-2 text-sm mb-3">
               <div>
                 <div className="font-bold">{palabrasResueltas}/5</div>
-                <div>Completadas</div>
+                <div>Palabras</div>
               </div>
               <div>
                 <div className="font-bold">{puntuacionAcumulada}</div>
@@ -700,11 +700,11 @@ const SimonDice = ({ volverASeleccion, guardarEnRanking }) => {
               </p>
               <p className="flex items-center">
                 <span className="text-yellow-300 mr-2">⚡</span>
-                <strong>Velocidad mejorada</strong> - Más dinámico
+                <strong>Secuencias aleatorias</strong> 
               </p>
               <p className="flex items-center">
                 <span className="text-yellow-300 mr-2">🏆</span>
-                Sistema de puntos balanceado
+                Bonus por velocidad
               </p>
               <p className="flex items-center">
                 <span className="text-yellow-300 mr-2">🔥</span>
@@ -853,13 +853,14 @@ const getColorBackground = (index, isActive) => {
 // =============================================
 // ⚡ 3. CARRERA-TRINEO - CON PANTALLA DE INICIO
 // =============================================
+
 const CarreraTrineo = ({ volverASeleccion, guardarEnRanking }) => {
   const [posicion, setPosicion] = useState(1);
   const [direccion, setDireccion] = useState("left");
   const [obstaculos, setObstaculos] = useState([]);
   const [puntuacion, setPuntuacion] = useState(0);
   const [gameOver, setGameOver] = useState(false);
-  const [juegoIniciado, setJuegoIniciado] = useState(false); // 🆕 ESTADO DE INICIO
+  const [juegoIniciado, setJuegoIniciado] = useState(false);
 
   const posicionRef = useRef(posicion);
   const gameOverRef = useRef(gameOver);
@@ -867,6 +868,10 @@ const CarreraTrineo = ({ volverASeleccion, guardarEnRanking }) => {
   const dificultadRef = useRef(1);
   const ultimaGeneracionRef = useRef(0);
 
+  // =============================================
+  // 🎯 AJUSTES: OBSTÁCULOS DISPONIBLES
+  // =============================================
+  // Modifica estos emojis para cambiar los obstáculos visuales
   const emojis = ["🌲", "🌳", "🪵"];
 
   useEffect(() => { posicionRef.current = posicion; }, [posicion]);
@@ -874,7 +879,12 @@ const CarreraTrineo = ({ volverASeleccion, guardarEnRanking }) => {
   useEffect(() => { puntuacionRef.current = puntuacion; }, [puntuacion]);
 
   const generarObstaculos = () => {
-    const numObstaculos = Math.random() < 0.7 ? 1 : 2;
+    // =============================================
+    // 🎯 AJUSTES: PROBABILIDAD DE OBSTÁCULOS MÚLTIPLES
+    // =============================================
+    // Cambia 0.7 para ajustar la probabilidad de 1 vs 2 obstáculos
+    // 0.7 = 7% de probabilidad de 1 obstáculo, 30% de 2 obstáculos
+    const numObstaculos = Math.random() < 0.79 ? 1 : 2;
     
     if (numObstaculos === 1) {
       return [{
@@ -916,18 +926,34 @@ const CarreraTrineo = ({ volverASeleccion, guardarEnRanking }) => {
       
       tick++;
 
+      // =============================================
+      // 🎯 AJUSTES: VELOCIDAD DE INCREMENTO DE DIFICULTAD
+      // =============================================
+      // Cambia 200 para ajustar cada cuántos ticks aumenta la dificultad
+      // Cambia 0.2 para ajustar cuánto aumenta la dificultad cada vez
+      // Cambia 4 para ajustar la dificultad máxima
       if (tick % 200 === 0) {
-        dificultadRef.current = Math.min(4, dificultadRef.current + 0.2);
+        dificultadRef.current = Math.min(3, dificultadRef.current + 0.1);
       }
 
       setObstaculos(prev => {
-        const velocidad = 0.06 * dificultadRef.current;
+        // =============================================
+        // 🎯 AJUSTES: VELOCIDAD BASE DE LOS OBSTÁCULOS
+        // =============================================
+        // Modifica 0.03 para cambiar la velocidad base del juego
+        // Valores más altos = juego más rápido
+        const velocidad = 0.015 * dificultadRef.current;
         const nuevos = prev
           .map(o => ({ ...o, y: o.y - velocidad }))
           .filter(o => o.y > -1);
 
+        // =============================================
+        // 🎯 AJUSTES: ZONA DE COLISIÓN
+        // =============================================
+        // Modifica estos valores (1.2 y 0.8) para ajustar la sensibilidad de colisión
+        // Valores más cercanos = colisión más precisa
         const colision = nuevos.some(o =>
-          o.y <= 1.2 && o.y >= 0.8 && o.carril === posicionRef.current
+          o.y <= 1.1 && o.y >= 0.9 && o.carril === posicionRef.current
         );
 
         if (colision) {
@@ -943,10 +969,18 @@ const CarreraTrineo = ({ volverASeleccion, guardarEnRanking }) => {
         return nuevos;
       });
 
+      // =============================================
+      // 🎯 AJUSTES: FRECUENCIA DE GENERACIÓN DE OBSTÁCULOS
+      // =============================================
+      // Modifica 0.05 para cambiar la probabilidad base de aparición
       const probAparicion = 0.05 * dificultadRef.current;
       const tiempoDesdeUltimaGeneracion = tick - ultimaGeneracionRef.current;
       
-      const frecuenciaGeneracion = Math.max(40, 80 - (dificultadRef.current * 20));
+      // =============================================
+      // 🎯 AJUSTES: INTERVALO MÍNIMO ENTRE OBSTÁCULOS
+      // =============================================
+      // Modifica 40 (mínimo) y 20 (reducción por dificultad) para ajustar frecuencia
+      const frecuenciaGeneracion = Math.max(40, 90 - (dificultadRef.current * 15));
       
       if (tiempoDesdeUltimaGeneracion >= frecuenciaGeneracion && Math.random() < probAparicion) {
         const obstaculosLinea = generarObstaculos();
@@ -965,16 +999,19 @@ const CarreraTrineo = ({ volverASeleccion, guardarEnRanking }) => {
 
     const animationId = requestAnimationFrame(gameLoop);
     return () => cancelAnimationFrame(animationId);
-  }, [juegoIniciado]); // 🆕 DEPENDE DE juegoIniciado
+  }, [juegoIniciado]);
 
-  // 🆕 FUNCIÓN PARA INICIAR EL JUEGO
+  // =============================================
+  // 🎯 AJUSTES: CONFIGURACIÓN INICIAL DEL JUEGO
+  // =============================================
+  // Modifica los valores iniciales aquí si quieres cambiar la dificultad de inicio
   const iniciarJuego = () => {
     setJuegoIniciado(true);
     setGameOver(false);
     setPuntuacion(0);
     setObstaculos([]);
     setPosicion(1);
-    dificultadRef.current = 1;
+    dificultadRef.current = 1; // Dificultad inicial
     ultimaGeneracionRef.current = 0;
   };
 
@@ -1021,7 +1058,6 @@ const CarreraTrineo = ({ volverASeleccion, guardarEnRanking }) => {
     <div className="text-center max-w-md mx-auto">
       <h2 className="text-3xl font-bold mb-4 text-green-800">🎿 Carrera de Trineo</h2>
       
-      {/* 🆕 PANTALLA DE INICIO */}
       {!juegoIniciado && !gameOver && (
         <div className="bg-gradient-to-br from-green-100 to-blue-100 rounded-2xl p-8 mb-6 border-2 border-green-300">
           <div className="text-4xl mb-4">🎿</div>
@@ -1039,12 +1075,17 @@ const CarreraTrineo = ({ volverASeleccion, guardarEnRanking }) => {
         </div>
       )}
 
-      {/* JUEGO EN CURSO O GAME OVER */}
       {(juegoIniciado || gameOver) && (
         <>
           <div className="text-xl mb-3 text-gray-700">Puntos: {puntuacionVisual}</div>
 
-          <div className="relative bg-gradient-to-b from-blue-50 to-blue-100 rounded-2xl p-2 mx-auto h-64 overflow-hidden border-2 border-blue-300 shadow-lg">
+          {/* ============================================= */}
+          {/* 🎯 AJUSTES: TAMAÑO DEL ÁREA DE JUEGO */}
+          {/* ============================================= */}
+          {/* Modifica h-64 para cambiar la altura del área de juego */}
+          {/* Modifica gap-6 para cambiar el espacio entre carriles */}
+          {/* Modifica w-10 para cambiar el ancho de cada carril */}
+          <div className="relative bg-gradient-to-b from-blue-50 to-blue-100 rounded-2xl p-2 mx-auto h-80 overflow-hidden border-2 border-blue-300 shadow-lg">
             {[0, 1, 2, 3, 4].map(fila => (
               <div key={fila} className="flex justify-center gap-6 h-1/5">
                 {[0, 1, 2].map(carril => {
@@ -1113,7 +1154,6 @@ const CarreraTrineo = ({ volverASeleccion, guardarEnRanking }) => {
         </>
       )}
 
-      {/* BOTÓN VOLVER (solo cuando no hay juego activo) */}
       {(!juegoIniciado || gameOver) && (
         <button
           onClick={volverASeleccion}
@@ -1127,7 +1167,7 @@ const CarreraTrineo = ({ volverASeleccion, guardarEnRanking }) => {
 };
 
 // =============================================
-// 🎄4. CLICK REACCIÓN - MEJORADO
+// 🎄4. CLICK REACCIÓN - 100 OBJETIVOS
 // =============================================
 const ClickReaccion = ({ volverASeleccion, guardarEnRanking }) => {
   const [objetivos, setObjetivos] = useState([]);
@@ -1135,194 +1175,298 @@ const ClickReaccion = ({ volverASeleccion, guardarEnRanking }) => {
   const [tiempoRestante, setTiempoRestante] = useState(30);
   const [jugando, setJugando] = useState(false);
   const [efectos, setEfectos] = useState([]);
+  const [clicksTotales, setClicksTotales] = useState(0);
+  const [contadorObjetivos, setContadorObjetivos] = useState({ "🎁": 0, "⭐": 0, "🎄": 0, "❄️": 0 });
+  const [faseAceleracion, setFaseAceleracion] = useState(false);
+  const [objetivosGenerados, setObjetivosGenerados] = useState(0);
 
-  // 🕒 Control del tiempo
+  // 🎯 100 OBJETIVOS EXACTOS
+  const CANTIDADES = {
+    "❄️": 25,  // Copos
+    "🎁": 25,  // Regalos
+    "⭐": 25,  // Estrellas  
+    "🎄": 25   // Árboles
+  };
+
+  const CONFIG_OBJETIVOS = {
+    "❄️": { puntos: 5, duracion: 600, tamaño: 20 },
+    "🎁": { puntos: 3, duracion: 1000, tamaño: 24 },
+    "⭐": { puntos: 2, duracion: 1200, tamaño: 22 },
+    "🎄": { puntos: 1, duracion: 1500, tamaño: 26 }
+  };
+
+  const TOTAL_OBJETIVOS = 100; // 25 + 25 + 25 + 25
+
+  // 🕒 TIMER EXACTO
   useEffect(() => {
     if (!jugando) return;
 
     const timer = setInterval(() => {
       setTiempoRestante(prev => {
-        if (prev <= 1) {
+        const nuevoTiempo = prev - 1;
+        
+        // 🚀 ACTIVAR ACELERACIÓN EN ÚLTIMOS 5 SEGUNDOS
+        if (nuevoTiempo === 5 && !faseAceleracion) {
+          setFaseAceleracion(true);
+        }
+        
+        if (nuevoTiempo <= 0) {
+          clearInterval(timer);
           setJugando(false);
+          const precision = clicksTotales > 0 ? (puntuacion / clicksTotales * 100).toFixed(1) : 0;
           guardarEnRanking("click-reaccion", puntuacion, {
             tiempo: 30,
-            precision: puntuacion / (objetivos.length || 1),
+            precision: precision,
+            clicksTotales: clicksTotales,
+            efectividad: `${precision}%`,
+            objetivosGenerados: contadorObjetivos
           });
           return 0;
         }
-        return prev - 1;
+        return nuevoTiempo;
       });
     }, 1000);
 
     return () => clearInterval(timer);
-  }, [jugando, puntuacion]);
+  }, [jugando, faseAceleracion]);
 
-  // 🌟 Generar objetivos aleatorios - MEJORADO
+  // 🌟 GENERACIÓN CON 100 OBJETIVOS
   useEffect(() => {
     if (!jugando) return;
 
-    const generarObjetivo = () => {
-      // AUMENTAMOS probabilidad al 60% y mejoramos distribución
-      if (Math.random() < 0.6) {
-        const tipos = [
-          { emoji: "🎁", duracion: 1000, puntos: 3, prob: 0.25 },    // 25%
-          { emoji: "⭐", duracion: 2000, puntos: 2, prob: 0.25 },    // 25%  
-          { emoji: "🎄", duracion: 2500, puntos: 1, prob: 0.30 },    // 30% (más comunes)
-          { emoji: "❄️", duracion: 500, puntos: 5, prob: 0.20 }      // 20% (más copos)
-        ];
-        
-        // Selección ponderada
-        let rand = Math.random();
-        let tipoSeleccionado = tipos[0];
-        
-        for (let tipo of tipos) {
-          if (rand < tipo.prob) {
-            tipoSeleccionado = tipo;
-            break;
+    // Calcular qué objetivos faltan por generar
+    const obtenerSiguienteObjetivo = () => {
+      const disponibles = [];
+      
+      Object.entries(CANTIDADES).forEach(([emoji, cantidad]) => {
+        const generados = contadorObjetivos[emoji] || 0;
+        if (generados < cantidad) {
+          // En aceleración, priorizar los que faltan más
+          const faltantes = cantidad - generados;
+          for (let i = 0; i < faltantes; i++) {
+            disponibles.push(emoji);
           }
-          rand -= tipo.prob;
         }
-        
-        // Generar posición que no se superponga (más permisivo)
-        let nuevaPosicion;
-        let intentos = 0;
-        const maxIntentos = 15; // Menos intentos = más objetivos
-        
-        do {
-          nuevaPosicion = {
-            x: Math.random() * 80 + 10, // Más área disponible
-            y: Math.random() * 55 + 20,
-          };
-          intentos++;
-        } while (
-          objetivos.some(obj => 
-            Math.abs(obj.x - nuevaPosicion.x) < 12 && // Menor distancia requerida
-            Math.abs(obj.y - nuevaPosicion.y) < 12
-          ) && intentos < maxIntentos
-        );
+      });
 
-        // Si no encontramos posición buena después de intentos, usar la última
-        if (intentos >= maxIntentos) {
-          nuevaPosicion = {
-            x: Math.random() * 80 + 10,
-            y: Math.random() * 55 + 20,
-          };
-        }
-
-        const nuevoObjetivo = {
-          id: Date.now() + Math.random(),
-          x: nuevaPosicion.x,
-          y: nuevaPosicion.y,
-          tipo: tipoSeleccionado.emoji,
-          puntos: tipoSeleccionado.puntos,
-          duracion: tipoSeleccionado.duracion,
-          tamaño: tipoSeleccionado.emoji === "🎄" ? 26 : 
-                 tipoSeleccionado.emoji === "❄️" ? 22 : 30
-        };
-
-        setObjetivos(prev => [...prev, nuevoObjetivo]);
-
-        // Eliminar automáticamente después de su duración
-        setTimeout(() => {
-          setObjetivos(prev => prev.filter(o => o.id !== nuevoObjetivo.id));
-        }, tipoSeleccionado.duracion);
-      }
+      if (disponibles.length === 0) return null;
+      
+      // Mezclar aleatoriamente pero asegurar distribución
+      return disponibles[Math.floor(Math.random() * disponibles.length)];
     };
 
-    // MÁS FRECUENTE: 500ms en lugar de 600ms
-    const intervaloGenerar = setInterval(generarObjetivo, 500);
+    const generarObjetivo = () => {
+      const emoji = obtenerSiguienteObjetivo();
+      if (!emoji) return; // Ya se generaron todos
 
-    return () => clearInterval(intervaloGenerar);
-  }, [jugando, objetivos]);
+      // Ajustar en fase de aceleración
+      const config = CONFIG_OBJETIVOS[emoji];
+      const duracionFinal = faseAceleracion 
+        ? Math.max(400, config.duracion * 0.6)
+        : config.duracion;
 
-  // 🚀 Iniciar o reiniciar el juego
+      const tamañoFinal = faseAceleracion 
+        ? Math.max(18, config.tamaño - 2)
+        : config.tamaño;
+
+      // 🎯 GENERAR POSICIÓN
+      const nuevaPosicion = {
+        x: Math.random() * 75 + 12,
+        y: Math.random() * 60 + 15,
+      };
+
+      const nuevoObjetivo = {
+        id: Date.now() + Math.random(),
+        x: nuevaPosicion.x,
+        y: nuevaPosicion.y,
+        tipo: emoji,
+        puntos: config.puntos,
+        duracion: duracionFinal,
+        tamaño: tamañoFinal,
+        animacion: emoji === "❄️" ? "animate-spin" : 
+                  emoji === "⭐" ? "animate-pulse" : "animate-bounce",
+        sombra: faseAceleracion 
+          ? "drop-shadow(0 0 8px rgba(255,100,100,0.6))" 
+          : "drop-shadow(0 4px 6px rgba(0,0,0,0.3))",
+        esAceleracion: faseAceleracion
+      };
+
+      setObjetivos(prev => [...prev, nuevoObjetivo]);
+      setContadorObjetivos(prev => ({
+        ...prev,
+        [emoji]: (prev[emoji] || 0) + 1
+      }));
+      setObjetivosGenerados(prev => prev + 1);
+
+      // Eliminar automáticamente
+      setTimeout(() => {
+        setObjetivos(prev => prev.filter(o => o.id !== nuevoObjetivo.id));
+      }, duracionFinal);
+    };
+
+    // 🎯 VELOCIDAD DE GENERACIÓN INTELIGENTE
+    const objetivosRestantes = TOTAL_OBJETIVOS - objetivosGenerados;
+    const tiempoRestanteMs = tiempoRestante * 1000;
+    
+    let velocidad;
+    if (faseAceleracion) {
+      // En aceleración, generar más rápido los que quedan
+      velocidad = Math.max(150, (tiempoRestanteMs / objetivosRestantes) * 0.6);
+    } else {
+      // Distribuir uniformemente en el tiempo restante
+      velocidad = Math.max(300, tiempoRestanteMs / objetivosRestantes);
+    }
+
+    const intervalo = setInterval(generarObjetivo, velocidad);
+    return () => clearInterval(intervalo);
+  }, [jugando, tiempoRestante, faseAceleracion, contadorObjetivos, objetivosGenerados]);
+
+  // 🎮 INICIAR JUEGO
   const iniciarJuego = () => {
     setObjetivos([]);
     setPuntuacion(0);
     setTiempoRestante(30);
     setJugando(true);
     setEfectos([]);
+    setClicksTotales(0);
+    setContadorObjetivos({ "🎁": 0, "⭐": 0, "🎄": 0, "❄️": 0 });
+    setFaseAceleracion(false);
+    setObjetivosGenerados(0);
   };
 
-  // 🖱️ Lógica de puntuación y efectos
-  const manejarClickObjetivo = (id, tipo, puntos) => {
+  // 🖱️ MANEJAR CLICK
+  const manejarClickObjetivo = (id, tipo, puntos, esAceleracion) => {
     if (!jugando) return;
     
+    setClicksTotales(prev => prev + 1);
     setObjetivos(prev => prev.filter(o => o.id !== id));
     setPuntuacion(prev => prev + puntos);
 
-    // Efecto visual simple
     const objetivo = objetivos.find(o => o.id === id);
-    setEfectos(prev => [
-      ...prev,
-      { 
-        id: Date.now(), 
-        x: objetivo.x, 
-        y: objetivo.y, 
-        texto: `+${puntos}`,
-        color: puntos >= 5 ? "text-blue-600 font-bold" : 
-               puntos >= 3 ? "text-green-600 font-bold" : 
-               puntos >= 2 ? "text-yellow-600 font-bold" : "text-red-600 font-bold"
-      },
-    ]);
+    if (objetivo) {
+      setEfectos(prev => [
+        ...prev,
+        { 
+          id: Date.now(), 
+          x: objetivo.x, 
+          y: objetivo.y, 
+          texto: `+${puntos}${esAceleracion ? "⚡" : ""}`,
+          color: esAceleracion 
+            ? "text-red-600 font-bold text-lg" 
+            : puntos >= 5 ? "text-blue-700 font-bold text-lg" : 
+              puntos >= 3 ? "text-green-700 font-bold text-base" : "text-yellow-700 font-bold text-base",
+        },
+      ]);
+    }
 
-    // Limpiar efectos después de 800ms
     setTimeout(() => {
-      setEfectos(prev => prev.filter(e => Date.now() - e.id < 1000));
-    }, 800);
+      setEfectos(prev => prev.filter(e => Date.now() - e.id < 600));
+    }, 600);
   };
 
+  // 📊 CALCULAR ESTADÍSTICAS
+  const precision = clicksTotales > 0 ? (puntuacion / clicksTotales * 100).toFixed(1) : 0;
+
   return (
-    <div className="text-center">
+    <div className="text-center max-w-md mx-auto">
       <h2 className="text-3xl font-bold mb-6 bg-gradient-to-r from-green-500 to-red-500 bg-clip-text text-transparent">
-        🎄 Click Reacción
+        🎄 Click Reacción {faseAceleracion && "⚡"}
       </h2>
 
-      {/* HUD */}
-      <div className="bg-gradient-to-br from-green-50 via-red-50 to-green-100 rounded-2xl p-6 mb-6 shadow-lg border-2 border-green-200">
-        <div className="grid grid-cols-2 gap-4 text-gray-800">
+      {/* HUD CON PROGRESO EXACTO */}
+      <div className={`bg-gradient-to-br from-green-50 via-red-50 to-green-100 rounded-2xl p-4 mb-6 shadow-lg border-2 ${
+        faseAceleracion ? "border-red-300 animate-pulse" : "border-green-200"
+      }`}>
+        
+        {faseAceleracion && (
+          <div className="mb-3 bg-red-100 border border-red-300 rounded-lg py-2">
+            <div className="text-red-600 font-bold flex items-center justify-center gap-2 text-sm">
+              ⚡ ACELERACIÓN - ÚLTIMOS {tiempoRestante}s ⚡
+            </div>
+          </div>
+        )}
+
+        <div className="grid grid-cols-3 gap-2 text-gray-800 mb-3">
           <div className="bg-white rounded-xl p-3 shadow-sm">
-            <div className="text-2xl font-bold text-green-700">{puntuacion} pts</div>
-            <div className="text-sm text-gray-600">Puntuación</div>
+            <div className="text-2xl font-bold text-green-700">{puntuacion}</div>
+            <div className="text-xs text-gray-600">Puntos</div>
           </div>
           <div className="bg-white rounded-xl p-3 shadow-sm">
-            <div
-              className={`text-2xl font-bold ${
-                tiempoRestante <= 10 ? "text-red-500 animate-pulse" : "text-green-600"
-              }`}
-            >
+            <div className={`text-2xl font-bold ${
+              tiempoRestante <= 5 ? "text-red-500" : 
+              tiempoRestante <= 10 ? "text-orange-500" : "text-green-600"
+            }`}>
               {tiempoRestante}s
             </div>
-            <div className="text-sm text-gray-600">Tiempo</div>
+            <div className="text-xs text-gray-600">Tiempo</div>
           </div>
+          <div className="bg-white rounded-xl p-3 shadow-sm">
+            <div className="text-xl font-bold text-blue-700">{precision}%</div>
+            <div className="text-xs text-gray-600">Precisión</div>
+          </div>
+        </div>
+
+        {/* CONTADOR EXACTO DE OBJETIVOS */}
+        <div className="grid grid-cols-4 gap-1 mb-3 text-xs">
+          <div className="text-center bg-blue-50 rounded p-1">
+            <div className="font-semibold">❄️</div>
+            <div>{contadorObjetivos["❄️"] || 0}/25</div>
+          </div>
+          <div className="text-center bg-green-50 rounded p-1">
+            <div className="font-semibold">🎁</div>
+            <div>{contadorObjetivos["🎁"] || 0}/25</div>
+          </div>
+          <div className="text-center bg-yellow-50 rounded p-1">
+            <div className="font-semibold">⭐</div>
+            <div>{contadorObjetivos["⭐"] || 0}/25</div>
+          </div>
+          <div className="text-center bg-red-50 rounded p-1">
+            <div className="font-semibold">🎄</div>
+            <div>{contadorObjetivos["🎄"] || 0}/25</div>
+          </div>
+        </div>
+
+        {/* PROGRESO GENERAL */}
+        <div className="text-xs text-gray-600 mb-2">
+          Progreso: {objetivosGenerados}/{TOTAL_OBJETIVOS} objetivos
+        </div>
+
+        <div className="w-full bg-gray-200 rounded-full h-2">
+          <div 
+            className={`h-2 rounded-full transition-all duration-300 ${
+              tiempoRestante <= 5 ? "bg-red-500" : 
+              tiempoRestante <= 10 ? "bg-orange-500" : "bg-green-500"
+            }`}
+            style={{ width: `${(tiempoRestante / 30) * 100}%` }}
+          ></div>
         </div>
       </div>
 
-      {/* 🌲 Área de juego */}
-      <div className="relative bg-gradient-to-b from-green-100 via-green-50 to-red-100 rounded-2xl p-4 mb-6 mx-auto max-w-md h-64 border-2 border-green-300 shadow-inner overflow-hidden">
-        {/* Objetivos */}
+      {/* ÁREA DE JUEGO */}
+      <div className="relative bg-gradient-to-b from-green-100 to-green-50 rounded-2xl p-4 mb-6 mx-auto h-80 border-2 border-green-300 shadow-inner overflow-hidden">
+        
         {objetivos.map(objetivo => (
           <button
             key={objetivo.id}
-            onClick={() => manejarClickObjetivo(objetivo.id, objetivo.tipo, objetivo.puntos)}
-            className="absolute transition-all duration-150 transform hover:scale-110 active:scale-95 animate-bounce"
+            onClick={() => manejarClickObjetivo(objetivo.id, objetivo.tipo, objetivo.puntos, objetivo.esAceleracion)}
+            className={`absolute transition-all duration-150 transform hover:scale-110 active:scale-95 ${objetivo.animacion}`}
             style={{
               left: `${objetivo.x}%`,
               top: `${objetivo.y}%`,
               transform: "translate(-50%, -50%)",
               fontSize: `${objetivo.tamaño}px`,
-              filter: "drop-shadow(0 4px 6px rgba(0,0,0,0.3))",
+              filter: objetivo.sombra,
+              zIndex: 10
             }}
           >
             {objetivo.tipo}
           </button>
         ))}
 
-        {/* Efectos de puntos */}
         {efectos.map(efecto => (
           <div
             key={efecto.id}
-            className={`absolute text-lg font-bold animate-pulse ${efecto.color}`}
+            className={`absolute ${efecto.color} animate-bounce z-20`}
             style={{
               left: `${efecto.x}%`,
               top: `${efecto.y}%`,
@@ -1333,30 +1477,51 @@ const ClickReaccion = ({ volverASeleccion, guardarEnRanking }) => {
           </div>
         ))}
 
-        {/* Pantalla inicial o final */}
         {!jugando && (
-          <div className="absolute inset-0 flex items-center justify-center bg-white bg-opacity-90 rounded-2xl backdrop-blur-sm">
+          <div className="absolute inset-0 flex items-center justify-center bg-white bg-opacity-95 rounded-2xl backdrop-blur-sm z-30">
             {tiempoRestante === 0 ? (
               <div className="text-center p-6">
-                <div className="text-3xl font-bold mb-2 text-green-600">¡Tiempo!</div>
-                <div className="text-xl text-gray-700 mb-4">
-                  Puntuación: <span className="font-bold text-red-600">{puntuacion}</span>
+                <div className="text-4xl mb-4">🎯</div>
+                <div className="text-2xl font-bold mb-2 text-green-600">¡Tiempo!</div>
+                <div className="text-lg text-gray-700 mb-2">
+                  Puntos: <span className="font-bold text-red-600">{puntuacion}</span>
+                </div>
+                <div className="text-sm text-gray-600 mb-4">
+                  Precisión: <span className="font-bold">{precision}%</span>
+                </div>
+                <div className="text-xs text-gray-500 grid grid-cols-4 gap-2 mb-4">
+                  <div>❄️: {contadorObjetivos["❄️"]}/25</div>
+                  <div>🎁: {contadorObjetivos["🎁"]}/25</div>
+                  <div>⭐: {contadorObjetivos["⭐"]}/25</div>
+                  <div>🎄: {contadorObjetivos["🎄"]}/25</div>
                 </div>
                 <button
                   onClick={iniciarJuego}
-                  className="bg-green-600 hover:bg-green-700 text-white px-8 py-3 rounded-xl font-bold transition-all"
+                  className="bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-xl font-bold transition-all"
                 >
                   🔄 Jugar Otra Vez
                 </button>
               </div>
             ) : (
-              <div className="text-center">
-                <div className="text-4xl mb-4">🎯</div>
+              <div className="text-center p-6">
+                <div className="text-4xl mb-4">🎄</div>
+                <h3 className="text-2xl font-bold text-green-700 mb-2">Click Reacción</h3>
+                <p className="text-gray-600 mb-2 text-sm">
+                  <span className="font-bold">❄️  (5pts)</span> | 
+                  <span className="font-bold"> 🎁  (3pts)</span>
+                </p>
+                <p className="text-gray-600 mb-2 text-sm">
+                  <span className="font-bold">⭐  (2pts)</span> | 
+                  <span className="font-bold"> 🎄  (1pt)</span>
+                </p>
+                <p className="text-xs text-gray-500 mb-4">
+                  Total: 100 objetivos en 30 segundos
+                </p>
                 <button
                   onClick={iniciarJuego}
-                  className="bg-green-600 hover:bg-green-700 text-white px-8 py-4 rounded-2xl font-bold text-xl transition-all transform hover:scale-105 shadow-lg"
+                  className="bg-green-600 hover:bg-green-700 text-white px-8 py-4 rounded-2xl font-bold text-lg transition-all shadow-lg"
                 >
-                  Iniciar Juego
+                  🎮 Iniciar Juego
                 </button>
               </div>
             )}
@@ -1366,7 +1531,7 @@ const ClickReaccion = ({ volverASeleccion, guardarEnRanking }) => {
 
       <button
         onClick={volverASeleccion}
-        className="w-full bg-gradient-to-r from-red-500 to-green-600 text-white py-3 rounded-xl font-bold hover:from-red-600 hover:to-green-700 transition-all transform hover:scale-105 shadow-lg"
+        className="w-full bg-gradient-to-r from-red-500 to-green-600 text-white py-3 rounded-xl font-bold hover:from-red-600 hover:to-green-700 transition-all"
       >
         ← Volver a Juegos 2.0
       </button>
@@ -1515,7 +1680,7 @@ const MemoryAvanzado = ({ volverASeleccion, guardarEnRanking }) => {
         </div>
         <div className="text-center bg-white rounded-xl p-3 shadow-sm">
           <div className="text-lg font-bold text-blue-700">{movimientos}</div>
-          <div className="text-sm text-blue-600">Movimientos</div>
+          <div className="text-sm text-blue-600">Mov.</div>
         </div>
         <div className="text-center bg-white rounded-xl p-3 shadow-sm">
           <div className="text-lg font-bold text-purple-700">
@@ -1527,7 +1692,7 @@ const MemoryAvanzado = ({ volverASeleccion, guardarEnRanking }) => {
           <div className="text-lg font-bold text-orange-700">
             {movimientos > 0 ? ((paresEncontrados / movimientos) * 100).toFixed(1) : "0"}%
           </div>
-          <div className="text-sm text-orange-600">Eficiencia</div>
+          <div className="text-sm text-orange-600">Ef.</div>
         </div>
       </div>
 
@@ -1578,7 +1743,7 @@ const MemoryAvanzado = ({ volverASeleccion, guardarEnRanking }) => {
             Completaste los <strong className="text-green-600">20 pares</strong> en 
           </p>
           <p className="text-xl font-bold text-blue-600 mb-2">
-            {movimientos} movimientos
+            {movimientos} Movimientos
           </p>
           <p className="text-gray-600 mb-4">
             Puntuación final: <strong className="text-purple-600 text-xl">{calcularPuntuacionMemory(movimientos)} puntos</strong>
