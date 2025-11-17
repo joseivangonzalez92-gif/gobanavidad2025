@@ -108,7 +108,7 @@ export default function Challenges() {
     { 
       id: "pregunta_5", 
       titulo: "🎁 Pregunta Miércoles #3", 
-      descripcion: "¿Cuántos renos tira del trineo de Santa?",
+      descripcion: "¿Cuántos renos tiran del trineo de Santa?",
       tipo: "pregunta",
       respuestaCorrecta: "9",
       opciones: [

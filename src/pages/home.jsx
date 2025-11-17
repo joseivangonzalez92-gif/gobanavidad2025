@@ -247,22 +247,6 @@ export default function Home() {
             </div>
           </Link>
 
-          {/* Zona de Juegos */}
-          <Link to="/juegos" className="group">
-            <div className="bg-gradient-to-br from-purple-500 to-pink-500 rounded-3xl p-8 text-white text-center shadow-2xl transform transition-all duration-300 hover:scale-105 hover:shadow-3xl h-full flex flex-col justify-between">
-              <div>
-                <div className="text-5xl mb-4">🎮</div>
-                <h3 className="text-2xl font-bold mb-3">Zona de Juegos</h3>
-                <p className="text-white/90 mb-4">
-                  5 juegos navideños divertidos para competir en familia
-                </p>
-              </div>
-              <div className="bg-white/20 rounded-xl p-3 mt-4">
-                <p className="text-sm font-semibold">🏆 Ranking familiar</p>
-              </div>
-            </div>
-          </Link>
-
           {/* Mi Perfil */}
           <Link 
             to="/perfil" 
@@ -286,28 +270,22 @@ export default function Home() {
             </div>
           </Link>
 
-          {/* 🎮 MUY PRONTO - TEMPORALMENTE DESHABILITADO */}
-          <div className="group cursor-not-allowed opacity-60">
-            <div className="bg-gradient-to-br from-blue-50 to-purple-50 rounded-3xl p-8 text-center border-2 border-blue-200 h-full flex flex-col justify-center relative overflow-hidden">
-              
-              <div className="absolute inset-0 bg-gradient-to-br from-blue-100/20 to-purple-100/20"></div>
-              
-              <div className="relative z-10">
-                <div className="text-5xl mb-4 opacity-70">🚀</div>
-                <p className="text-gray-700 text-lg font-semibold mb-1">
-                  Muy pronto
-                </p>
-                <p className="text-gray-500 text-sm">
-                  Estreno: <span className="font-mono text-gray-600">17 Nov</span>
+            {/* 🎮 JUEGOS 2.0 - ¡DESBLOQUEADO! */}
+          <Link to="/juegos2" className="group">
+            <div className="bg-gradient-to-br from-blue-500 to-purple-600 rounded-3xl p-8 text-white text-center shadow-2xl transform transition-all duration-300 hover:scale-105 hover:shadow-3xl h-full flex flex-col justify-between">
+              <div>
+                <div className="text-5xl mb-4">🚀</div>
+                <h3 className="text-2xl font-bold mb-3">Juegos 2.0</h3>
+                <p className="text-white/90 mb-4">
+                  Descubre la nueva experiencia de gaming familiar
                 </p>
               </div>
-
-              <div className="absolute bottom-3 right-3 text-gray-400 text-sm">
-                ✨
+              <div className="bg-white/20 rounded-xl p-3 mt-4">
+                <p className="text-sm font-semibold">🎯 ¡Nuevo disponible!</p>
               </div>
             </div>
-          </div>
-
+          </Link>
+          
           {/* 🏪 TIENDA NAVIDEÑA - TEMPORALMENTE DESHABILITADA */}
           <div className="group cursor-not-allowed opacity-60">
             <div className="bg-gradient-to-br from-green-50 to-red-50 rounded-3xl p-8 text-center border-2 border-green-200 h-full flex flex-col justify-center relative overflow-hidden">

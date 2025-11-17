@@ -9,8 +9,8 @@ import { gobaService } from "../services/firebaseService";
 const WordleNavideno = ({ volverASeleccion, guardarEnRanking }) => {
   const PALABRAS = [
     "NIEVE", "REGALO", "PAZ", "AMOR", "BELEN", "CAMPANA", "ESTRELLA", 
-    "RENOS", "FAMILIA", "LUNA", "CORONA", "VELA", "TRINEO", "DUENDE",
-    "GORRO", "PAPA", "NOEL", "ANGEL", "INVIERNO", "DICIEMBRE"
+    "RENOS", "FAMILIA", "TAMAL", "CORONA", "VELA", "TRINEO", "DUENDE",
+    "GORRO", "ROMPOPO", "NOEL", "ANGEL", "INVIERNO", "DICIEMBRE", "PINO", "LUCES", "VILLANCICO", "POSTAL", "BOTA", "ROSCA", "NACIMIENTO", "ALEGRIA", "TARJETA", "ESPERANZA", "MAGIA", "CARTA", "MUERDAGO", "COPOS", "UVAS", "BOLA", "BAILE", "FIESTA", "NAVIDAD", "ADORNO", "COHETES", "CERDO", "NIÑO", "JESUS", "PAVO", "PASTOR", "BURRO", "POSADAS", "PESEBRE"
   ];
 
   const [palabraSecreta, setPalabraSecreta] = useState("");
@@ -29,50 +29,59 @@ const WordleNavideno = ({ volverASeleccion, guardarEnRanking }) => {
   const [mejorRacha, setMejorRacha] = useState(0);
   const [palabrasUsadas, setPalabrasUsadas] = useState([]);
   const [sesionTerminada, setSesionTerminada] = useState(false);
+  const [juegoIniciado, setJuegoIniciado] = useState(false); // Nuevo estado para controlar inicio
 
   // Timer
   useEffect(() => {
     let intervalo;
-    if (tiempoInicio && !juegoTerminado && !sesionTerminada) {
+    if (juegoIniciado && tiempoInicio && !juegoTerminado && !sesionTerminada) {
       intervalo = setInterval(() => {
         setTiempoTranscurrido(Date.now() - tiempoInicio);
       }, 100);
     }
     return () => clearInterval(intervalo);
-  }, [tiempoInicio, juegoTerminado, sesionTerminada]);
-
-  // Inicializar juego
-  useEffect(() => {
-    iniciarSesion();
-  }, []);
+  }, [juegoIniciado, tiempoInicio, juegoTerminado, sesionTerminada]);
 
   // CORRECCIÓN: Efecto para cambiar de palabra cuando se incrementa palabrasResueltas
   useEffect(() => {
-    if (palabrasResueltas > 0 && palabrasResueltas < 5) {
+    if (juegoIniciado && palabrasResueltas > 0 && palabrasResueltas < 5) {
       const timer = setTimeout(() => {
         iniciarNuevaPalabra();
       }, 1000);
       return () => clearTimeout(timer);
-    } else if (palabrasResueltas >= 5) {
+    } else if (juegoIniciado && palabrasResueltas >= 5) {
       // CORRECCIÓN: Terminar sesión inmediatamente cuando llegue a 5
       setSesionTerminada(true);
       guardarEnRanking("wordle-navideno", puntuacionAcumulada, {
         palabrasResueltas: palabrasResueltas,
         mejorRacha: mejorRacha,
-        sesionCompleta: true
+        sesionCompleta: true,
+        timestamp: Date.now()
       });
     }
-  }, [palabrasResueltas]);
+  }, [palabrasResueltas, juegoIniciado]);
 
+  // Función mejorada para obtener palabra aleatoria
   const obtenerPalabraAleatoria = () => {
-    const palabrasDisponibles = PALABRAS.filter(palabra => !palabrasUsadas.includes(palabra));
+    // Mezclar todo el array de palabras primero para mayor aleatoriedad
+    const palabrasMezcladas = [...PALABRAS]
+      .sort(() => Math.random() - 0.5)
+      .sort(() => Math.random() - 0.5);
+    
+    const palabrasDisponibles = palabrasMezcladas.filter(palabra => 
+      !palabrasUsadas.includes(palabra)
+    );
+    
     if (palabrasDisponibles.length === 0) {
-      return PALABRAS[Math.floor(Math.random() * PALABRAS.length)];
+      // Si ya se usaron todas, reiniciar y tomar cualquier palabra
+      return palabrasMezcladas[0];
     }
-    return palabrasDisponibles[Math.floor(Math.random() * palabrasDisponibles.length)];
+    
+    return palabrasDisponibles[0];
   };
 
-  const iniciarSesion = () => {
+  const iniciarJuego = () => {
+    setJuegoIniciado(true);
     setPalabrasResueltas(0);
     setPuntuacionAcumulada(0);
     setRachaActual(0);
@@ -83,12 +92,13 @@ const WordleNavideno = ({ volverASeleccion, guardarEnRanking }) => {
   };
 
   const iniciarNuevaPalabra = () => {
-    // CORRECCIÓN: Removí la verificación aquí porque ahora está en el useEffect
     const nuevaPalabra = obtenerPalabraAleatoria();
     setPalabraSecreta(nuevaPalabra);
     
+    // Mezclar las letras más veces para mayor aleatoriedad
     const letrasArray = nuevaPalabra.split("");
     const letrasMezcladas = [...letrasArray]
+      .sort(() => Math.random() - 0.5)
       .sort(() => Math.random() - 0.5)
       .sort(() => Math.random() - 0.5);
     
@@ -101,8 +111,48 @@ const WordleNavideno = ({ volverASeleccion, guardarEnRanking }) => {
     setTiempoTranscurrido(0);
   };
 
+  // SISTEMA DE PUNTUACIÓN MEJORADO PARA EVITAR EMPATES
+  const calcularBonusTiempo = (tiempoSegundos) => {
+    if (tiempoSegundos <= 3) return 50;
+    if (tiempoSegundos <= 6) return 40;
+    if (tiempoSegundos <= 9) return 30;
+    if (tiempoSegundos <= 12) return 20;
+    if (tiempoSegundos <= 15) return 10;
+    if (tiempoSegundos <= 18) return 5;
+    return 0;
+  };
+
+  const calcularBonusRacha = (racha) => {
+    if (racha >= 5) return 50;
+    if (racha >= 4) return 30;
+    if (racha >= 3) return 20;
+    if (racha >= 2) return 10;
+    return 0;
+  };
+
+  const calcularBonusDificultad = (longitudPalabra) => {
+    if (longitudPalabra >= 7) return 25;
+    if (longitudPalabra >= 6) return 15;
+    if (longitudPalabra >= 5) return 10;
+    return 5;
+  };
+
+  const calcularPuntuacion = (intentosUsados, tiempoSegundos, racha, longitudPalabra) => {
+    const puntuacionesBase = [100, 80, 60]; // 1er, 2do, 3er intento
+    const puntosBase = puntuacionesBase[intentosUsados - 1] || 0;
+    
+    const bonusTiempo = calcularBonusTiempo(tiempoSegundos);
+    const bonusRacha = calcularBonusRacha(racha);
+    const bonusDificultad = calcularBonusDificultad(longitudPalabra);
+    
+    // Puntuación única que incluye factores difíciles de replicar
+    const factorUnico = Math.floor(Math.random() * 5) + 1; // 1-5 puntos aleatorios
+    
+    return puntosBase + bonusTiempo + bonusRacha + bonusDificultad + factorUnico;
+  };
+
   const manejarClickLetra = (letra, index) => {
-    if (juegoTerminado || sesionTerminada || letra === "") return;
+    if (!juegoIniciado || juegoTerminado || sesionTerminada || letra === "") return;
 
     const primeraPosicionVacia = intentoActual.findIndex(pos => pos === "");
     
@@ -125,7 +175,12 @@ const WordleNavideno = ({ volverASeleccion, guardarEnRanking }) => {
           setJuegoTerminado(true);
           setGanado(true);
           const tiempoSegundos = Math.floor(tiempoTranscurrido / 1000);
-          const puntuacionPalabra = calcularPuntuacion(nuevosIntentos, tiempoSegundos);
+          const puntuacionPalabra = calcularPuntuacion(
+            nuevosIntentos, 
+            tiempoSegundos, 
+            rachaActual, 
+            palabraSecreta.length
+          );
           const adivinoPrimera = nuevosIntentos === 1;
           
           setPuntuacionAcumulada(prev => prev + puntuacionPalabra);
@@ -142,7 +197,6 @@ const WordleNavideno = ({ volverASeleccion, guardarEnRanking }) => {
           }
 
           setTimeout(() => {
-            // CORRECCIÓN: Solo incrementar si no hemos llegado a 5
             if (palabrasResueltas < 5) {
               setPalabrasResueltas(prev => prev + 1);
             }
@@ -156,7 +210,6 @@ const WordleNavideno = ({ volverASeleccion, guardarEnRanking }) => {
             setRachaActual(0);
             
             setTimeout(() => {
-              // CORRECCIÓN: Solo incrementar si no hemos llegado a 5
               if (palabrasResueltas < 5) {
                 setPalabrasResueltas(prev => prev + 1);
               }
@@ -182,7 +235,7 @@ const WordleNavideno = ({ volverASeleccion, guardarEnRanking }) => {
   };
 
   const manejarBorrar = () => {
-    if (juegoTerminado || sesionTerminada) return;
+    if (!juegoIniciado || juegoTerminado || sesionTerminada) return;
 
     const ultimaPosicionLlena = intentoActual.reduce((acc, letra, index) => {
       return letra !== "" ? index : acc;
@@ -204,21 +257,6 @@ const WordleNavideno = ({ volverASeleccion, guardarEnRanking }) => {
     }
   };
 
-  const calcularBonusTiempo = (tiempoSegundos) => {
-    if (tiempoSegundos <= 5) return 30;
-    if (tiempoSegundos <= 10) return 20;
-    if (tiempoSegundos <= 15) return 10;
-    if (tiempoSegundos <= 20) return 5;
-    return 0;
-  };
-
-  const calcularPuntuacion = (intentosUsados, tiempoSegundos) => {
-    const puntuacionesBase = [100, 80, 60];
-    const puntosBase = puntuacionesBase[intentosUsados - 1] || 0;
-    const bonusTiempo = calcularBonusTiempo(tiempoSegundos);
-    return puntosBase + bonusTiempo;
-  };
-
   const obtenerColorCasilla = (letra, index) => {
     if (!letra) return 'border-gray-300 bg-white';
     
@@ -236,9 +274,9 @@ const WordleNavideno = ({ volverASeleccion, guardarEnRanking }) => {
     return `${segundos}s`;
   };
 
-  // CORRECCIÓN: Función para obtener el texto de la palabra actual
   const obtenerTextoPalabraActual = () => {
     if (sesionTerminada) return "Sesión completada";
+    if (!juegoIniciado) return "Presiona Iniciar Juego";
     return `Palabra ${palabrasResueltas + 1} de 5`;
   };
 
@@ -246,154 +284,169 @@ const WordleNavideno = ({ volverASeleccion, guardarEnRanking }) => {
     <div className="text-center max-w-md mx-auto">
       <h2 className="text-3xl font-bold mb-6">🔤 Wordle Navideño</h2>
       
-      <div className="bg-gradient-to-br from-blue-100 to-purple-100 rounded-2xl p-4 mb-6">
-        <div className="grid grid-cols-4 gap-2 text-sm mb-3">
-          <div>
-            <div className="font-bold">{palabrasResueltas}/5</div>
-            <div>Completadas</div>
-          </div>
-          <div>
-            <div className="font-bold">{puntuacionAcumulada}</div>
-            <div>Puntos</div>
-          </div>
-          <div>
-            <div className="font-bold">{rachaActual}</div>
-            <div>Racha</div>
-          </div>
-          <div>
-            <div className="font-bold">{mejorRacha}</div>
-            <div>Mejor</div>
-          </div>
+      {!juegoIniciado ? (
+        <div className="bg-gradient-to-br from-green-100 to-blue-100 rounded-2xl p-8 mb-6">
+          <div className="text-2xl font-bold mb-4">🎄 Wordle Navideño</div>
+          <p className="text-gray-600 mb-2">• 5 palabras navideñas por sesión</p>
+          <p className="text-gray-600 mb-2">• Máximo 3 intentos por palabra</p>
+          <p className="text-gray-600 mb-4">• Puntos por velocidad y rachas</p>
+          
+          <button
+            onClick={iniciarJuego}
+            className="bg-green-500 hover:bg-green-600 text-white px-8 py-4 rounded-xl font-bold text-lg transition-all w-full"
+          >
+            🎮 Iniciar Juego
+          </button>
         </div>
-        
-        <div className="w-full bg-gray-200 rounded-full h-3 mb-3">
-          <div 
-            className="bg-green-500 h-3 rounded-full transition-all duration-500"
-            style={{ width: `${(palabrasResueltas / 5) * 100}%` }}
-          ></div>
-        </div>
-
-        {!sesionTerminada && (
-          <div className="text-center">
-            <div className="font-bold text-lg">{formatearTiempo(tiempoTranscurrido)}</div>
-            <div className="text-gray-600 text-sm">
-              {/* CORRECCIÓN: Usar la función helper para el texto */}
-              {obtenerTextoPalabraActual()}
-            </div>
-          </div>
-        )}
-      </div>
-
-      {!sesionTerminada ? (
+      ) : (
         <>
-          <div className="bg-white rounded-2xl p-6 shadow-lg mb-6">
-            <p className="text-sm text-gray-600 mb-4">Forma la palabra navideña:</p>
+          <div className="bg-gradient-to-br from-blue-100 to-purple-100 rounded-2xl p-4 mb-6">
+            <div className="grid grid-cols-4 gap-2 text-sm mb-3">
+              <div>
+                <div className="font-bold">{palabrasResueltas}/5</div>
+                <div>Completadas</div>
+              </div>
+              <div>
+                <div className="font-bold">{puntuacionAcumulada}</div>
+                <div>Puntos</div>
+              </div>
+              <div>
+                <div className="font-bold">{rachaActual}</div>
+                <div>Racha</div>
+              </div>
+              <div>
+                <div className="font-bold">{mejorRacha}</div>
+                <div>Mejor</div>
+              </div>
+            </div>
             
-            <div className="flex justify-center gap-2 mb-6">
-              {intentoActual.map((letra, index) => (
-                <div
-                  key={index}
-                  className={`w-12 h-12 border-2 flex items-center justify-center text-xl font-bold rounded transition-all ${obtenerColorCasilla(letra, index)}`}
-                >
-                  {letra}
+            <div className="w-full bg-gray-200 rounded-full h-3 mb-3">
+              <div 
+                className="bg-green-500 h-3 rounded-full transition-all duration-500"
+                style={{ width: `${(palabrasResueltas / 5) * 100}%` }}
+              ></div>
+            </div>
+
+            <div className="text-center">
+              <div className="font-bold text-lg">{formatearTiempo(tiempoTranscurrido)}</div>
+              <div className="text-gray-600 text-sm">
+                {obtenerTextoPalabraActual()}
+              </div>
+            </div>
+          </div>
+
+          {!sesionTerminada ? (
+            <>
+              <div className="bg-white rounded-2xl p-6 shadow-lg mb-6">
+                <p className="text-sm text-gray-600 mb-4">Forma la palabra navideña:</p>
+                
+                <div className="flex justify-center gap-2 mb-6">
+                  {intentoActual.map((letra, index) => (
+                    <div
+                      key={index}
+                      className={`w-12 h-12 border-2 flex items-center justify-center text-xl font-bold rounded transition-all ${obtenerColorCasilla(letra, index)}`}
+                    >
+                      {letra}
+                    </div>
+                  ))}
                 </div>
-              ))}
-            </div>
 
-            <div className="flex justify-center gap-2 flex-wrap">
-              {letrasDesordenadas.map((letra, index) => (
+                <div className="flex justify-center gap-2 flex-wrap">
+                  {letrasDesordenadas.map((letra, index) => (
+                    <button
+                      key={index}
+                      onClick={() => manejarClickLetra(letra, index)}
+                      disabled={juegoTerminado || letra === ""}
+                      className={`w-10 h-10 text-lg font-bold rounded transition-all ${
+                        letra === "" 
+                          ? 'bg-gray-200 text-gray-200 cursor-default' 
+                          : 'bg-yellow-400 hover:bg-yellow-500 text-gray-800 hover:scale-110'
+                      }`}
+                    >
+                      {letra}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="flex gap-2 mb-6">
                 <button
-                  key={index}
-                  onClick={() => manejarClickLetra(letra, index)}
-                  disabled={juegoTerminado || letra === ""}
-                  className={`w-10 h-10 text-lg font-bold rounded transition-all ${
-                    letra === "" 
-                      ? 'bg-gray-200 text-gray-200 cursor-default' 
-                      : 'bg-yellow-400 hover:bg-yellow-500 text-gray-800 hover:scale-110'
-                  }`}
+                  onClick={manejarBorrar}
+                  disabled={juegoTerminado || intentoActual.every(letra => letra === "")}
+                  className="flex-1 bg-red-500 hover:bg-red-600 text-white py-3 rounded-xl font-bold transition-all disabled:bg-gray-300 disabled:cursor-not-allowed"
                 >
-                  {letra}
+                  ⌫ Borrar
                 </button>
-              ))}
-            </div>
-          </div>
+                <button
+                  onClick={() => {
+                    if (palabrasResueltas < 5) {
+                      setJuegoTerminado(true);
+                      setGanado(false);
+                      setPalabrasUsadas(prev => [...prev, palabraSecreta]);
+                      setRachaActual(0);
+                      setTimeout(() => {
+                        setPalabrasResueltas(prev => prev + 1);
+                      }, 500);
+                    }
+                  }}
+                  disabled={juegoTerminado || palabrasResueltas >= 5}
+                  className="flex-1 bg-blue-500 hover:bg-blue-600 text-white py-3 rounded-xl font-bold transition-all disabled:bg-gray-300 disabled:cursor-not-allowed"
+                >
+                  🔄 Saltar
+                </button>
+              </div>
 
-          <div className="flex gap-2 mb-6">
-            <button
-              onClick={manejarBorrar}
-              disabled={juegoTerminado || intentoActual.every(letra => letra === "")}
-              className="flex-1 bg-red-500 hover:bg-red-600 text-white py-3 rounded-xl font-bold transition-all disabled:bg-gray-300 disabled:cursor-not-allowed"
-            >
-              ⌫ Borrar
-            </button>
-            <button
-              onClick={() => {
-                if (palabrasResueltas < 5) {
-                  setJuegoTerminado(true);
-                  setGanado(false);
-                  setPalabrasUsadas(prev => [...prev, palabraSecreta]);
-                  setRachaActual(0);
-                  setTimeout(() => {
-                    setPalabrasResueltas(prev => prev + 1);
-                  }, 500);
-                }
-              }}
-              disabled={juegoTerminado || palabrasResueltas >= 5}
-              className="flex-1 bg-blue-500 hover:bg-blue-600 text-white py-3 rounded-xl font-bold transition-all disabled:bg-gray-300 disabled:cursor-not-allowed"
-            >
-              🔄 Saltar
-            </button>
-          </div>
+              {juegoTerminado && ganado && (
+                <div className="bg-green-100 border-2 border-green-400 rounded-2xl p-4 mb-6">
+                  <div className="text-xl font-bold text-green-700 mb-2">✅ ¡Correcto!</div>
+                  <p className="text-green-600">
+                    +{calcularPuntuacion(intentos, Math.floor(tiempoTranscurrido / 1000), rachaActual, palabraSecreta.length)} puntos
+                    {intentos === 1 && " 🏆 +1 Racha"}
+                  </p>
+                </div>
+              )}
 
-          {juegoTerminado && ganado && (
-            <div className="bg-green-100 border-2 border-green-400 rounded-2xl p-4 mb-6">
-              <div className="text-xl font-bold text-green-700 mb-2">✅ ¡Correcto!</div>
-              <p className="text-green-600">
-                +{calcularPuntuacion(intentos, Math.floor(tiempoTranscurrido / 1000))} puntos
-                {intentos === 1 && " 🏆 +1 Racha"}
-              </p>
-            </div>
-          )}
+              {juegoTerminado && !ganado && (
+                <div className="bg-red-100 border-2 border-red-400 rounded-2xl p-4 mb-6">
+                  <div className="text-xl font-bold text-red-700 mb-2">❌ Se acabaron los intentos</div>
+                  <p className="text-red-600">La palabra era: <strong>{palabraSecreta}</strong></p>
+                </div>
+              )}
+            </>
+          ) : (
+            <div className="bg-gradient-to-br from-green-100 to-blue-100 rounded-2xl p-6 mb-6">
+              <div className="text-3xl font-bold mb-4">🎉 Sesión Completada</div>
+              
+              <div className="grid grid-cols-2 gap-4 mb-6">
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-green-600">{puntuacionAcumulada}</div>
+                  <div className="text-gray-600">Puntos Totales</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-blue-600">{mejorRacha}</div>
+                  <div className="text-gray-600">Mejor Racha</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-purple-600">{palabrasResueltas}/5</div>
+                  <div className="text-gray-600">Palabras</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-orange-600">
+                    {palabrasResueltas > 0 ? Math.round(puntuacionAcumulada / palabrasResueltas) : 0}
+                  </div>
+                  <div className="text-gray-600">Promedio</div>
+                </div>
+              </div>
 
-          {juegoTerminado && !ganado && (
-            <div className="bg-red-100 border-2 border-red-400 rounded-2xl p-4 mb-6">
-              <div className="text-xl font-bold text-red-700 mb-2">❌ Se acabaron los intentos</div>
-              <p className="text-red-600">La palabra era: <strong>{palabraSecreta}</strong></p>
+              <button
+                onClick={iniciarJuego}
+                className="bg-green-500 hover:bg-green-600 text-white px-6 py-3 rounded-xl font-bold transition-all w-full mb-2"
+              >
+                🔄 Nueva Sesión (5 Palabras)
+              </button>
             </div>
           )}
         </>
-      ) : (
-        <div className="bg-gradient-to-br from-green-100 to-blue-100 rounded-2xl p-6 mb-6">
-          <div className="text-3xl font-bold mb-4">🎉 Sesión Completada</div>
-          
-          <div className="grid grid-cols-2 gap-4 mb-6">
-            <div className="text-center">
-              <div className="text-2xl font-bold text-green-600">{puntuacionAcumulada}</div>
-              <div className="text-gray-600">Puntos Totales</div>
-            </div>
-            <div className="text-center">
-              <div className="text-2xl font-bold text-blue-600">{mejorRacha}</div>
-              <div className="text-gray-600">Mejor Racha</div>
-            </div>
-            <div className="text-center">
-              <div className="text-2xl font-bold text-purple-600">{palabrasResueltas}/5</div>
-              <div className="text-gray-600">Palabras</div>
-            </div>
-            <div className="text-center">
-              <div className="text-2xl font-bold text-orange-600">
-                {palabrasResueltas > 0 ? Math.round(puntuacionAcumulada / palabrasResueltas) : 0}
-              </div>
-              <div className="text-gray-600">Promedio</div>
-            </div>
-          </div>
-
-          <button
-            onClick={iniciarSesion}
-            className="bg-green-500 hover:bg-green-600 text-white px-6 py-3 rounded-xl font-bold transition-all w-full"
-          >
-            🔄 Nueva Sesión (5 Palabras)
-          </button>
-        </div>
       )}
 
       <button
@@ -407,7 +460,7 @@ const WordleNavideno = ({ volverASeleccion, guardarEnRanking }) => {
 };
 
 // =============================================
-// 🎮 2. COMPONENTE SIMÓN DICE MEJORADO (CON BONUS POR VELOCIDAD)
+// 🎮 2. COMPONENTE SIMÓN DICE COMPLETO CON BOTÓN VOLVER
 // =============================================
 const SimonDice = ({ volverASeleccion, guardarEnRanking }) => {
   const colores = ["🔴", "🟢", "🟡", "🔵", "🟣", "🟠", "⚪", "🟤"];
@@ -424,41 +477,62 @@ const SimonDice = ({ volverASeleccion, guardarEnRanking }) => {
   const [tiemposPorNivel, setTiemposPorNivel] = useState([]);
   const [tiempoTotal, setTiempoTotal] = useState(0);
   const [tiempoActual, setTiempoActual] = useState(0);
+  
+  const [juegoIniciado, setJuegoIniciado] = useState(false);
 
-  // Timer para mostrar tiempo en tiempo real
+  // Timer optimizado
   useEffect(() => {
     let intervalo;
-    if (jugando && tiempoInicioNivel && !gameOver) {
+    if (juegoIniciado && jugando && tiempoInicioNivel && !gameOver) {
       intervalo = setInterval(() => {
         setTiempoActual(Date.now() - tiempoInicioNivel);
       }, 100);
     }
     return () => clearInterval(intervalo);
-  }, [jugando, tiempoInicioNivel, gameOver]);
+  }, [juegoIniciado, jugando, tiempoInicioNivel, gameOver]);
 
-  // NUEVO: Función para calcular puntuación con bonus
-  const calcularPuntuacion = (nivel, tiempoTotalSegundos) => {
-    const puntosBase = nivel * 10;
+  // ✅ SISTEMA DE PUNTUACIÓN MÁS BALANCEADO
+  const calcularPuntuacion = (nivel, tiempoTotalSegundos, secuenciaCompleta) => {
+    // Puntos base por nivel (más balanceado)
+    const puntosBase = nivel * 12; // Reducido de 15 a 12
     
-    // Bonus por velocidad (más rápido = más bonus)
-    // Tiempo promedio por nivel en segundos
-    const tiempoPromedioPorNivel = tiempoTotalSegundos / nivel;
+    // Bonus por longitud de secuencia 
+    const bonusLongitud = secuenciaCompleta * 6; // Reducido de 8 a 6
     
-    // Bonus escala: menos de 3s por nivel = máximo bonus, más de 8s = mínimo bonus
-   
-     let bonusPorNivel = 0;
-  if (tiempoPromedioPorNivel <= 3) bonusPorNivel = 5;
-  else if (tiempoPromedioPorNivel <= 5) bonusPorNivel = 3;
-  else if (tiempoPromedioPorNivel <= 7) bonusPorNivel = 2;
-  else if (tiempoPromedioPorNivel <= 10) bonusPorNivel = 1;
-  // Más de 10 segundos por nivel = 0 bonus
-  
-  const bonusTotal = bonusPorNivel * nivel;
-  
-  return puntosBase + bonusTotal;
-};
+    // ✅ BONUS DE VELOCIDAD MÁS AGRESIVO
+    const tiempoPromedioPorNivel = tiempoTotalSegundos / Math.max(1, nivel);
+    
+    let bonusVelocidad = 0;
+    if (tiempoPromedioPorNivel <= 1.5) bonusVelocidad = 25;    // Más bonus por ser muy rápido
+    else if (tiempoPromedioPorNivel <= 2) bonusVelocidad = 20;
+    else if (tiempoPromedioPorNivel <= 2.5) bonusVelocidad = 15;
+    else if (tiempoPromedioPorNivel <= 3) bonusVelocidad = 10;
+    else if (tiempoPromedioPorNivel <= 4) bonusVelocidad = 5;
+    else if (tiempoPromedioPorNivel <= 5) bonusVelocidad = 2;
+    
+    // Factor único más conservador
+    const factorUnico = Math.floor(Math.random() * 8) + 1; // 1-8 puntos
+    
+    // Bonus por consistencia 
+    const nivelesRapidos = tiemposPorNivel.filter(t => t <= 3000).length; // Más estricto (3s)
+    const bonusConsistencia = Math.floor(nivelesRapidos) * 2; // +2 por nivel rápido
+    
+    const puntuacionTotal = puntosBase + bonusLongitud + bonusVelocidad + factorUnico + bonusConsistencia;
+    
+    return {
+      total: Math.max(10, puntuacionTotal), // Mínimo 10 puntos
+      desglose: {
+        puntosBase,
+        bonusLongitud,
+        bonusVelocidad,
+        factorUnico,
+        bonusConsistencia
+      }
+    };
+  };
 
   const iniciarJuego = () => {
+    setJuegoIniciado(true);
     setNivel(1);
     setSecuencia([]);
     setJugadorSecuencia([]);
@@ -469,20 +543,47 @@ const SimonDice = ({ volverASeleccion, guardarEnRanking }) => {
     siguienteNivel();
   };
 
+  // ✅ GENERACIÓN MÁS RÁPIDA Y VARIADA
+  const generarSecuenciaAleatoria = (longitud) => {
+    const nuevaSecuencia = [];
+    
+    for (let i = 0; i < longitud; i++) {
+      // Secuencias más desafiantes pero justas
+      let indiceColor;
+      
+      if (longitud <= 3) {
+        // Niveles iniciales: más fáciles
+        indiceColor = Math.floor(Math.random() * 4); // Solo primeros 4 colores
+      } else if (longitud <= 6) {
+        // Niveles medios: más variedad
+        indiceColor = Math.floor(Math.random() * 6); // Primeros 6 colores
+      } else {
+        // Niveles altos: todos los colores
+        indiceColor = Math.floor(Math.random() * colores.length);
+      }
+      
+      nuevaSecuencia.push(indiceColor);
+    }
+    
+    return nuevaSecuencia;
+  };
+
+  // ✅ SECUENCIA MÁS RÁPIDA
   const siguienteNivel = () => {
     setJugando(false);
     setMostrandoSecuencia(true);
     
-    // Agregar nuevo color a la secuencia
-    const nuevoColor = Math.floor(Math.random() * colores.length);
-    const nuevaSecuencia = [...secuencia, nuevoColor];
+    const nuevaSecuencia = generarSecuenciaAleatoria(secuencia.length + 1);
     setSecuencia(nuevaSecuencia);
     
-    // Iniciar timer del nivel
     setTiempoInicioNivel(Date.now());
     setTiempoActual(0);
     
-    // Mostrar secuencia con mejor animación
+    // ✅ VELOCIDAD DE SECUENCIA AJUSTADA POR NIVEL
+    const velocidadBase = 500; // ms entre colores
+    const velocidadReduccion = Math.min(300, nivel * 50); // Más rápido en niveles altos
+    const velocidadFinal = Math.max(200, velocidadBase - velocidadReduccion); // Mínimo 200ms
+    
     let i = 0;
     const mostrarSiguienteColor = () => {
       if (i < nuevaSecuencia.length) {
@@ -494,8 +595,8 @@ const SimonDice = ({ volverASeleccion, guardarEnRanking }) => {
           setTimeout(() => {
             i++;
             mostrarSiguienteColor();
-          }, 200);
-        }, 600);
+          }, 150); // Pausa más corta entre colores
+        }, velocidadFinal); // Tiempo que se muestra cada color
       } else {
         setMostrandoSecuencia(false);
         setJugando(true);
@@ -505,38 +606,41 @@ const SimonDice = ({ volverASeleccion, guardarEnRanking }) => {
     
     setTimeout(() => {
       mostrarSiguienteColor();
-    }, 500);
+    }, 300); // Menos espera antes de empezar
   };
 
   const manejarClickColor = (colorIndex) => {
-    if (!jugando || mostrandoSecuencia) return;
+    if (!juegoIniciado || !jugando || mostrandoSecuencia) return;
 
-    // Animación al hacer click
+    // Animación más rápida
     setBotonActivo(colorIndex);
-    setTimeout(() => setBotonActivo(null), 300);
+    setTimeout(() => setBotonActivo(null), 200); // Reducido de 300ms
 
     const nuevaJugadorSecuencia = [...jugadorSecuencia, colorIndex];
     setJugadorSecuencia(nuevaJugadorSecuencia);
 
-    // Verificar si es correcto
+    // Verificación inmediata
     if (nuevaJugadorSecuencia[nuevaJugadorSecuencia.length - 1] !== 
         secuencia[nuevaJugadorSecuencia.length - 1]) {
-      // Error - NUEVO: Calcular puntuación con bonus
       const tiempoTotalSegundos = Math.floor(tiempoTotal / 1000);
-      const puntuacionFinal = calcularPuntuacion(nivel, tiempoTotalSegundos);
+      const puntuacion = calcularPuntuacion(nivel, tiempoTotalSegundos, secuencia.length);
       
       setGameOver(true);
-      guardarEnRanking("simon-dice", puntuacionFinal, {
+      
+      guardarEnRanking("simon-dice", puntuacion.total, {
         nivelAlcanzado: nivel,
         secuenciaMaxima: secuencia.length,
         tiempoTotal: tiempoTotal,
         tiempoPromedioPorNivel: tiempoTotal / nivel,
-        bonusVelocidad: puntuacionFinal - (nivel * 10)
+        bonusVelocidad: puntuacion.desglose.bonusVelocidad,
+        factorUnico: puntuacion.desglose.factorUnico,
+        timestamp: Date.now(),
+        desglosePuntos: puntuacion.desglose
       });
       return;
     }
 
-    // Secuencia completa correcta - Guardar tiempo del nivel
+    // ✅ TRANSICIÓN MÁS RÁPIDA ENTRE NIVELES
     if (nuevaJugadorSecuencia.length === secuencia.length) {
       const tiempoNivel = Date.now() - tiempoInicioNivel;
       setTiemposPorNivel(prev => [...prev, tiempoNivel]);
@@ -545,17 +649,13 @@ const SimonDice = ({ volverASeleccion, guardarEnRanking }) => {
       setJugando(false);
       setTimeout(() => {
         setNivel(nivel + 1);
-        setTimeout(siguienteNivel, 800);
-      }, 1000);
+        setTimeout(siguienteNivel, 500); // Menos espera entre niveles
+      }, 600); // Menos feedback time
     }
   };
 
-  useEffect(() => {
-    iniciarJuego();
-  }, []);
-
   const obtenerClaseBoton = (index) => {
-    const baseClase = "w-14 h-14 text-xl rounded-full transition-all duration-300 transform flex items-center justify-center border-2 border-white border-opacity-30 ";
+    const baseClase = "w-14 h-14 text-xl rounded-full transition-all duration-200 transform flex items-center justify-center border-2 border-white border-opacity-30 "; // Duración reducida
     
     if (botonActivo === index) {
       return baseClase + "scale-110 shadow-lg ring-2 ring-white ring-opacity-70 animate-pulse";
@@ -572,16 +672,11 @@ const SimonDice = ({ volverASeleccion, guardarEnRanking }) => {
 
   return (
     <div className="text-center min-h-screen bg-gradient-to-br from-green-900 via-green-800 to-emerald-900 relative overflow-hidden py-6">
-      {/* Árbol de Navidad de fondo */}
       <div className="absolute top-4 right-4 pointer-events-none opacity-30">
-        <div className="relative">
-          <div className="text-4xl">🎄</div>
-        </div>
+        <div className="text-4xl">🎄</div>
       </div>
 
-      {/* Contenido principal */}
       <div className="relative z-10 max-w-md mx-auto px-4">
-        {/* Header */}
         <div className="mb-8">
           <h2 className="text-4xl font-bold mb-3 text-white drop-shadow-lg bg-gradient-to-r from-yellow-400 to-yellow-200 bg-clip-text text-transparent">
             🎮 Simón Dice
@@ -591,108 +686,149 @@ const SimonDice = ({ volverASeleccion, guardarEnRanking }) => {
           </p>
         </div>
 
-        {/* Panel de información */}
-        <div className="bg-gradient-to-br from-green-600 to-emerald-700 rounded-2xl p-6 mb-8 border-4 border-yellow-400 shadow-lg">
-          <div className="text-4xl font-bold text-white mb-3 drop-shadow-md">
-            Nivel {nivel}
-          </div>
-          <div className="text-white text-lg font-semibold mb-2">
-            {mostrandoSecuencia ? "🎄 Observa..." : 
-             gameOver ? "💥 ¡Game Over!" : 
-             "🎅 Tu turno"}
-          </div>
-          <div className="text-white text-sm opacity-90 mb-2">
-            Secuencia: {secuencia.length} colores
-          </div>
-          {/* Mostrar tiempo del nivel actual */}
-          {jugando && (
-            <div className="text-yellow-300 text-sm font-bold">
-              ⏱ Tiempo: {formatearTiempo(tiempoActual)}
+        {!juegoIniciado ? (
+          // PANTALLA DE INICIO CON BOTÓN VOLVER
+          <div className="bg-gradient-to-br from-green-600 to-emerald-700 rounded-2xl p-8 mb-6 border-4 border-yellow-400 shadow-lg">
+            <div className="text-3xl font-bold text-white mb-6 drop-shadow-md">
+              🎄 Simón Dice Navideño
             </div>
-          )}
-        </div>
+            
+            <div className="text-white text-left mb-6 space-y-3">
+              <p className="flex items-center">
+                <span className="text-yellow-300 mr-2">🎯</span>
+                Memoriza la secuencia de colores
+              </p>
+              <p className="flex items-center">
+                <span className="text-yellow-300 mr-2">⚡</span>
+                <strong>Velocidad mejorada</strong> - Más dinámico
+              </p>
+              <p className="flex items-center">
+                <span className="text-yellow-300 mr-2">🏆</span>
+                Sistema de puntos balanceado
+              </p>
+              <p className="flex items-center">
+                <span className="text-yellow-300 mr-2">🔥</span>
+                ¡Hasta que te equivoques!
+              </p>
+            </div>
 
-        {/* Tablero de juego */}
-        <div className="bg-black bg-opacity-50 rounded-2xl p-6 mb-8 border-4 border-yellow-500 shadow-lg backdrop-blur-sm">
-          <div className="grid grid-cols-4 gap-3 mx-auto">
-            {colores.map((color, index) => (
-              <button
-                key={index}
-                onClick={() => manejarClickColor(index)}
-                disabled={!jugando || mostrandoSecuencia || gameOver}
-                className={obtenerClaseBoton(index)}
-                style={{
-                  backgroundColor: botonActivo === index ? 
-                    getColorBackground(index, true) : 
-                    getColorBackground(index, false),
-                  opacity: (!jugando || mostrandoSecuencia || gameOver) && botonActivo !== index ? 0.5 : 1,
-                }}
-              >
-                <span className={botonActivo === index ? 'animate-bounce' : ''}>
-                  {color}
-                </span>
-              </button>
-            ))}
+            <button
+              onClick={iniciarJuego}
+              className="w-full bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white px-8 py-4 rounded-xl font-bold text-lg transition-all transform hover:scale-105 shadow-lg mb-3"
+            >
+              🎮 Iniciar Juego
+            </button>
+
+            {/* BOTÓN VOLVER A JUEGOS */}
+            <button
+              onClick={volverASeleccion}
+              className="w-full bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white px-8 py-3 rounded-xl font-bold transition-all transform hover:scale-105 shadow-lg"
+            >
+              ← Volver a Juegos
+            </button>
           </div>
-        </div>
+        ) : (
+          // JUEGO EN CURSO
+          <>
+            {/* Panel de información */}
+            <div className="bg-gradient-to-br from-green-600 to-emerald-700 rounded-2xl p-6 mb-8 border-4 border-yellow-400 shadow-lg">
+              <div className="text-4xl font-bold text-white mb-3 drop-shadow-md">
+                Nivel {nivel}
+              </div>
+              <div className="text-white text-lg font-semibold mb-2">
+                {mostrandoSecuencia ? "👀 Observa..." : 
+                 gameOver ? "💥 ¡Game Over!" : 
+                 "🎅 Tu turno"}
+              </div>
+              <div className="text-white text-sm opacity-90 mb-2">
+                Secuencia: {secuencia.length} colores
+              </div>
+              {jugando && (
+                <div className="text-yellow-300 text-sm font-bold">
+                  ⏱ {formatearTiempo(tiempoActual)}
+                </div>
+              )}
+            </div>
 
-        {/* Panel de Game Over - NUEVO: Con sistema de puntos mejorado */}
-        {gameOver && (
-          <div className="bg-gradient-to-br from-red-600 to-pink-700 border-4 border-red-300 rounded-2xl p-6 mb-6">
-            <p className="text-2xl font-bold text-white mb-3 drop-shadow-md">
-              🎯 Nivel {nivel} - {secuencia.length} colores
-            </p>
-            <div className="text-white text-sm mb-4 space-y-2">
-              <div>⏱ Tiempo total: {formatearTiempo(tiempoTotal)}</div>
-              <div>📊 Promedio por nivel: {formatearTiempo(tiempoTotal / Math.max(1, tiemposPorNivel.length))}</div>
-              <div>🏅 Puntos base: {nivel * 10}</div>
-              <div>⚡ Bonus velocidad: +{calcularPuntuacion(nivel, Math.floor(tiempoTotal / 1000)) - (nivel * 10)}</div>
-              <div className="text-yellow-300 font-bold text-lg">
-                🏆 Puntuación total: {calcularPuntuacion(nivel, Math.floor(tiempoTotal / 1000))} pts
+            {/* Tablero de juego */}
+            <div className="bg-black bg-opacity-50 rounded-2xl p-6 mb-8 border-4 border-yellow-500 shadow-lg backdrop-blur-sm">
+              <div className="grid grid-cols-4 gap-3 mx-auto">
+                {colores.map((color, index) => (
+                  <button
+                    key={index}
+                    onClick={() => manejarClickColor(index)}
+                    disabled={!jugando || mostrandoSecuencia || gameOver}
+                    className={obtenerClaseBoton(index)}
+                    style={{
+                      backgroundColor: botonActivo === index ? 
+                        getColorBackground(index, true) : 
+                        getColorBackground(index, false),
+                      opacity: (!jugando || mostrandoSecuencia || gameOver) && botonActivo !== index ? 0.5 : 1,
+                    }}
+                  >
+                    <span className={botonActivo === index ? 'animate-bounce' : ''}>
+                      {color}
+                    </span>
+                  </button>
+                ))}
               </div>
             </div>
-            <div className="space-y-3">
+
+            {/* Panel de Game Over */}
+            {gameOver && (
+              <div className="bg-gradient-to-br from-red-600 to-pink-700 border-4 border-red-300 rounded-2xl p-6 mb-6">
+                <p className="text-2xl font-bold text-white mb-3 drop-shadow-md">
+                  🎯 Nivel {nivel} - {secuencia.length} colores
+                </p>
+                <div className="text-white text-sm mb-4 space-y-2">
+                  <div>⏱ Tiempo total: {formatearTiempo(tiempoTotal)}</div>
+                  <div>📊 Promedio: {formatearTiempo(tiempoTotal / Math.max(1, tiemposPorNivel.length))}</div>
+                  <div className="text-yellow-300 font-bold text-lg">
+                    🏆 Puntuación: {calcularPuntuacion(nivel, Math.floor(tiempoTotal / 1000), secuencia.length).total} pts
+                  </div>
+                </div>
+                <div className="space-y-3">
+                  <button
+                    onClick={iniciarJuego}
+                    className="w-full bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white px-6 py-4 rounded-xl font-bold text-lg transition-all transform hover:scale-105 shadow-lg"
+                  >
+                    🔄 Jugar Otra Vez
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* Controles */}
+            <div className="flex gap-3 mb-8">
               <button
                 onClick={iniciarJuego}
-                className="w-full bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white px-6 py-4 rounded-xl font-bold text-lg transition-all transform hover:scale-105 shadow-lg"
+                className="flex-1 bg-gradient-to-r from-blue-600 to-cyan-700 hover:from-blue-700 hover:to-cyan-800 text-white py-3 rounded-xl font-bold transition-all shadow-lg"
               >
-                🔄 Jugar Otra Vez
+                🔁 Reiniciar
+              </button>
+              <button
+                onClick={volverASeleccion}
+                className="flex-1 bg-gradient-to-r from-purple-600 to-pink-700 hover:from-purple-700 hover:to-pink-800 text-white py-3 rounded-xl font-bold transition-all shadow-lg"
+              >
+                ← Volver
               </button>
             </div>
-          </div>
+          </>
         )}
 
-        {/* Controles */}
-        <div className="flex gap-3 mb-8">
-          <button
-            onClick={iniciarJuego}
-            className="flex-1 bg-gradient-to-r from-blue-600 to-cyan-700 hover:from-blue-700 hover:to-cyan-800 text-white py-3 rounded-xl font-bold transition-all shadow-lg"
-          >
-            🔁 Reiniciar
-          </button>
-          <button
-            onClick={volverASeleccion}
-            className="flex-1 bg-gradient-to-r from-purple-600 to-pink-700 hover:from-purple-700 hover:to-pink-800 text-white py-3 rounded-xl font-bold transition-all shadow-lg"
-          >
-            ← Volver
-          </button>
+        {/* Instrucciones */}
+        <div className="bg-white bg-opacity-15 rounded-xl p-4 text-white backdrop-blur-sm">
+          <p className="font-bold text-lg mb-3 text-yellow-300">🎯 Sistema Mejorado:</p>
+          <div className="space-y-1 text-left text-sm">
+            <p>✅ <strong>+12 puntos</strong> por nivel</p>
+            <p>📏 <strong>+6 puntos</strong> por color en secuencia</p>
+            <p>⚡ <strong>Hasta +25 bonus</strong> por velocidad</p>
+            <p>🎲 <strong>+1-8 puntos</strong> factor único</p>
+            <p>🔥 <strong>+2 puntos</strong> por nivel rápido</p>
+          </div>
         </div>
-
-        {/* Instrucciones - NUEVO: Con sistema de puntos explicado */}
-       <div className="bg-white bg-opacity-15 rounded-xl p-4 text-white backdrop-blur-sm">
-  <p className="font-bold text-lg mb-3 text-yellow-300">🎯 Sistema de Puntos:</p>
-  <div className="space-y-1 text-left text-sm">
-    <p>✅ <strong>+10 puntos</strong> por nivel completado</p>
-    <p>⚡ <strong>+5 bonus por nivel</strong> si promedio {"<"} 3s</p>
-    <p>⚡ <strong>+3 bonus por nivel</strong> si promedio {"<"} 5s</p>
-    <p>⚡ <strong>+2 bonus por nivel</strong> si promedio {"<"} 7s</p>
-    <p>⚡ <strong>+1 bonus por nivel</strong> si promedio {"<"} 10s</p>
-    <p>🎯 <strong>Nivel alto + velocidad = Máxima puntuación</strong></p>
-  </div>
-</div>
       </div>
 
-      {/* Decoraciones adicionales */}
       <div className="absolute bottom-4 left-4 text-2xl opacity-20">🎁</div>
       <div className="absolute bottom-4 right-4 text-2xl opacity-20">🌟</div>
     </div>
@@ -702,66 +838,20 @@ const SimonDice = ({ volverASeleccion, guardarEnRanking }) => {
 // Función helper para colores de fondo
 const getColorBackground = (index, isActive) => {
   const colors = [
-    isActive ? 'rgba(239, 68, 68, 0.9)' : 'rgba(239, 68, 68, 0.7)', // Rojo
-    isActive ? 'rgba(34, 197, 94, 0.9)' : 'rgba(34, 197, 94, 0.7)', // Verde
-    isActive ? 'rgba(234, 179, 8, 0.9)' : 'rgba(234, 179, 8, 0.7)', // Amarillo
-    isActive ? 'rgba(59, 130, 246, 0.9)' : 'rgba(59, 130, 246, 0.7)', // Azul
-    isActive ? 'rgba(168, 85, 247, 0.9)' : 'rgba(168, 85, 247, 0.7)', // Violeta
-    isActive ? 'rgba(249, 115, 22, 0.9)' : 'rgba(249, 115, 22, 0.7)', // Naranja
-    isActive ? 'rgba(255, 255, 255, 0.9)' : 'rgba(255, 255, 255, 0.7)', // Blanco
-    isActive ? 'rgba(139, 69, 19, 0.9)' : 'rgba(139, 69, 19, 0.7)'  // Marrón
+    isActive ? 'rgba(239, 68, 68, 0.9)' : 'rgba(239, 68, 68, 0.7)',
+    isActive ? 'rgba(34, 197, 94, 0.9)' : 'rgba(34, 197, 94, 0.7)',
+    isActive ? 'rgba(234, 179, 8, 0.9)' : 'rgba(234, 179, 8, 0.7)',
+    isActive ? 'rgba(59, 130, 246, 0.9)' : 'rgba(59, 130, 246, 0.7)',
+    isActive ? 'rgba(168, 85, 247, 0.9)' : 'rgba(168, 85, 247, 0.7)',
+    isActive ? 'rgba(249, 115, 22, 0.9)' : 'rgba(249, 115, 22, 0.7)',
+    isActive ? 'rgba(255, 255, 255, 0.9)' : 'rgba(255, 255, 255, 0.7)',
+    isActive ? 'rgba(139, 69, 19, 0.9)' : 'rgba(139, 69, 19, 0.7)'
   ];
   return colors[index % colors.length];
 };
 
-// Función MEJORADA para generar obstáculos - COMBINADA
-const generarObstaculos = () => {
-  const posicionActual = posicionRef.current;
-  
-  // Determinar cuántos obstáculos poner (1 o 2)
-  const numObstaculos = Math.random() < 0.6 ? 1 : 2;
-  
-  if (numObstaculos === 1) {
-    // Un solo obstáculo - 70% de probabilidad en la posición actual del jugador
-    const enPosicionJugador = Math.random() < 0.7;
-    const carrilObstaculo = enPosicionJugador ? posicionActual : Math.floor(Math.random() * 3);
-    
-    return [{
-      id: Date.now() + Math.random(),
-      carril: carrilObstaculo,
-      y: 5,
-      icono: emojis[Math.floor(Math.random() * emojis.length)],
-    }];
-  } else {
-    // Dos obstáculos - UNO de ellos en la posición del jugador
-    const carrilVacio = Math.floor(Math.random() * 3); // 0, 1 o 2
-    
-    // Si el carril vacío es donde está el jugador, elegir otro carril vacío
-    let carrilVacioFinal = carrilVacio;
-    if (carrilVacio === posicionActual) {
-      carrilVacioFinal = (posicionActual + 1 + Math.floor(Math.random() * 2)) % 3;
-    }
-    
-    const obstaculosLinea = [];
-    
-    // Agregar obstáculos en los otros dos carriles (uno será donde está el jugador)
-    for (let carril = 0; carril < 3; carril++) {
-      if (carril !== carrilVacioFinal) {
-        obstaculosLinea.push({
-          id: Date.now() + Math.random() + carril,
-          carril: carril,
-          y: 5,
-          icono: emojis[Math.floor(Math.random() * emojis.length)],
-        });
-      }
-    }
-    
-    return obstaculosLinea;
-  }
-};
-
 // =============================================
-// ⚡ 3. CARRERA-TRINEO - CÓDIGO BASE FUNCIONANDO
+// ⚡ 3. CARRERA-TRINEO - CON PANTALLA DE INICIO
 // =============================================
 const CarreraTrineo = ({ volverASeleccion, guardarEnRanking }) => {
   const [posicion, setPosicion] = useState(1);
@@ -769,6 +859,7 @@ const CarreraTrineo = ({ volverASeleccion, guardarEnRanking }) => {
   const [obstaculos, setObstaculos] = useState([]);
   const [puntuacion, setPuntuacion] = useState(0);
   const [gameOver, setGameOver] = useState(false);
+  const [juegoIniciado, setJuegoIniciado] = useState(false); // 🆕 ESTADO DE INICIO
 
   const posicionRef = useRef(posicion);
   const gameOverRef = useRef(gameOver);
@@ -776,19 +867,16 @@ const CarreraTrineo = ({ volverASeleccion, guardarEnRanking }) => {
   const dificultadRef = useRef(1);
   const ultimaGeneracionRef = useRef(0);
 
-  const emojis = ["🐻", "🌲", "🌳", "🪨", "🦊"];
+  const emojis = ["🌲", "🌳", "🪵"];
 
   useEffect(() => { posicionRef.current = posicion; }, [posicion]);
   useEffect(() => { gameOverRef.current = gameOver; }, [gameOver]);
   useEffect(() => { puntuacionRef.current = puntuacion; }, [puntuacion]);
 
-  // Función ORIGINAL que estaba funcionando
   const generarObstaculos = () => {
-    // Determinar cuántos obstáculos poner (1 o 2)
-    const numObstaculos = Math.random() < 0.6 ? 1 : 2;
+    const numObstaculos = Math.random() < 0.7 ? 1 : 2;
     
     if (numObstaculos === 1) {
-      // Un solo obstáculo en cualquier carril
       return [{
         id: Date.now() + Math.random(),
         carril: Math.floor(Math.random() * 3),
@@ -796,11 +884,9 @@ const CarreraTrineo = ({ volverASeleccion, guardarEnRanking }) => {
         icono: emojis[Math.floor(Math.random() * emojis.length)],
       }];
     } else {
-      // Dos obstáculos - elegir QUÉ CARRIL DEJAR VACÍO
-      const carrilVacio = Math.floor(Math.random() * 3); // 0, 1 o 2
+      const carrilVacio = Math.floor(Math.random() * 3);
       const obstaculosLinea = [];
       
-      // Agregar obstáculos en los otros dos carriles
       for (let carril = 0; carril < 3; carril++) {
         if (carril !== carrilVacio) {
           obstaculosLinea.push({
@@ -811,46 +897,45 @@ const CarreraTrineo = ({ volverASeleccion, guardarEnRanking }) => {
           });
         }
       }
-      
       return obstaculosLinea;
     }
   };
 
-  // Verificación simplificada
-  const esPatronJugable = (obstaculosLinea) => {
-    return true;
-  };
-
   useEffect(() => {
-    if (gameOverRef.current) return;
+    if (!juegoIniciado || gameOverRef.current) return;
 
     let tick = 0;
-    const interval = setInterval(() => {
+    let lastTime = Date.now();
+    
+    const gameLoop = () => {
       if (gameOverRef.current) return;
-
-      tick++;
       
-      // Aumentar dificultad progresivamente
-      if (tick % 500 === 0) {
-        dificultadRef.current = Math.min(3, dificultadRef.current + 0.1);
+      const now = Date.now();
+      const deltaTime = now - lastTime;
+      lastTime = now;
+      
+      tick++;
+
+      if (tick % 200 === 0) {
+        dificultadRef.current = Math.min(4, dificultadRef.current + 0.2);
       }
 
-      // Mover obstáculos hacia abajo
       setObstaculos(prev => {
-        const velocidad = 0.04 * dificultadRef.current;
+        const velocidad = 0.06 * dificultadRef.current;
         const nuevos = prev
           .map(o => ({ ...o, y: o.y - velocidad }))
           .filter(o => o.y > -1);
 
-        // Colisión cuando el obstáculo llega al snowboarder (línea 0)
         const colision = nuevos.some(o =>
-          o.y <= 1 && o.y >= 0.5 && o.carril === posicionRef.current
+          o.y <= 1.2 && o.y >= 0.8 && o.carril === posicionRef.current
         );
 
         if (colision) {
           setGameOver(true);
-          guardarEnRanking("carrera-trineo", puntuacionRef.current, {
+          const puntuacionFinal = Math.floor(puntuacionRef.current / 10);
+          guardarEnRanking("carrera-trineo", puntuacionFinal, {
             distancia: puntuacionRef.current,
+            distanciaFinal: puntuacionFinal,
             dificultad: dificultadRef.current,
           });
         }
@@ -858,12 +943,10 @@ const CarreraTrineo = ({ volverASeleccion, guardarEnRanking }) => {
         return nuevos;
       });
 
-      // GENERACIÓN CONTROLADA POR TIEMPO
-      const probAparicion = 0.03 * dificultadRef.current;
+      const probAparicion = 0.05 * dificultadRef.current;
       const tiempoDesdeUltimaGeneracion = tick - ultimaGeneracionRef.current;
       
-      // Generar obstáculos cada ~60-100 ticks
-      const frecuenciaGeneracion = Math.max(60, 100 - (dificultadRef.current * 15));
+      const frecuenciaGeneracion = Math.max(40, 80 - (dificultadRef.current * 20));
       
       if (tiempoDesdeUltimaGeneracion >= frecuenciaGeneracion && Math.random() < probAparicion) {
         const obstaculosLinea = generarObstaculos();
@@ -873,14 +956,30 @@ const CarreraTrineo = ({ volverASeleccion, guardarEnRanking }) => {
         }
       }
 
-      setPuntuacion(p => p + 1);
-    }, 30);
+      if (tick % 2 === 0) {
+        setPuntuacion(p => p + 1);
+      }
 
-    return () => clearInterval(interval);
-  }, []);
+      requestAnimationFrame(gameLoop);
+    };
+
+    const animationId = requestAnimationFrame(gameLoop);
+    return () => cancelAnimationFrame(animationId);
+  }, [juegoIniciado]); // 🆕 DEPENDE DE juegoIniciado
+
+  // 🆕 FUNCIÓN PARA INICIAR EL JUEGO
+  const iniciarJuego = () => {
+    setJuegoIniciado(true);
+    setGameOver(false);
+    setPuntuacion(0);
+    setObstaculos([]);
+    setPosicion(1);
+    dificultadRef.current = 1;
+    ultimaGeneracionRef.current = 0;
+  };
 
   const mover = (dir) => {
-    if (gameOverRef.current) return;
+    if (!juegoIniciado || gameOverRef.current) return;
     
     if (dir === "izq") {
       setPosicion(p => Math.max(0, p - 1));
@@ -898,14 +997,14 @@ const CarreraTrineo = ({ volverASeleccion, guardarEnRanking }) => {
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, []);
+  }, [juegoIniciado]);
 
   const reiniciar = () => {
-    setPosicion(1);
-    setDireccion("left");
-    setObstaculos([]);
-    setPuntuacion(0);
+    setJuegoIniciado(true);
     setGameOver(false);
+    setPuntuacion(0);
+    setObstaculos([]);
+    setPosicion(1);
     dificultadRef.current = 1;
     ultimaGeneracionRef.current = 0;
   };
@@ -916,84 +1015,111 @@ const CarreraTrineo = ({ volverASeleccion, guardarEnRanking }) => {
     );
   };
 
+  const puntuacionVisual = Math.floor(puntuacion / 10);
+
   return (
     <div className="text-center max-w-md mx-auto">
-      <h2 className="text-3xl font-bold mb-4 text-green-800">🏔️ Carrera del Bosque</h2>
-      <div className="text-xl mb-3 text-gray-700">Distancia: {puntuacion}</div>
-
-      <div className="relative bg-gradient-to-b from-blue-50 to-blue-100 rounded-2xl p-3 mx-auto h-80 overflow-hidden border-2 border-blue-300 shadow-lg">
-        {[0, 1, 2, 3, 4, 5].map(fila => (
-          <div key={fila} className="flex justify-center gap-8 h-1/6">
-            {[0, 1, 2].map(carril => {
-              const tieneObs = tieneObstaculo(fila, carril);
-              const esSnowboarder = fila === 0 && carril === posicion;
-              
-              return (
-                <div key={carril} className="w-12 h-full flex items-center justify-center">
-                  {esSnowboarder ? (
-                    <span className={`text-3xl transition-transform duration-200 ${
-                      direccion === "right" ? "scale-x-[-1]" : ""
-                    }`}>
-                      🏂
-                    </span>
-                  ) : (
-                    tieneObs && (
-                      <span className="text-2xl animate-pulse">
-                        {obstaculos.find(o => 
-                          Math.floor(o.y) === fila && o.carril === carril
-                        )?.icono}
-                      </span>
-                    )
-                  )}
-                </div>
-              );
-            })}
-          </div>
-        ))}
-      </div>
-
-      <div className="flex justify-center gap-6 mt-6 mb-4">
-        <button
-          onClick={() => mover("izq")}
-          className="bg-green-500 hover:bg-green-600 text-white w-14 h-14 rounded-full shadow-md active:scale-95 transition-all flex items-center justify-center text-xl font-bold"
-        >
-          ←
-        </button>
-        <button
-          onClick={() => mover("der")}
-          className="bg-green-500 hover:bg-green-600 text-white w-14 h-14 rounded-full shadow-md active:scale-95 transition-all flex items-center justify-center text-xl font-bold"
-        >
-          →
-        </button>
-      </div>
-
-      {gameOver && (
-        <div className="mt-4 bg-red-100 border-2 border-red-400 rounded-xl p-4">
-          <p className="text-red-700 font-bold mb-2 text-lg">💥 ¡Te estrellaste!</p>
-          <p className="text-gray-700 mb-3">Distancia: {puntuacion}</p>
-          <div className="flex gap-3">
-            <button
-              onClick={reiniciar}
-              className="flex-1 bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg font-bold transition-all"
-            >
-              🔄 Jugar Otra Vez
-            </button>
-            <button
-              onClick={volverASeleccion}
-              className="flex-1 bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg font-bold transition-all"
-            >
-              ← Volver
-            </button>
-          </div>
+      <h2 className="text-3xl font-bold mb-4 text-green-800">🎿 Carrera de Trineo</h2>
+      
+      {/* 🆕 PANTALLA DE INICIO */}
+      {!juegoIniciado && !gameOver && (
+        <div className="bg-gradient-to-br from-green-100 to-blue-100 rounded-2xl p-8 mb-6 border-2 border-green-300">
+          <div className="text-4xl mb-4">🎿</div>
+          <h3 className="text-2xl font-bold text-green-800 mb-4">Carrera de Trineo</h3>
+          <p className="text-gray-700 mb-2">• Esquiva los obstáculos con ← →</p>
+          <p className="text-gray-700 mb-2">• Más puntos por mayor distancia</p>
+          <p className="text-gray-700 mb-4">• La velocidad aumenta progresivamente</p>
+          
+          <button
+            onClick={iniciarJuego}
+            className="bg-green-500 hover:bg-green-600 text-white px-8 py-4 rounded-xl font-bold text-lg transition-all w-full transform hover:scale-105"
+          >
+            🎮 Iniciar Carrera
+          </button>
         </div>
       )}
 
-      {!gameOver && (
+      {/* JUEGO EN CURSO O GAME OVER */}
+      {(juegoIniciado || gameOver) && (
+        <>
+          <div className="text-xl mb-3 text-gray-700">Puntos: {puntuacionVisual}</div>
+
+          <div className="relative bg-gradient-to-b from-blue-50 to-blue-100 rounded-2xl p-2 mx-auto h-64 overflow-hidden border-2 border-blue-300 shadow-lg">
+            {[0, 1, 2, 3, 4].map(fila => (
+              <div key={fila} className="flex justify-center gap-6 h-1/5">
+                {[0, 1, 2].map(carril => {
+                  const tieneObs = tieneObstaculo(fila, carril);
+                  const esSnowboarder = fila === 0 && carril === posicion;
+                  
+                  return (
+                    <div key={carril} className="w-10 h-full flex items-center justify-center">
+                      {esSnowboarder ? (
+                        <span className={`text-2xl transition-transform duration-150 ${
+                          direccion === "right" ? "scale-x-[-1]" : ""
+                        }`}>
+                          🏂
+                        </span>
+                      ) : (
+                        tieneObs && (
+                          <span className="text-xl animate-pulse">
+                            {obstaculos.find(o => 
+                              Math.floor(o.y) === fila && o.carril === carril
+                            )?.icono}
+                          </span>
+                        )
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            ))}
+          </div>
+
+          <div className="flex justify-center gap-8 mt-6 mb-4">
+            <button
+              onClick={() => mover("izq")}
+              className="bg-green-500 hover:bg-green-600 text-white w-16 h-16 rounded-full shadow-lg active:scale-95 transition-all flex items-center justify-center text-2xl font-bold"
+            >
+              ←
+            </button>
+            <button
+              onClick={() => mover("der")}
+              className="bg-green-500 hover:bg-green-600 text-white w-16 h-16 rounded-full shadow-lg active:scale-95 transition-all flex items-center justify-center text-2xl font-bold"
+            >
+              →
+            </button>
+          </div>
+
+          {gameOver && (
+            <div className="mt-4 bg-red-100 border-2 border-red-400 rounded-xl p-4">
+              <p className="text-red-700 font-bold mb-2 text-lg">💥 ¡Te estrellaste!</p>
+              <p className="text-gray-700 mb-3">Puntuación final: <strong>{puntuacionVisual}</strong></p>
+              <div className="flex gap-3">
+                <button
+                  onClick={reiniciar}
+                  className="flex-1 bg-green-600 hover:bg-green-700 text-white px-4 py-3 rounded-lg font-bold transition-all"
+                >
+                  🔄 Jugar Otra Vez
+                </button>
+                <button
+                  onClick={volverASeleccion}
+                  className="flex-1 bg-gray-600 hover:bg-gray-700 text-white px-4 py-3 rounded-lg font-bold transition-all"
+                >
+                  ← Volver
+                </button>
+              </div>
+            </div>
+          )}
+        </>
+      )}
+
+      {/* BOTÓN VOLVER (solo cuando no hay juego activo) */}
+      {(!juegoIniciado || gameOver) && (
         <button
           onClick={volverASeleccion}
           className="mt-4 w-full bg-gradient-to-r from-green-500 to-emerald-600 text-white py-3 rounded-xl font-bold hover:from-green-600 hover:to-emerald-700 transition-all"
         >
-          ← Volver a Juegos
+          ← Volver a Juegos 2.0
         </button>
       )}
     </div>
@@ -1309,13 +1435,24 @@ const MemoryAvanzado = ({ volverASeleccion, guardarEnRanking }) => {
       
       setTimeout(() => {
         const [primeraIndex, segundaIndex] = nuevasVolteadas;
-        if (cartas[primeraIndex].emoji === cartas[segundaIndex].emoji) {
-          nuevasCartas[primeraIndex].encontrada = true;
-          nuevasCartas[segundaIndex].encontrada = true;
+        
+        // Crear una nueva copia para evitar problemas de referencia
+        const cartasActualizadas = [...cartas];
+        
+        if (cartasActualizadas[primeraIndex].emoji === cartasActualizadas[segundaIndex].emoji) {
+          cartasActualizadas[primeraIndex].encontrada = true;
+          cartasActualizadas[segundaIndex].encontrada = true;
           
-          setParesEncontrados(prev => {
-            const nuevosPares = prev + 1;
-            if (nuevosPares === emojisNavidenos.length) {
+          // Actualizar el estado de las cartas primero
+          setCartas(cartasActualizadas);
+          
+          // Luego calcular los nuevos pares encontrados
+          const nuevosPares = paresEncontrados + 1;
+          setParesEncontrados(nuevosPares);
+          
+          // Verificar si el juego terminó
+          if (nuevosPares === emojisNavidenos.length) {
+            setTimeout(() => {
               setJuegoTerminado(true);
               const puntuacion = calcularPuntuacionMemory(nuevosMovimientos);
               guardarEnRanking("memory-avanzado", puntuacion, {
@@ -1323,15 +1460,14 @@ const MemoryAvanzado = ({ volverASeleccion, guardarEnRanking }) => {
                 pares: emojisNavidenos.length,
                 eficiencia: (emojisNavidenos.length / nuevosMovimientos).toFixed(2)
               });
-            }
-            return nuevosPares;
-          });
+            }, 500);
+          }
         } else {
-          nuevasCartas[primeraIndex].volteada = false;
-          nuevasCartas[segundaIndex].volteada = false;
+          cartasActualizadas[primeraIndex].volteada = false;
+          cartasActualizadas[segundaIndex].volteada = false;
+          setCartas(cartasActualizadas);
         }
         
-        setCartas([...nuevasCartas]);
         setCartasVolteadas([]);
         setBloquearClics(false);
         setEfectoGiro(null);
@@ -1410,14 +1546,16 @@ const MemoryAvanzado = ({ volverASeleccion, guardarEnRanking }) => {
             <button
               key={carta.id}
               onClick={() => voltearCarta(index)}
-              disabled={carta.encontrada || bloquearClics}
+              disabled={carta.encontrada || bloquearClics || juegoTerminado}
               className={`w-12 h-12 sm:w-14 sm:h-14 text-lg sm:text-xl rounded-lg transition-all duration-300 transform ${
                 efectoGiro === index ? 'animate-flip' : ''
               } ${
                 carta.volteada || carta.encontrada 
                   ? 'bg-white border-2 border-green-500 shadow-md scale-105' 
                   : 'bg-gradient-to-br from-green-500 to-red-500 hover:from-green-600 hover:to-red-600 text-white shadow-lg hover:scale-105'
-              } ${carta.encontrada ? 'ring-2 ring-green-500 shadow-lg animate-pulse' : ''}`}
+              } ${carta.encontrada ? 'ring-2 ring-green-500 shadow-lg' : ''} ${
+                juegoTerminado && carta.encontrada ? 'animate-pulse' : ''
+              }`}
             >
               <div className={`transition-all duration-300 ${
                 carta.volteada || carta.encontrada ? 'opacity-100' : 'opacity-0'
@@ -1431,7 +1569,7 @@ const MemoryAvanzado = ({ volverASeleccion, guardarEnRanking }) => {
 
       {/* Mensaje de juego terminado */}
       {juegoTerminado && (
-        <div className="bg-gradient-to-br from-green-100 to-red-100 border-2 border-green-400 rounded-2xl p-6 mb-4 shadow-lg">
+        <div className="bg-gradient-to-br from-green-100 to-red-100 border-2 border-green-400 rounded-2xl p-6 mb-4 shadow-lg animate-fade-in">
           <div className="text-4xl mb-3">🎉 ¡Feliz Navidad!</div>
           <div className={`text-2xl font-bold mb-2 ${nivel.color}`}>
             {nivel.texto}
@@ -1486,14 +1624,19 @@ const MemoryAvanzado = ({ volverASeleccion, guardarEnRanking }) => {
           50% { transform: rotateY(90deg) scale(1.1); }
           100% { transform: rotateY(0deg) scale(1); }
         }
+        @keyframes fade-in {
+          0% { opacity: 0; transform: translateY(20px); }
+          100% { opacity: 1; transform: translateY(0); }
+        }
         .animate-flip { animation: flip 0.6s ease-in-out; }
+        .animate-fade-in { animation: fade-in 0.5s ease-out; }
       `}</style>
     </div>
   );
 };
 
 // =============================================
-// 🏆 COMPONENTE RANKING JUEGO 2 (ORIGINAL CON FIREBASE Y AVATARES)
+// 🏆 COMPONENTE RANKING CORREGIDO (ESPACIADO FIXED)
 // =============================================
 const RankingJuego2 = ({ juegoId, juegoNombre, rankingGlobal, usuarioActual, obtenerMejorPuntuacionPersonal }) => {
   const [rankingCompleto, setRankingCompleto] = useState([]);
@@ -1506,11 +1649,8 @@ const RankingJuego2 = ({ juegoId, juegoNombre, rankingGlobal, usuarioActual, obt
   const cargarRankingCompleto = async () => {
     try {
       setCargando(true);
-      
-      // Obtener el ranking específico del juego desde Firebase
       const rankingJuego = await gobaService.obtenerRankingJuego(juegoId);
       
-      // Ordenar por puntuación y tomar top 5
       const topJugadores = rankingJuego
         .sort((a, b) => b.mejorPuntuacion - a.mejorPuntuacion)
         .slice(0, 5)
@@ -1529,116 +1669,66 @@ const RankingJuego2 = ({ juegoId, juegoNombre, rankingGlobal, usuarioActual, obt
     }
   };
 
-  const obtenerEmojiPosicion = (posicion) => {
-    switch(posicion) {
-      case 1: return "🥇";
-      case 2: return "🥈";
-      case 3: return "🥉";
-      case 4: return "4️⃣";
-      case 5: return "5️⃣";
-      default: return "🔹";
-    }
-  };
-
-  const obtenerClasePosicion = (posicion) => {
-    switch(posicion) {
-      case 1: return "bg-gradient-to-r from-yellow-100 to-amber-100 border-2 border-yellow-300";
-      case 2: return "bg-gradient-to-r from-gray-100 to-gray-200 border-2 border-gray-300";
-      case 3: return "bg-gradient-to-r from-orange-100 to-amber-100 border-2 border-orange-300";
-      default: return "bg-white border border-gray-200";
-    }
-  };
-
   if (cargando) {
     return (
-      <div className="bg-white rounded-xl p-4 shadow-lg border-2 border-gray-200">
-        <h3 className="font-bold text-gray-800 mb-3 text-center">{juegoNombre}</h3>
-        <div className="text-center py-4">
-          <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-500 mx-auto"></div>
-          <p className="text-gray-500 text-sm mt-2">Cargando...</p>
+      <div className="bg-white rounded-2xl p-4 shadow-lg border-2 border-gray-200">
+        <h4 className="text-lg font-bold mb-3 text-center">{juegoNombre}</h4>
+        <div className="text-center py-6">
+          <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-purple-500 mx-auto"></div>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="bg-white rounded-xl p-4 shadow-lg border-2 border-purple-200">
-      <h3 className="font-bold text-gray-800 mb-3 text-center text-sm bg-purple-50 rounded-lg py-2 border border-purple-100">
+    <div className="bg-white rounded-2xl p-4 shadow-lg border-2 border-gray-200">
+      <h4 className="text-lg font-bold mb-4 text-center text-gray-800">
         {juegoNombre}
-      </h3>
+      </h4>
       
-      <div className="space-y-2 mb-3">
+      <div className="space-y-2">
         {rankingCompleto.length > 0 ? (
           rankingCompleto.map((jugador) => (
             <div 
               key={jugador.usuarioId}
-              className={`flex items-center gap-3 p-2 rounded-lg transition-all ${
-                obtenerClasePosicion(jugador.posicion)
-              } ${jugador.esUsuarioActual ? 'ring-2 ring-blue-400 shadow-md' : ''}`}
+              className={`flex items-center justify-between p-2 rounded-lg ${
+                jugador.esUsuarioActual 
+                  ? 'bg-blue-50 border border-blue-300' 
+                  : 'bg-gray-50 border border-gray-200'
+              }`}
             >
-              {/* Avatar y posición */}
+              {/* CONTENEDOR FLEXIBLE PARA NOMBRE COMPLETO */}
               <div className="flex items-center gap-2 flex-1 min-w-0">
-                <span className="text-sm font-bold w-6 text-center">
-                  {obtenerEmojiPosicion(jugador.posicion)}
-                </span>
-                
-                {/* Avatar del usuario */}
-                <div className="w-8 h-8 rounded-full bg-gradient-to-r from-blue-400 to-purple-500 flex items-center justify-center text-white text-xs font-bold overflow-hidden">
-                  {jugador.avatar ? (
-                    <img 
-                      src={jugador.avatar} 
-                      alt="Avatar" 
-                      className="w-full h-full object-cover"
-                    />
-                  ) : (
-                    jugador.nombre?.charAt(0)?.toUpperCase() || "U"
-                  )}
+                <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${
+                  jugador.posicion === 1 ? 'bg-yellow-400 text-white' :
+                  jugador.posicion === 2 ? 'bg-gray-400 text-white' :
+                  jugador.posicion === 3 ? 'bg-orange-400 text-white' :
+                  'bg-blue-400 text-white'
+                }`}>
+                  {jugador.posicion}
                 </div>
                 
-                {/* Nombre del jugador */}
-                <span className={`text-sm font-medium truncate flex-1 ${
-                  jugador.esUsuarioActual ? 'text-blue-600 font-bold' : 'text-gray-700'
+                {/* NOMBRE COMPLETO CON ESPACIO ADECUADO */}
+                <span className={`text-sm font-medium flex-1 min-w-0 ${
+                  jugador.esUsuarioActual ? 'text-blue-600 font-semibold' : 'text-gray-700'
                 }`}>
-                  {jugador.esUsuarioActual ? "TÚ" : jugador.nombre}
+                  {jugador.nombre}
                 </span>
               </div>
               
-              {/* Puntuación */}
-              <span className={`text-sm font-bold px-2 py-1 rounded-full ${
-                jugador.posicion === 1 ? 'bg-yellow-100 text-yellow-700' :
-                jugador.posicion === 2 ? 'bg-gray-100 text-gray-700' :
-                jugador.posicion === 3 ? 'bg-orange-100 text-orange-700' :
-                'bg-blue-50 text-blue-600'
-              }`}>
+              {/* PUNTUACIÓN COMPACTA */}
+              <span className="text-sm font-bold text-gray-800 whitespace-nowrap ml-2">
                 {jugador.mejorPuntuacion}
               </span>
             </div>
           ))
         ) : (
-          <div className="text-center py-6 bg-gray-50 rounded-lg border border-gray-200">
-            <div className="text-2xl mb-2">🏆</div>
+          <div className="text-center py-6 bg-gray-50 rounded-lg border border-dashed border-gray-300">
             <p className="text-gray-500 text-sm">Sin datos aún</p>
-            <p className="text-gray-400 text-xs mt-1">Sé el primero en jugar!</p>
+            <p className="text-gray-400 text-xs mt-1">¡Sé el primero!</p>
           </div>
         )}
       </div>
-      
-      {/* Información del usuario actual */}
-      {usuarioActual && (
-        <div className="border-t border-gray-200 pt-3 mt-2">
-          <div className="flex items-center justify-between bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg p-2 border border-blue-200">
-            <div className="flex items-center gap-2">
-              <div className="w-6 h-6 rounded-full bg-gradient-to-r from-green-400 to-blue-500 flex items-center justify-center text-white text-xs font-bold">
-                {usuarioActual.nombre?.charAt(0)?.toUpperCase() || "U"}
-              </div>
-              <span className="text-xs font-semibold text-blue-700">Tu mejor:</span>
-            </div>
-            <span className="font-bold text-green-600 bg-white px-2 py-1 rounded-full border border-green-300 text-sm">
-              {rankingGlobal[juegoId]?.[usuarioActual.id]?.puntuacion || 0} pts
-            </span>
-          </div>
-        </div>
-      )}
     </div>
   );
 };
@@ -1659,48 +1749,48 @@ export default function Juegos2() {
   const juegos2 = [
       {
     id: "wordle-navideno",  // 🆕 NUEVO ID
-    nombre: "🔤 Wordle Navideño",
+    nombre: " Wordle Navideño",
     descripcion: "Adivina palabras navideñas",
     icono: "🔤",
     color: "from-blue-500 to-purple-500",  // 🆕 Nuevos colores
-    dificultad: "Medio",
-    edad: "8+"
+    dificultad: "Desafiante"
+    
   },
     {
       id: "simon-dice",
-      nombre: "🎮 Simón Dice",
+      nombre: "Simón Dice",
       descripcion: "Memoriza secuencias de luces",
       icono: "🎮",
       color: "from-green-500 to-blue-500",
       dificultad: "Medio",
-      edad: "5+"
+    
     },
     {
       id: "carrera-trineo",
-      nombre: "🦌 Carrera de Trineo", 
-      descripcion: "Esquiva obstáculos con el trineo",
-      icono: "🦌",
+      nombre: " Carrera de ski", 
+      descripcion: "Esquiva obstáculos con el Ski",
+      icono: "🎿",
       color: "from-red-500 to-orange-500",
-      dificultad: "Difícil",
-      edad: "7+"
+      dificultad: "Medio",
+     
     },
     {
       id: "click-reaccion",
-      nombre: "⚡ Click Reacción",
+      nombre: "Click Reacción",
       descripcion: "Test de reflejos y velocidad",
       icono: "⚡",
       color: "from-yellow-500 to-amber-500",
       dificultad: "Medio", 
-      edad: "6+"
+  
     },
     {
       id: "memory-avanzado",
-      nombre: "🧠 Memory Avanzado",
+      nombre: "Memory Avanzado",
       descripcion: "20 pares con sistema de puntos mejorado",
       icono: "🧠",
       color: "from-indigo-500 to-purple-600",
       dificultad: "Desafiante",
-      edad: "8+"
+     
     }
   ];
 
@@ -1823,10 +1913,10 @@ export default function Juegos2() {
         {/* HEADER */}
         <div className="text-center mb-12">
           <h1 className="text-5xl font-bold text-gray-800 mb-4 bg-gradient-to-r from-purple-600 via-pink-500 to-blue-600 bg-clip-text text-transparent">
-            🎮 Juegos 2.0 
+            🎮 Juegos 2 
           </h1>
           <p className="text-xl text-gray-600 mb-8 font-light">
-            Juegos completamente nuevos con ranking en tiempo real
+            Premios a líder de cada juego el Domingo a las 6pm! 
           </p>
           
           {mensaje && (
@@ -1859,9 +1949,7 @@ export default function Juegos2() {
                     <div className="bg-white/20 rounded-full px-3 py-1 text-sm">
                       {juego.dificultad}
                     </div>
-                    <div className="bg-white/20 rounded-full px-3 py-1 text-sm">
-                      Edad: {juego.edad}
-                    </div>
+                   
                   </div>
                   <div className="mt-2 bg-white/30 rounded-full px-3 py-1 text-sm">
                     Mejor: {rankingGlobal[juego.id]?.[usuarioActual.id]?.puntuacion || 0} pts
