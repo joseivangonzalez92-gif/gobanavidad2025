@@ -6,11 +6,19 @@ import { gobaService } from "../services/firebaseService";
 // =============================================
 // 🔤 1. COMPONENTE WORDLE NAVIDEÑO - 5 PALABRAS POR SESIÓN (CORREGIDO)
 // =============================================
-const WordleNavideno = ({ volverASeleccion, guardarEnRanking }) => {
+const WordleNavideno = ({ volverASeleccion, guardarEnRanking, puedeJugar, onJuegoCompletado }) => {
   const PALABRAS = [
-    "NIEVE", "REGALO", "PAZ", "AMOR", "BELEN", "CAMPANA", "ESTRELLA", 
-    "RENOS", "FAMILIA", "TAMAL", "CORONA", "VELA", "TRINEO", "DUENDE",
-    "GORRO", "ROMPOPO", "NOEL", "ANGEL", "INVIERNO", "DICIEMBRE", "PINO", "LUCES", "VILLANCICO", "POSTAL", "BOTA", "ROSCA", "NACIMIENTO", "ALEGRIA", "TARJETA", "ESPERANZA", "MAGIA", "CARTA", "MUERDAGO", "COPOS", "UVAS", "BOLA", "BAILE", "FIESTA", "NAVIDAD", "ADORNO", "COHETES", "CERDO", "NIÑO", "JESUS", "PAVO", "PASTOR", "BURRO", "POSADAS", "PESEBRE"
+     "NACIMIENTO", "PESEBRE", "PASTORES", "REYES", "MAGOS", "ESTRELLA", "BELEN", 
+  "JESUS", "MARIA", "JOSE", "ANGEL", "ARCANGEL", "SERAFIN", "MISAS", "IGLESIA", "PONCHE", "TAMALES", "BUÑUELOS", "ATOL", "ROMERITOS", "BACALAO", "PAVO",
+  "PIÑATA", "DULCES", "GALLETAS", "CHOCOLATE", "TURRON", "POLVORONES","ESFERAS", "GUIRNALDAS", "CAMPANAS", "VELAS", "LUCES", "ESTRELLAS", "MOÑOS",
+  "LISTONES", "CORONAS", "CALENDARIO", "ADVIENTO", "PORTAL", "PESEBRE", "SANTA", "DUENDES", "RENOS", "TRINEO", "CARROS", "REGALOS", "CARTAS",
+  "CARBON", "ZAPATOS", "CHIMENEA", "NORTE", "POLO", "AURORA", "UVAS", "CAMPANADAS", "RELOL", "DOCE", "MEDIANOCHE", "BRINDIS", "COPAS",
+  "FUEGOS", "ARTIFICIO", "PETARDOS", "SERENATA", "ABRAZOS", "BESOS",
+  "PROPOSITOS", "METAS", "FELICIDAD", "SALUD", "PROSPERIDAD", "AMISTAD", "POSADAS", "PIÑATAS", "VILLANCICOS", "AGUINALDOS", "NOCHEBUENA", "NAVIDAD",
+  "AÑONUEVO", "REYES", "CARROS", "CABALGATA", "OBSEQUIO", "SORPRESA", "ESPERANZA", "PAZ", "AMOR", "ALEGRIA", "FELICIDAD", "ILUSION", "MAGIA",
+  "MILAGRO", "FE", "CARIDAD", "SOLIDARIDAD", "FAMILIA", "UNION", "COMPARTIR",   "NIEVE", "HIELO", "FRIO", "INVIERNO", "NEBLINA", "ESCARCHA", "COPO",
+  "VENTISCA", "ABRIGO", "BUFANDA", "GUANTES", "GORRO", "BOTAS", "CHAMARRA",  "FELIZ", "PROSPERO", "BENDICION", "GRACIAS", "PERDON", "RENACER", "NUEVO",
+  "COMIENZO", "CAMINO", "FUTURO", "SUEÑOS", "ESPERANZAS", "ILUSIONES"
   ];
 
   const [palabraSecreta, setPalabraSecreta] = useState("");
@@ -58,6 +66,8 @@ const WordleNavideno = ({ volverASeleccion, guardarEnRanking }) => {
         sesionCompleta: true,
         timestamp: Date.now()
       });
+      // Marcar juego como completado para el día
+      onJuegoCompletado("wordle-navideno");
     }
   }, [palabrasResueltas, juegoIniciado]);
 
@@ -81,6 +91,8 @@ const WordleNavideno = ({ volverASeleccion, guardarEnRanking }) => {
   };
 
   const iniciarJuego = () => {
+    if (!puedeJugar) return;
+    
     setJuegoIniciado(true);
     setPalabrasResueltas(0);
     setPuntuacionAcumulada(0);
@@ -152,7 +164,7 @@ const WordleNavideno = ({ volverASeleccion, guardarEnRanking }) => {
   };
 
   const manejarClickLetra = (letra, index) => {
-    if (!juegoIniciado || juegoTerminado || sesionTerminada || letra === "") return;
+    if (!puedeJugar || !juegoIniciado || juegoTerminado || sesionTerminada || letra === "") return;
 
     const primeraPosicionVacia = intentoActual.findIndex(pos => pos === "");
     
@@ -235,7 +247,7 @@ const WordleNavideno = ({ volverASeleccion, guardarEnRanking }) => {
   };
 
   const manejarBorrar = () => {
-    if (!juegoIniciado || juegoTerminado || sesionTerminada) return;
+    if (!puedeJugar || !juegoIniciado || juegoTerminado || sesionTerminada) return;
 
     const ultimaPosicionLlena = intentoActual.reduce((acc, letra, index) => {
       return letra !== "" ? index : acc;
@@ -284,6 +296,13 @@ const WordleNavideno = ({ volverASeleccion, guardarEnRanking }) => {
     <div className="text-center max-w-md mx-auto">
       <h2 className="text-3xl font-bold mb-6">🔤 Wordle Navideño</h2>
       
+      {!puedeJugar && (
+        <div className="bg-yellow-100 border-2 border-yellow-400 rounded-2xl p-6 mb-6">
+          <div className="text-2xl font-bold mb-2">⏰ Juego Completado</div>
+          <p className="text-yellow-700 mb-4">Ya jugaste Wordle Navideño hoy. Vuelve mañana para jugar otra vez.</p>
+        </div>
+      )}
+      
       {!juegoIniciado ? (
         <div className="bg-gradient-to-br from-green-100 to-blue-100 rounded-2xl p-8 mb-6">
           <div className="text-2xl font-bold mb-4">🎄 Wordle Navideño</div>
@@ -293,9 +312,14 @@ const WordleNavideno = ({ volverASeleccion, guardarEnRanking }) => {
           
           <button
             onClick={iniciarJuego}
-            className="bg-green-500 hover:bg-green-600 text-white px-8 py-4 rounded-xl font-bold text-lg transition-all w-full"
+            disabled={!puedeJugar}
+            className={`${
+              puedeJugar 
+                ? 'bg-green-500 hover:bg-green-600 cursor-pointer' 
+                : 'bg-gray-400 cursor-not-allowed'
+            } text-white px-8 py-4 rounded-xl font-bold text-lg transition-all w-full`}
           >
-            🎮 Iniciar Juego
+            {puedeJugar ? '🎮 Iniciar Juego' : '⏰ Ya jugado hoy'}
           </button>
         </div>
       ) : (
@@ -356,7 +380,7 @@ const WordleNavideno = ({ volverASeleccion, guardarEnRanking }) => {
                     <button
                       key={index}
                       onClick={() => manejarClickLetra(letra, index)}
-                      disabled={juegoTerminado || letra === ""}
+                      disabled={!puedeJugar || juegoTerminado || letra === ""}
                       className={`w-10 h-10 text-lg font-bold rounded transition-all ${
                         letra === "" 
                           ? 'bg-gray-200 text-gray-200 cursor-default' 
@@ -372,7 +396,7 @@ const WordleNavideno = ({ volverASeleccion, guardarEnRanking }) => {
               <div className="flex gap-2 mb-6">
                 <button
                   onClick={manejarBorrar}
-                  disabled={juegoTerminado || intentoActual.every(letra => letra === "")}
+                  disabled={!puedeJugar || juegoTerminado || intentoActual.every(letra => letra === "")}
                   className="flex-1 bg-red-500 hover:bg-red-600 text-white py-3 rounded-xl font-bold transition-all disabled:bg-gray-300 disabled:cursor-not-allowed"
                 >
                   ⌫ Borrar
@@ -389,7 +413,7 @@ const WordleNavideno = ({ volverASeleccion, guardarEnRanking }) => {
                       }, 500);
                     }
                   }}
-                  disabled={juegoTerminado || palabrasResueltas >= 5}
+                  disabled={!puedeJugar || juegoTerminado || palabrasResueltas >= 5}
                   className="flex-1 bg-blue-500 hover:bg-blue-600 text-white py-3 rounded-xl font-bold transition-all disabled:bg-gray-300 disabled:cursor-not-allowed"
                 >
                   🔄 Saltar
@@ -438,12 +462,10 @@ const WordleNavideno = ({ volverASeleccion, guardarEnRanking }) => {
                 </div>
               </div>
 
-              <button
-                onClick={iniciarJuego}
-                className="bg-green-500 hover:bg-green-600 text-white px-6 py-3 rounded-xl font-bold transition-all w-full mb-2"
-              >
-                🔄 Nueva Sesión (5 Palabras)
-              </button>
+              <div className="bg-yellow-100 border-2 border-yellow-400 rounded-xl p-4 mb-4">
+                <p className="text-yellow-700 font-bold">⏰ Juego completado por hoy</p>
+                <p className="text-yellow-600 text-sm">Vuelve mañana para jugar otra vez</p>
+              </div>
             </div>
           )}
         </>
@@ -462,7 +484,7 @@ const WordleNavideno = ({ volverASeleccion, guardarEnRanking }) => {
 // =============================================
 // 🎮 2. COMPONENTE SIMÓN DICE COMPLETO CON BOTÓN VOLVER
 // =============================================
-const SimonDice = ({ volverASeleccion, guardarEnRanking }) => {
+const SimonDice = ({ volverASeleccion, guardarEnRanking, puedeJugar, onJuegoCompletado }) => {
   const colores = ["🔴", "🟢", "🟡", "🔵", "🟣", "🟠", "⚪", "🟤"];
   const [secuencia, setSecuencia] = useState([]);
   const [jugadorSecuencia, setJugadorSecuencia] = useState([]);
@@ -532,6 +554,8 @@ const SimonDice = ({ volverASeleccion, guardarEnRanking }) => {
   };
 
   const iniciarJuego = () => {
+    if (!puedeJugar) return;
+    
     setJuegoIniciado(true);
     setNivel(1);
     setSecuencia([]);
@@ -610,7 +634,7 @@ const SimonDice = ({ volverASeleccion, guardarEnRanking }) => {
   };
 
   const manejarClickColor = (colorIndex) => {
-    if (!juegoIniciado || !jugando || mostrandoSecuencia) return;
+    if (!puedeJugar || !juegoIniciado || !jugando || mostrandoSecuencia) return;
 
     // Animación más rápida
     setBotonActivo(colorIndex);
@@ -637,6 +661,9 @@ const SimonDice = ({ volverASeleccion, guardarEnRanking }) => {
         timestamp: Date.now(),
         desglosePuntos: puntuacion.desglose
       });
+      
+      // Marcar juego como completado para el día
+      onJuegoCompletado("simon-dice");
       return;
     }
 
@@ -686,6 +713,13 @@ const SimonDice = ({ volverASeleccion, guardarEnRanking }) => {
           </p>
         </div>
 
+        {!puedeJugar && (
+          <div className="bg-yellow-100 border-2 border-yellow-400 rounded-2xl p-6 mb-6">
+            <div className="text-2xl font-bold mb-2 text-yellow-700">⏰ Juego Completado</div>
+            <p className="text-yellow-600">Ya jugaste Simón Dice hoy. Vuelve mañana para jugar otra vez.</p>
+          </div>
+        )}
+
         {!juegoIniciado ? (
           // PANTALLA DE INICIO CON BOTÓN VOLVER
           <div className="bg-gradient-to-br from-green-600 to-emerald-700 rounded-2xl p-8 mb-6 border-4 border-yellow-400 shadow-lg">
@@ -714,9 +748,14 @@ const SimonDice = ({ volverASeleccion, guardarEnRanking }) => {
 
             <button
               onClick={iniciarJuego}
-              className="w-full bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white px-8 py-4 rounded-xl font-bold text-lg transition-all transform hover:scale-105 shadow-lg mb-3"
+              disabled={!puedeJugar}
+              className={`w-full ${
+                puedeJugar
+                  ? 'bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 cursor-pointer'
+                  : 'bg-gray-500 cursor-not-allowed'
+              } text-white px-8 py-4 rounded-xl font-bold text-lg transition-all transform hover:scale-105 shadow-lg mb-3`}
             >
-              🎮 Iniciar Juego
+              {puedeJugar ? '🎮 Iniciar Juego' : '⏰ Ya jugado hoy'}
             </button>
 
             {/* BOTÓN VOLVER A JUEGOS */}
@@ -757,13 +796,13 @@ const SimonDice = ({ volverASeleccion, guardarEnRanking }) => {
                   <button
                     key={index}
                     onClick={() => manejarClickColor(index)}
-                    disabled={!jugando || mostrandoSecuencia || gameOver}
+                    disabled={!puedeJugar || !jugando || mostrandoSecuencia || gameOver}
                     className={obtenerClaseBoton(index)}
                     style={{
                       backgroundColor: botonActivo === index ? 
                         getColorBackground(index, true) : 
                         getColorBackground(index, false),
-                      opacity: (!jugando || mostrandoSecuencia || gameOver) && botonActivo !== index ? 0.5 : 1,
+                      opacity: (!puedeJugar || !jugando || mostrandoSecuencia || gameOver) && botonActivo !== index ? 0.5 : 1,
                     }}
                   >
                     <span className={botonActivo === index ? 'animate-bounce' : ''}>
@@ -787,13 +826,9 @@ const SimonDice = ({ volverASeleccion, guardarEnRanking }) => {
                     🏆 Puntuación: {calcularPuntuacion(nivel, Math.floor(tiempoTotal / 1000), secuencia.length).total} pts
                   </div>
                 </div>
-                <div className="space-y-3">
-                  <button
-                    onClick={iniciarJuego}
-                    className="w-full bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white px-6 py-4 rounded-xl font-bold text-lg transition-all transform hover:scale-105 shadow-lg"
-                  >
-                    🔄 Jugar Otra Vez
-                  </button>
+                <div className="bg-yellow-100 border-2 border-yellow-400 rounded-xl p-4 mb-4">
+                  <p className="text-yellow-700 font-bold">⏰ Juego completado por hoy</p>
+                  <p className="text-yellow-600 text-sm">Vuelve mañana para jugar otra vez</p>
                 </div>
               </div>
             )}
@@ -802,7 +837,12 @@ const SimonDice = ({ volverASeleccion, guardarEnRanking }) => {
             <div className="flex gap-3 mb-8">
               <button
                 onClick={iniciarJuego}
-                className="flex-1 bg-gradient-to-r from-blue-600 to-cyan-700 hover:from-blue-700 hover:to-cyan-800 text-white py-3 rounded-xl font-bold transition-all shadow-lg"
+                disabled={!puedeJugar}
+                className={`flex-1 ${
+                  puedeJugar
+                    ? 'bg-gradient-to-r from-blue-600 to-cyan-700 hover:from-blue-700 hover:to-cyan-800 cursor-pointer'
+                    : 'bg-gray-500 cursor-not-allowed'
+                } text-white py-3 rounded-xl font-bold transition-all shadow-lg`}
               >
                 🔁 Reiniciar
               </button>
@@ -854,7 +894,7 @@ const getColorBackground = (index, isActive) => {
 // ⚡ 3. CARRERA-TRINEO - CON PANTALLA DE INICIO
 // =============================================
 
-const CarreraTrineo = ({ volverASeleccion, guardarEnRanking }) => {
+const CarreraTrineo = ({ volverASeleccion, guardarEnRanking, puedeJugar, onJuegoCompletado }) => {
   const [posicion, setPosicion] = useState(1);
   const [direccion, setDireccion] = useState("left");
   const [obstaculos, setObstaculos] = useState([]);
@@ -912,7 +952,7 @@ const CarreraTrineo = ({ volverASeleccion, guardarEnRanking }) => {
   };
 
   useEffect(() => {
-    if (!juegoIniciado || gameOverRef.current) return;
+    if (!puedeJugar || !juegoIniciado || gameOverRef.current) return;
 
     let tick = 0;
     let lastTime = Date.now();
@@ -964,6 +1004,8 @@ const CarreraTrineo = ({ volverASeleccion, guardarEnRanking }) => {
             distanciaFinal: puntuacionFinal,
             dificultad: dificultadRef.current,
           });
+          // Marcar juego como completado para el día
+          onJuegoCompletado("carrera-trineo");
         }
 
         return nuevos;
@@ -999,13 +1041,15 @@ const CarreraTrineo = ({ volverASeleccion, guardarEnRanking }) => {
 
     const animationId = requestAnimationFrame(gameLoop);
     return () => cancelAnimationFrame(animationId);
-  }, [juegoIniciado]);
+  }, [juegoIniciado, puedeJugar]);
 
   // =============================================
   // 🎯 AJUSTES: CONFIGURACIÓN INICIAL DEL JUEGO
   // =============================================
   // Modifica los valores iniciales aquí si quieres cambiar la dificultad de inicio
   const iniciarJuego = () => {
+    if (!puedeJugar) return;
+    
     setJuegoIniciado(true);
     setGameOver(false);
     setPuntuacion(0);
@@ -1016,7 +1060,7 @@ const CarreraTrineo = ({ volverASeleccion, guardarEnRanking }) => {
   };
 
   const mover = (dir) => {
-    if (!juegoIniciado || gameOverRef.current) return;
+    if (!puedeJugar || !juegoIniciado || gameOverRef.current) return;
     
     if (dir === "izq") {
       setPosicion(p => Math.max(0, p - 1));
@@ -1034,9 +1078,11 @@ const CarreraTrineo = ({ volverASeleccion, guardarEnRanking }) => {
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [juegoIniciado]);
+  }, [juegoIniciado, puedeJugar]);
 
   const reiniciar = () => {
+    if (!puedeJugar) return;
+    
     setJuegoIniciado(true);
     setGameOver(false);
     setPuntuacion(0);
@@ -1058,6 +1104,13 @@ const CarreraTrineo = ({ volverASeleccion, guardarEnRanking }) => {
     <div className="text-center max-w-md mx-auto">
       <h2 className="text-3xl font-bold mb-4 text-green-800">🎿 Carrera de Trineo</h2>
       
+      {!puedeJugar && (
+        <div className="bg-yellow-100 border-2 border-yellow-400 rounded-2xl p-6 mb-6">
+          <div className="text-2xl font-bold mb-2 text-yellow-700">⏰ Juego Completado</div>
+          <p className="text-yellow-600">Ya jugaste Carrera de Trineo hoy. Vuelve mañana para jugar otra vez.</p>
+        </div>
+      )}
+      
       {!juegoIniciado && !gameOver && (
         <div className="bg-gradient-to-br from-green-100 to-blue-100 rounded-2xl p-8 mb-6 border-2 border-green-300">
           <div className="text-4xl mb-4">🎿</div>
@@ -1068,9 +1121,14 @@ const CarreraTrineo = ({ volverASeleccion, guardarEnRanking }) => {
           
           <button
             onClick={iniciarJuego}
-            className="bg-green-500 hover:bg-green-600 text-white px-8 py-4 rounded-xl font-bold text-lg transition-all w-full transform hover:scale-105"
+            disabled={!puedeJugar}
+            className={`${
+              puedeJugar
+                ? 'bg-green-500 hover:bg-green-600 cursor-pointer transform hover:scale-105'
+                : 'bg-gray-400 cursor-not-allowed'
+            } text-white px-8 py-4 rounded-xl font-bold text-lg transition-all w-full`}
           >
-            🎮 Iniciar Carrera
+            {puedeJugar ? '🎮 Iniciar Carrera' : '⏰ Ya jugado hoy'}
           </button>
         </div>
       )}
@@ -1119,13 +1177,23 @@ const CarreraTrineo = ({ volverASeleccion, guardarEnRanking }) => {
           <div className="flex justify-center gap-8 mt-6 mb-4">
             <button
               onClick={() => mover("izq")}
-              className="bg-green-500 hover:bg-green-600 text-white w-16 h-16 rounded-full shadow-lg active:scale-95 transition-all flex items-center justify-center text-2xl font-bold"
+              disabled={!puedeJugar}
+              className={`${
+                puedeJugar
+                  ? 'bg-green-500 hover:bg-green-600 cursor-pointer active:scale-95'
+                  : 'bg-gray-400 cursor-not-allowed'
+              } text-white w-16 h-16 rounded-full shadow-lg transition-all flex items-center justify-center text-2xl font-bold`}
             >
               ←
             </button>
             <button
               onClick={() => mover("der")}
-              className="bg-green-500 hover:bg-green-600 text-white w-16 h-16 rounded-full shadow-lg active:scale-95 transition-all flex items-center justify-center text-2xl font-bold"
+              disabled={!puedeJugar}
+              className={`${
+                puedeJugar
+                  ? 'bg-green-500 hover:bg-green-600 cursor-pointer active:scale-95'
+                  : 'bg-gray-400 cursor-not-allowed'
+              } text-white w-16 h-16 rounded-full shadow-lg transition-all flex items-center justify-center text-2xl font-bold`}
             >
               →
             </button>
@@ -1135,10 +1203,19 @@ const CarreraTrineo = ({ volverASeleccion, guardarEnRanking }) => {
             <div className="mt-4 bg-red-100 border-2 border-red-400 rounded-xl p-4">
               <p className="text-red-700 font-bold mb-2 text-lg">💥 ¡Te estrellaste!</p>
               <p className="text-gray-700 mb-3">Puntuación final: <strong>{puntuacionVisual}</strong></p>
+              <div className="bg-yellow-100 border-2 border-yellow-400 rounded-xl p-4 mb-4">
+                <p className="text-yellow-700 font-bold">⏰ Juego completado por hoy</p>
+                <p className="text-yellow-600 text-sm">Vuelve mañana para jugar otra vez</p>
+              </div>
               <div className="flex gap-3">
                 <button
                   onClick={reiniciar}
-                  className="flex-1 bg-green-600 hover:bg-green-700 text-white px-4 py-3 rounded-lg font-bold transition-all"
+                  disabled={!puedeJugar}
+                  className={`flex-1 ${
+                    puedeJugar
+                      ? 'bg-green-600 hover:bg-green-700 cursor-pointer'
+                      : 'bg-gray-400 cursor-not-allowed'
+                  } text-white px-4 py-3 rounded-lg font-bold transition-all`}
                 >
                   🔄 Jugar Otra Vez
                 </button>
@@ -1169,7 +1246,7 @@ const CarreraTrineo = ({ volverASeleccion, guardarEnRanking }) => {
 // =============================================
 // 🎄4. CLICK REACCIÓN - 100 OBJETIVOS
 // =============================================
-const ClickReaccion = ({ volverASeleccion, guardarEnRanking }) => {
+const ClickReaccion = ({ volverASeleccion, guardarEnRanking, puedeJugar, onJuegoCompletado }) => {
   const [objetivos, setObjetivos] = useState([]);
   const [puntuacion, setPuntuacion] = useState(0);
   const [tiempoRestante, setTiempoRestante] = useState(30);
@@ -1199,7 +1276,7 @@ const ClickReaccion = ({ volverASeleccion, guardarEnRanking }) => {
 
   // 🕒 TIMER EXACTO
   useEffect(() => {
-    if (!jugando) return;
+    if (!puedeJugar || !jugando) return;
 
     const timer = setInterval(() => {
       setTiempoRestante(prev => {
@@ -1221,6 +1298,8 @@ const ClickReaccion = ({ volverASeleccion, guardarEnRanking }) => {
             efectividad: `${precision}%`,
             objetivosGenerados: contadorObjetivos
           });
+          // Marcar juego como completado para el día
+          onJuegoCompletado("click-reaccion");
           return 0;
         }
         return nuevoTiempo;
@@ -1228,11 +1307,11 @@ const ClickReaccion = ({ volverASeleccion, guardarEnRanking }) => {
     }, 1000);
 
     return () => clearInterval(timer);
-  }, [jugando, faseAceleracion]);
+  }, [jugando, faseAceleracion, puedeJugar]);
 
   // 🌟 GENERACIÓN CON 100 OBJETIVOS
   useEffect(() => {
-    if (!jugando) return;
+    if (!puedeJugar || !jugando) return;
 
     // Calcular qué objetivos faltan por generar
     const obtenerSiguienteObjetivo = () => {
@@ -1319,10 +1398,12 @@ const ClickReaccion = ({ volverASeleccion, guardarEnRanking }) => {
 
     const intervalo = setInterval(generarObjetivo, velocidad);
     return () => clearInterval(intervalo);
-  }, [jugando, tiempoRestante, faseAceleracion, contadorObjetivos, objetivosGenerados]);
+  }, [jugando, tiempoRestante, faseAceleracion, contadorObjetivos, objetivosGenerados, puedeJugar]);
 
   // 🎮 INICIAR JUEGO
   const iniciarJuego = () => {
+    if (!puedeJugar) return;
+    
     setObjetivos([]);
     setPuntuacion(0);
     setTiempoRestante(30);
@@ -1336,7 +1417,7 @@ const ClickReaccion = ({ volverASeleccion, guardarEnRanking }) => {
 
   // 🖱️ MANEJAR CLICK
   const manejarClickObjetivo = (id, tipo, puntos, esAceleracion) => {
-    if (!jugando) return;
+    if (!puedeJugar || !jugando) return;
     
     setClicksTotales(prev => prev + 1);
     setObjetivos(prev => prev.filter(o => o.id !== id));
@@ -1372,6 +1453,13 @@ const ClickReaccion = ({ volverASeleccion, guardarEnRanking }) => {
       <h2 className="text-3xl font-bold mb-6 bg-gradient-to-r from-green-500 to-red-500 bg-clip-text text-transparent">
         🎄 Click Reacción {faseAceleracion && "⚡"}
       </h2>
+
+      {!puedeJugar && (
+        <div className="bg-yellow-100 border-2 border-yellow-400 rounded-2xl p-6 mb-6">
+          <div className="text-2xl font-bold mb-2 text-yellow-700">⏰ Juego Completado</div>
+          <p className="text-yellow-600">Ya jugaste Click Reacción hoy. Vuelve mañana para jugar otra vez.</p>
+        </div>
+      )}
 
       {/* HUD CON PROGRESO EXACTO */}
       <div className={`bg-gradient-to-br from-green-50 via-red-50 to-green-100 rounded-2xl p-4 mb-6 shadow-lg border-2 ${
@@ -1449,6 +1537,7 @@ const ClickReaccion = ({ volverASeleccion, guardarEnRanking }) => {
           <button
             key={objetivo.id}
             onClick={() => manejarClickObjetivo(objetivo.id, objetivo.tipo, objetivo.puntos, objetivo.esAceleracion)}
+            disabled={!puedeJugar}
             className={`absolute transition-all duration-150 transform hover:scale-110 active:scale-95 ${objetivo.animacion}`}
             style={{
               left: `${objetivo.x}%`,
@@ -1495,12 +1584,10 @@ const ClickReaccion = ({ volverASeleccion, guardarEnRanking }) => {
                   <div>⭐: {contadorObjetivos["⭐"]}/25</div>
                   <div>🎄: {contadorObjetivos["🎄"]}/25</div>
                 </div>
-                <button
-                  onClick={iniciarJuego}
-                  className="bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-xl font-bold transition-all"
-                >
-                  🔄 Jugar Otra Vez
-                </button>
+                <div className="bg-yellow-100 border-2 border-yellow-400 rounded-xl p-4 mb-4">
+                  <p className="text-yellow-700 font-bold">⏰ Juego completado por hoy</p>
+                  <p className="text-yellow-600 text-sm">Vuelve mañana para jugar otra vez</p>
+                </div>
               </div>
             ) : (
               <div className="text-center p-6">
@@ -1519,9 +1606,14 @@ const ClickReaccion = ({ volverASeleccion, guardarEnRanking }) => {
                 </p>
                 <button
                   onClick={iniciarJuego}
-                  className="bg-green-600 hover:bg-green-700 text-white px-8 py-4 rounded-2xl font-bold text-lg transition-all shadow-lg"
+                  disabled={!puedeJugar}
+                  className={`${
+                    puedeJugar
+                      ? 'bg-green-600 hover:bg-green-700 cursor-pointer'
+                      : 'bg-gray-400 cursor-not-allowed'
+                  } text-white px-8 py-4 rounded-2xl font-bold text-lg transition-all shadow-lg`}
                 >
-                  🎮 Iniciar Juego
+                  {puedeJugar ? '🎮 Iniciar Juego' : '⏰ Ya jugado hoy'}
                 </button>
               </div>
             )}
@@ -1542,7 +1634,7 @@ const ClickReaccion = ({ volverASeleccion, guardarEnRanking }) => {
 // =============================================
 // 5. 🧠 MEMORY AVANZADO - 20 PARES NAVIDEÑOS
 // =============================================
-const MemoryAvanzado = ({ volverASeleccion, guardarEnRanking }) => {
+const MemoryAvanzado = ({ volverASeleccion, guardarEnRanking, puedeJugar, onJuegoCompletado }) => {
   const [cartas, setCartas] = useState([]);
   const [cartasVolteadas, setCartasVolteadas] = useState([]);
   const [paresEncontrados, setParesEncontrados] = useState(0);
@@ -1562,6 +1654,8 @@ const MemoryAvanzado = ({ volverASeleccion, guardarEnRanking }) => {
   }, []);
 
   const iniciarJuego = () => {
+    if (!puedeJugar) return;
+    
     // Crear 20 pares (40 cartas)
     const cartasEmojis = [...emojisNavidenos, ...emojisNavidenos]
       .map((emoji, index) => ({ 
@@ -1582,7 +1676,7 @@ const MemoryAvanzado = ({ volverASeleccion, guardarEnRanking }) => {
   };
 
   const voltearCarta = (index) => {
-    if (bloquearClics || juegoTerminado || cartas[index].encontrada || cartas[index].volteada) return;
+    if (!puedeJugar || bloquearClics || juegoTerminado || cartas[index].encontrada || cartas[index].volteada) return;
 
     setEfectoGiro(index);
     
@@ -1625,6 +1719,8 @@ const MemoryAvanzado = ({ volverASeleccion, guardarEnRanking }) => {
                 pares: emojisNavidenos.length,
                 eficiencia: (emojisNavidenos.length / nuevosMovimientos).toFixed(2)
               });
+              // Marcar juego como completado para el día
+              onJuegoCompletado("memory-avanzado");
             }, 500);
           }
         } else {
@@ -1672,6 +1768,13 @@ const MemoryAvanzado = ({ volverASeleccion, guardarEnRanking }) => {
         🧠 Memory Avanzado - 20 Pares
       </h2>
       
+      {!puedeJugar && (
+        <div className="bg-yellow-100 border-2 border-yellow-400 rounded-2xl p-6 mb-6">
+          <div className="text-2xl font-bold mb-2 text-yellow-700">⏰ Juego Completado</div>
+          <p className="text-yellow-600">Ya jugaste Memory Avanzado hoy. Vuelve mañana para jugar otra vez.</p>
+        </div>
+      )}
+      
       {/* Información del juego */}
       <div className="grid grid-cols-4 gap-3 mb-6 bg-gradient-to-br from-green-100 to-red-100 rounded-2xl p-4 shadow-lg border-2 border-green-200">
         <div className="text-center bg-white rounded-xl p-3 shadow-sm">
@@ -1711,7 +1814,7 @@ const MemoryAvanzado = ({ volverASeleccion, guardarEnRanking }) => {
             <button
               key={carta.id}
               onClick={() => voltearCarta(index)}
-              disabled={carta.encontrada || bloquearClics || juegoTerminado}
+              disabled={!puedeJugar || carta.encontrada || bloquearClics || juegoTerminado}
               className={`w-12 h-12 sm:w-14 sm:h-14 text-lg sm:text-xl rounded-lg transition-all duration-300 transform ${
                 efectoGiro === index ? 'animate-flip' : ''
               } ${
@@ -1748,12 +1851,21 @@ const MemoryAvanzado = ({ volverASeleccion, guardarEnRanking }) => {
           <p className="text-gray-600 mb-4">
             Puntuación final: <strong className="text-purple-600 text-xl">{calcularPuntuacionMemory(movimientos)} puntos</strong>
           </p>
+          <div className="bg-yellow-100 border-2 border-yellow-400 rounded-xl p-4 mb-4">
+            <p className="text-yellow-700 font-bold">⏰ Juego completado por hoy</p>
+            <p className="text-yellow-600 text-sm">Vuelve mañana para jugar otra vez</p>
+          </div>
           <div className="flex gap-3 flex-col sm:flex-row">
             <button
               onClick={iniciarJuego}
-              className="flex-1 bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white px-4 py-3 rounded-xl font-bold transition-all transform hover:scale-105 shadow-lg"
+              disabled={!puedeJugar}
+              className={`flex-1 ${
+                puedeJugar
+                  ? 'bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 cursor-pointer transform hover:scale-105'
+                  : 'bg-gray-400 cursor-not-allowed'
+              } text-white px-4 py-3 rounded-xl font-bold transition-all shadow-lg`}
             >
-              🎄 Jugar Otra Vez
+              {puedeJugar ? '🎄 Jugar Otra Vez' : '⏰ Ya jugado hoy'}
             </button>
             <button
               onClick={volverASeleccion}
@@ -1770,9 +1882,14 @@ const MemoryAvanzado = ({ volverASeleccion, guardarEnRanking }) => {
         <div className="flex gap-3 flex-col sm:flex-row">
           <button
             onClick={iniciarJuego}
-            className="flex-1 bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 text-white px-4 py-3 rounded-xl font-bold transition-all transform hover:scale-105 shadow-lg"
+            disabled={!puedeJugar}
+            className={`flex-1 ${
+              puedeJugar
+                ? 'bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 cursor-pointer transform hover:scale-105'
+                : 'bg-gray-400 cursor-not-allowed'
+            } text-white px-4 py-3 rounded-xl font-bold transition-all shadow-lg`}
           >
-            🔄 Reiniciar
+            {puedeJugar ? '🔄 Reiniciar' : '⏰ Ya jugado hoy'}
           </button>
           <button
             onClick={volverASeleccion}
@@ -1907,20 +2024,20 @@ export default function Juegos2() {
   const [cargando, setCargando] = useState(true);
   const [mensaje, setMensaje] = useState("");
   const [rankingGlobal, setRankingGlobal] = useState({});
+  const [juegosCompletadosHoy, setJuegosCompletadosHoy] = useState({});
 
   // =============================================
   // 📋 LISTA DE JUEGOS 2.0
   // =============================================
   const juegos2 = [
-      {
-    id: "wordle-navideno",  // 🆕 NUEVO ID
-    nombre: " Wordle Navideño",
-    descripcion: "Adivina palabras navideñas",
-    icono: "🔤",
-    color: "from-blue-500 to-purple-500",  // 🆕 Nuevos colores
-    dificultad: "Desafiante"
-    
-  },
+    {
+      id: "wordle-navideno",
+      nombre: " Wordle Navideño",
+      descripcion: "Adivina palabras navideñas",
+      icono: "🔤",
+      color: "from-blue-500 to-purple-500",
+      dificultad: "Desafiante"
+    },
     {
       id: "simon-dice",
       nombre: "Simón Dice",
@@ -1928,7 +2045,6 @@ export default function Juegos2() {
       icono: "🎮",
       color: "from-green-500 to-blue-500",
       dificultad: "Medio",
-    
     },
     {
       id: "carrera-trineo",
@@ -1937,7 +2053,6 @@ export default function Juegos2() {
       icono: "🎿",
       color: "from-red-500 to-orange-500",
       dificultad: "Medio",
-     
     },
     {
       id: "click-reaccion",
@@ -1946,7 +2061,6 @@ export default function Juegos2() {
       icono: "⚡",
       color: "from-yellow-500 to-amber-500",
       dificultad: "Medio", 
-  
     },
     {
       id: "memory-avanzado",
@@ -1955,7 +2069,6 @@ export default function Juegos2() {
       icono: "🧠",
       color: "from-indigo-500 to-purple-600",
       dificultad: "Desafiante",
-     
     }
   ];
 
@@ -1969,8 +2082,47 @@ export default function Juegos2() {
       return;
     }
     setUsuarioActual(usuario);
+    cargarJuegosCompletadosHoy();
     cargarRankingsJuegos2();
   }, []);
+
+  // Función para verificar si un juego fue completado hoy
+  const cargarJuegosCompletadosHoy = () => {
+    const hoy = new Date().toDateString();
+    const juegosGuardados = JSON.parse(localStorage.getItem('juegosCompletadosHoy') || '{}');
+    
+    // Si es un nuevo día, limpiar los juegos completados
+    if (juegosGuardados.fecha !== hoy) {
+      localStorage.setItem('juegosCompletadosHoy', JSON.stringify({ fecha: hoy, juegos: {} }));
+      setJuegosCompletadosHoy({});
+    } else {
+      setJuegosCompletadosHoy(juegosGuardados.juegos || {});
+    }
+  };
+
+  // Función para marcar un juego como completado hoy
+  const marcarJuegoCompletado = (juegoId) => {
+    const hoy = new Date().toDateString();
+    const juegosGuardados = JSON.parse(localStorage.getItem('juegosCompletadosHoy') || '{}');
+    
+    const nuevosJuegosCompletados = {
+      ...juegosGuardados.juegos,
+      [juegoId]: true
+    };
+    
+    const nuevoEstado = {
+      fecha: hoy,
+      juegos: nuevosJuegosCompletados
+    };
+    
+    localStorage.setItem('juegosCompletadosHoy', JSON.stringify(nuevoEstado));
+    setJuegosCompletadosHoy(nuevosJuegosCompletados);
+  };
+
+  // Función para verificar si un juego puede ser jugado hoy
+  const puedeJugarHoy = (juegoId) => {
+    return !juegosCompletadosHoy[juegoId];
+  };
 
   const cargarRankingsJuegos2 = async () => {
     try {
@@ -2060,6 +2212,10 @@ export default function Juegos2() {
     setJuegoActivo(null);
   };
 
+  const manejarJuegoCompletado = (juegoId) => {
+    marcarJuegoCompletado(juegoId);
+  };
+
   // =============================================
   // 🎨 RENDER PRINCIPAL
   // =============================================
@@ -2083,6 +2239,10 @@ export default function Juegos2() {
           <p className="text-xl text-gray-600 mb-8 font-light">
             Premios a líder de cada juego el Domingo a las 6pm! 
           </p>
+          <div className="bg-yellow-100 border-2 border-yellow-400 rounded-xl p-4 max-w-md mx-auto mb-4">
+            <p className="text-yellow-700 font-bold">⏰ Juegos Diarios</p>
+            <p className="text-yellow-600 text-sm">Cada juego solo se puede jugar 1 vez al día</p>
+          </div>
           
           {mensaje && (
             <div className={`inline-block px-4 py-2 rounded-lg mb-4 ${
@@ -2101,26 +2261,35 @@ export default function Juegos2() {
             {/* 🎯 MENÚ PRINCIPAL DE JUEGOS */}
             {/* ============================================= */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
-              {juegos2.map((juego) => (
-                <div
-                  key={juego.id}
-                  className={`bg-gradient-to-br ${juego.color} rounded-2xl p-6 text-white text-center shadow-xl transform transition-all duration-300 hover:scale-105 hover:shadow-2xl cursor-pointer`}
-                  onClick={() => iniciarJuego(juego.id)}
-                >
-                  <div className="text-5xl mb-4">{juego.icono}</div>
-                  <h3 className="text-xl font-bold mb-2">{juego.nombre}</h3>
-                  <p className="text-white/90 mb-3">{juego.descripcion}</p>
-                  <div className="flex justify-center gap-2 mb-2">
-                    <div className="bg-white/20 rounded-full px-3 py-1 text-sm">
-                      {juego.dificultad}
+              {juegos2.map((juego) => {
+                const puedeJugar = puedeJugarHoy(juego.id);
+                return (
+                  <div
+                    key={juego.id}
+                    className={`bg-gradient-to-br ${juego.color} rounded-2xl p-6 text-white text-center shadow-xl transform transition-all duration-300 hover:scale-105 hover:shadow-2xl cursor-pointer ${
+                      !puedeJugar ? 'opacity-80' : ''
+                    }`}
+                    onClick={() => iniciarJuego(juego.id)}
+                  >
+                    <div className="text-5xl mb-4">{juego.icono}</div>
+                    <h3 className="text-xl font-bold mb-2">{juego.nombre}</h3>
+                    <p className="text-white/90 mb-3">{juego.descripcion}</p>
+                    <div className="flex justify-center gap-2 mb-2">
+                      <div className="bg-white/20 rounded-full px-3 py-1 text-sm">
+                        {juego.dificultad}
+                      </div>
+                      {!puedeJugar && (
+                        <div className="bg-yellow-500 rounded-full px-3 py-1 text-sm">
+                          ⏰ Ya jugado
+                        </div>
+                      )}
                     </div>
-                   
+                    <div className="mt-2 bg-white/30 rounded-full px-3 py-1 text-sm">
+                      Mejor: {rankingGlobal[juego.id]?.[usuarioActual.id]?.puntuacion || 0} pts
+                    </div>
                   </div>
-                  <div className="mt-2 bg-white/30 rounded-full px-3 py-1 text-sm">
-                    Mejor: {rankingGlobal[juego.id]?.[usuarioActual.id]?.puntuacion || 0} pts
-                  </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
 
             {/* ============================================= */}
@@ -2157,34 +2326,44 @@ export default function Juegos2() {
           /* 🎮 ÁREA DE JUEGO ACTIVO */
           /* ============================================= */
           <div className="bg-white/90 backdrop-blur-sm rounded-2xl p-8 shadow-2xl border-2 border-purple-200 max-w-2xl mx-auto">
-  {juegoActivo === "wordle-navideno" && (  
-    <WordleNavideno 
-      volverASeleccion={volverASeleccion}
-      guardarEnRanking={guardarEnRankingJuegos2}
-    />
+            {juegoActivo === "wordle-navideno" && (  
+              <WordleNavideno 
+                volverASeleccion={volverASeleccion}
+                guardarEnRanking={guardarEnRankingJuegos2}
+                puedeJugar={puedeJugarHoy(juegoActivo)}
+                onJuegoCompletado={manejarJuegoCompletado}
+              />
             )}
             {juegoActivo === "simon-dice" && (
               <SimonDice 
                 volverASeleccion={volverASeleccion}
                 guardarEnRanking={guardarEnRankingJuegos2}
+                puedeJugar={puedeJugarHoy(juegoActivo)}
+                onJuegoCompletado={manejarJuegoCompletado}
               />
             )}
             {juegoActivo === "carrera-trineo" && (
               <CarreraTrineo 
                 volverASeleccion={volverASeleccion}
                 guardarEnRanking={guardarEnRankingJuegos2}
+                puedeJugar={puedeJugarHoy(juegoActivo)}
+                onJuegoCompletado={manejarJuegoCompletado}
               />
             )}
             {juegoActivo === "click-reaccion" && (
               <ClickReaccion 
                 volverASeleccion={volverASeleccion}
                 guardarEnRanking={guardarEnRankingJuegos2}
+                puedeJugar={puedeJugarHoy(juegoActivo)}
+                onJuegoCompletado={manejarJuegoCompletado}
               />
             )}
             {juegoActivo === "memory-avanzado" && (
               <MemoryAvanzado 
                 volverASeleccion={volverASeleccion}
                 guardarEnRanking={guardarEnRankingJuegos2}
+                puedeJugar={puedeJugarHoy(juegoActivo)}
+                onJuegoCompletado={manejarJuegoCompletado}
               />
             )}
           </div>
