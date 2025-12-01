@@ -2423,6 +2423,39 @@ async iniciarConcursoSimple(concursoId = 'navidad_rapido') {
       return false;
     }
     },
+
+// 🗺️ TERRITORY WARS - FUNCIONES ESPECÍFICAS
+async obtenerDocumentoTerritoryWars(documentoId) {
+  try {
+    const docRef = doc(db, 'territoryWars', documentoId);
+    const docSnap = await getDoc(docRef);
+    return docSnap.exists() ? docSnap.data() : null;
+  } catch (error) {
+    console.error('Error obteniendo documento:', error);
+    return null;
+  }
+},
+
+async actualizarDocumentoTerritoryWars(documentoId, nuevosDatos) {
+  try {
+    // ✅ CORREGIDO: merge: true para no perder datos existentes
+    await setDoc(doc(db, 'territoryWars', documentoId), nuevosDatos, { merge: true });
+    return true;
+  } catch (error) {
+    console.error('Error actualizando documento:', error);
+    return false;
+  }
+},
+
+escucharDocumentoTerritoryWars(documentoId, callback) {
+  const docRef = doc(db, 'territoryWars', documentoId);
+  return onSnapshot(docRef, (docSnap) => {
+    if (docSnap.exists()) {
+      callback(docSnap.data());
+    }
+  });
+},
+
    // =============================================
 // 🏪 SISTEMA DE TIENDA Y PUNTOS
 // =============================================
@@ -2608,7 +2641,7 @@ codigosService: {
 tiendaService: {
   productos: [
     { id: 1, nombre: "🍫 Chocolate", precio: 5 },
-    { id: 2, nombre: "🌯 Churro", precio: 3 },
+    { id: 2, nombre: "🌯 Churro", precio: 5 },
     { id: 3, nombre: "🥤 Refresco 2L", precio: 2 },
     { id: 4, nombre: "🍕 Pizza Familiar", precio: 15 },
     { id: 5, nombre: "🥩 Carne de la colocha (1kg)", precio: 25 },

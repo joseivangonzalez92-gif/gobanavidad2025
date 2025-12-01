@@ -11,389 +11,324 @@ export default function Navidad() {
   const [contenidoAdviento, setContenidoAdviento] = useState([]);
   const [reflexionesAdviento, setReflexionesAdviento] = useState([]);
   const [puertaAbierta, setPuertaAbierta] = useState(null);
-  const [diasAbiertos, setDiasAbiertos] = useState(new Set());
+  const [evangelioHoy, setEvangelioHoy] = useState(null);
 
-  // Villancicos con acordes y letras COMPLETAS
+  // Villancicos con letras COMPLETAS
   const villancicos = [
     {
       id: 1,
       titulo: "Noche de Paz",
-      acordes: "C - G - C - G\nC - G - Am - Em\nF - C - F - C\nG - C - G - C",
-      letra: `Noche de paz, noche de amor
-Todo duerme en derredor
-Entre los astros que esparcen su luz
-Bella anunciando al niñito Jesús
-Brilla la estrella de paz
-Brilla la estrella de paz
+      letra: `Noche de Paz, noche de amor
+todo duerme en derredor,
+entre los astros que expanden su luz,
+brilla anunciando al niñito Jesús,
+brilla la estrella de Paz [bis].
 
-Noche de paz, noche de amor
-Todo duerme en derredor
-Sólo velan en la oscuridad
-Los pastores que en el campo están
-Y la estrella de Belén
-Y la estrella de Belén
+Noche de amor, noche de Paz,
+Jesús nace en un portal,
+llene la tierra la paz del Señor,
+llene las almas la gracia de Dios,
+porque nació el Redentor [bis].
 
-Noche de paz, noche de amor
-Todo duerme en derredor
-Sobre el santo niño Jesús
-Una estrella esparce su luz
-Brilla sobre el Rey
-Brilla sobre el Rey
-
-Noche de paz, noche de amor
-Todo duerme en derredor
-Fieles velando allí en Belén
-Los pastores, la madre también
-Y la estrella de paz
-Y la estrella de paz`,
-      nivel: "Fácil"
+Noche de Paz, noche de amor,
+todo canta en derredor,
+clara se escucha la voz celestial,
+llamando al hombre al pobre portal,
+Dios nos ofrece su amor [bis].`,
+   
     },
     {
       id: 2,
       titulo: "Campana sobre Campana",
-      acordes: "G - D7 - G - Em\nAm - D7 - G - G7\nC - G - Am - D7\nG - C - G - G",
-      letra: `Campana sobre campana
-Y sobre campana una
-Asómate a la ventana
-Verás al Niño en la cuna
-
-Belén, campanas de Belén
-Que los pastores quieren oír
-Belén, campanas de Belén
-Que los pastores quieren oír
-
-Campana sobre campana
-Y sobre campana dos
-Asómate a la ventana
-Verás al Niño en la cuna
-
-Belén, campanas de Belén
-Que los pastores quieren oír
-Belén, campanas de Belén
-Que los pastores quieren oír
-
-Campana sobre campana
-Y sobre campana tres
-En una cruz a esta hora
-El Niño va a padecer
-
-Belén, campanas de Belén
-Que los pastores quieren oír
-Belén, campanas de Belén
-Que los pastores quieren oír`,
-      nivel: "Intermedio"
-    },
-    {
-      id: 3,
-      titulo: "Los Peces en el Río",
-      acordes: "Am - G - C - F\nC - G - Am - E7\nAm - G - C - F\nC - E7 - Am - Am",
-      letra: `Pero mira cómo beben
-Los peces en el río
-Pero mira cómo beben
-Por ver al Dios nacido
-
-Beben y beben
-Y vuelven a beber
-Los peces en el río
-Por ver a Dios nacer
-
-La Virgen se está peinando
+      letra: `La Virgen se está peinando
 Entre cortina y cortina
-Los cabellos son de oro
+Sus cabellos son de oro
 Y el peine de plata fina
 
-Pero mira cómo beben
-Los peces en el río
-Pero mira cómo beben
-Por ver al Dios nacido
+Pero mira cómo beben los peces en el río
+Pero mira cómo beben por ver al Dios nacido
+Beben y beben y vuelven a beber
+Los peces en el río por ver a Dios nacer
 
-Beben y beben
-Y vuelven a beber
-Los peces en el río
-Por ver a Dios nacer
+La Virgen está lavando
+Y tendiendo en el romero
+Los angelitos cantando
+Y el romero florecido
 
-Estando la Virgen sola
-En su cuarto y muy segura
-Un ángel del cielo entró
-Y le dice: "Dios te salve, María"
+Pero mira cómo beben los peces en el río
+Pero mira cómo beben por ver al Dios nacido
+Beben y beben y vuelven a beber
+Los peces en el río por ver a Dios nacer
 
-Pero mira cómo beben
-Los peces en el río
-Pero mira cómo beben
-Por ver al Dios nacido
+La Virgen está lavando
+Con muy poquito jabón
+Se le picaron las manos
+Manos de mi corazón
 
-Beben y beben
-Y vuelven a beber
-Los peces en el río
-Por ver a Dios nacer`,
-      nivel: "Fácil"
+Pero mira cómo beben los peces en el río
+Pero mira cómo beben por ver al Dios nacido
+Beben y beben y vuelven a beber
+Los peces en el río por ver a Dios nacer`,
+ 
     },
     {
       id: 4,
       titulo: "Arre Borriquito",
-      acordes: "C - F - C - G7\nC - F - C - G7\nC - C7 - F - F\nC - G7 - C - C",
-      letra: `Arre borriquito
-Vamos a Belén
-Que mañana es fiesta
-Y al otro también
+      letra: `Tengo puesto un nacimiento
+En un rincón de mi casa
+Con pastores y pastoras
+Y un palacio en la montaña
+
+Allí vive el rey Herodes
+Allí viven sus soldados
+Todos están esperando
+Que lleguen Los Reyes Magos
+
+Arre borriquito
+Arre burro, arre
+Anda más de prisa
+Que llegamos tarde
 
 Arre borriquito
 Vamos a Belén
 Que mañana es fiesta
 Y al otro también
 
-Si me ven, si me ven
-Que me voy de camino
-Si me ven, si me ven
-Voy a ver al Niño
+Arre borriquito
+Arre burro, arre
+Anda más de prisa
+Que llegamos tarde
 
 Arre borriquito
 Vamos a Belén
 Que mañana es fiesta
 Y al otro también
 
-Llevo la chocolata
-Que la madre me dio
-Llevo la chocolata
-Que la madre me dio
+En el cielo hay una estrella
+Que a Los Reyes Magos guía
+Hacia Belén para ver
+A Dios, hijo de María
+
+Cuando pasan los monarcas
+Sale la gente al camino
+Y alegres se van con ellos
+Para ver al tierno niño
+
+Arre borriquito
+Arre burro, arre
+Anda más de prisa
+Que llegamos tarde
 
 Arre borriquito
 Vamos a Belén
 Que mañana es fiesta
 Y al otro también
 
-Si me ven, si me ven
-Que me voy de camino
-Si me ven, si me ven
-Voy a ver al Niño
+Arre borriquito
+Arre burro, arre
+Anda más de prisa
+Que llegamos tarde
+
+Arre borriquito
+Vamos a Belén
+Que mañana es fiesta
+Y al otro también
+
+Hacia el portal de Belén
+Se dirige un pastorcito
+Cantando de esta manera
+Para alegrar el camino
+
+Ha nacido el niño Dios
+En un portal miserable
+Para enseñar a los hombres
+La humildad de su linaje
+
+Arre borriquito
+Arre burro, arre
+Anda más de prisa
+Que llegamos tarde
+
+Arre borriquito
+Vamos a Belén
+Que mañana es fiesta
+Y al otro también
+
+Arre borriquito
+Arre burro, arre
+Anda más de prisa
+Que llegamos tarde
+
+Arre borriquito
+Vamos a Belén
+Que mañana es fiesta
+Y al otro también
+
+Arre borriquito
+Arre burro, arre
+Anda más de prisa
+Que llegamos tarde
 
 Arre borriquito
 Vamos a Belén
 Que mañana es fiesta
 Y al otro también`,
-      nivel: "Muy Fácil"
-    },
-    {
-      id: 5,
-      titulo: "El Tamborilero",
-      acordes: "Dm - C - Bb - F\nC - Dm - Am - Gm\nDm - C - Bb - F\nC - Dm - Am - Dm",
-      letra: `El camino que lleva a Belén
-Baja hasta el valle que la nieve cubrió
-Los pastorcillos quieren ver a su Rey
-Le traen regalos en su humilde zurrón
-
-Ropompom pom pom, ropompom pom pom
-Ha nacido en un portal de Belén el Niño Dios
-
-Yo quisiera poner a tus pies
-Algún presente que te agrade Señor
-Mas tú ya sabes que soy pobre también
-Y no poseo más que un viejo tambor
-
-Ropompom pom pom, ropompom pom pom
-En tu honor frente al portal tocaré con mi tambor
-
-El niño Dios me sonríe tocando
-Se duerme mi niño, duérmete ya
-Y el ronco tambor en la noche caliente
-No cesa de llamar con su son al Niño Jesús
-
-Ropompom pom pom, ropompom pom pom
-El niño Dios está soñando y yo sigo tocando`,
-      nivel: "Intermedio"
+    
     },
     {
       id: 6,
       titulo: "Las Posadas",
-      acordes: "Prueba en canción",
-      letra: `C                 G
-En el nombre del Cielo,
-G         C
-Os pido posada,
-C7               F
+      letra: ` A. En nombre del cielo
+Os pido posada
 Pues no puede andar
-C     G   C G C
-Mi Esposa amada...
- 
-C            G
-Aqui no es meson,
-G        C
-Sigan adelante,
-C7          F
-Yo no debo abrir,
-C      G     C G C
-No sea algun tunante
- 
-C          G
-No seas inhumano,
-G          C
-Tennos caridad,
-C7                 F
-Que el Dios de los Cielos,
-C     G  C G C
-Os lo premiaria...
- 
-C            G
-Ya se pueden ir,
-G        C
-Y no molestar,
-C7             F
-Porque si me enfado,
-C   G    C G C
-Os voy a apalear
- 
-C            G
-Mi esposa es Maria,
-G            C
-Es Reina del Cielo,
-C7             F
-Y Madre va a ser
-C   G      C G C
-Del Divino Verbo...
- 
-C        G
-Eres tu, Jose?
-G            C
-Tu Esposa es Maria?
-C7           F
-Entren, Peregrinos,
-C      G  C G C
-No los conocia
- 
-C           G
-Dios pague, senores,
-G           C
-Vuestra caridad,
-C7            F
-Y os colme el Cielo
-C  G     C G C
-De Felicidad...
- 
-C          G
+Mi esposa amada
+
+D. Aquí no es mesón
+Sigan adelante
+Yo no debo abrir
+No sea algún tunante
+
+A. No seas inhumano
+Dennos caridad
+Que el Dios de los cielos
+Os lo premiará
+
+D. Ya se pueden ir
+Y no molestar
+Porque si me enfado
+Los voy a apalear
+
+A. Mi esposa es María
+Es Reina del Cielo
+Y madre va a ser
+Del Divino Verbo
+
+D. ¿Eres tú José?
+¿Tu esposa es María?
+Entren, peregrinos
+No los conocía
+
+A. Dios pague, señores
+Vuestra caridad
+Y os colme el cielo
+De felicidad
+
 Dichosa la casa
-G                C
-Que alberga este dia
-C7          F
-A la Virgen Pura,
-C  G       C G C
-La Hermosa Maria
- 
-C
-Entren, Santos Peregrinos, Peregrinos,
-G            C
-Reciban este rincon...
-C
-Que aunque es pobra la morada, la morada,
-G            C
-Os la doy de Corazon
-C
-Cantemos con alegria, alegria
-G               C
-Todos al considerar
-C
-Que Jesus, Jose, y Maria (y Maria)
-G                     C
-Nos Vinieron hoy a honrar`,
-      nivel: "Fácil"
+Que alegra este día
+A la Virgen pura
+La hermosa María
+
+D. Entren, Santos Peregrinos, Peregrinos
+Reciban este rincón
+Aunque pobre la morada, la morada
+Os la doy de corazón
+
+T. Entren, Santos Peregrinos, Peregrinos
+Reciban este rincón
+Aunque pobre la morada, la morada
+Os la doy de corazón`,
+  
     },
     {
       id: 7,
       titulo: "La Marimorena",
-      acordes: "C - G7 - C - C\nF - C - G7 - C\nC - F - C - G7\nC - G7 - C - C",
       letra: `Ande, ande, ande, la marimorena
-Ande, ande, ande, que es la Nochebuena
-En el portal de Belén
-Han entrado los pastores
-Han entrado con la pata coja
-Y la Virgen se sonríe
-Y San José se enoja
+Ande, ande, ande que es la Nochebuena
+Ande, ande, ande, la marimorena
+Ande, ande, ande que es la Nochebuena
+
+En el portal de Belén, hay estrellas, Sol y Luna
+La Virgen y San José, y el Niño que está en la cuna
+Todos le llevan al Niño, yo no tengo qué llevarle
+Le llevo mi corazón, que en el mundo es lo que vale
 
 Ande, ande, ande, la marimorena
-Ande, ande, ande, que es la Nochebuena
-En el portal de Belén
-Hay estrellas, sol y luna
-La Virgen y San José
-Y el niño que está en la cuna
+Ande, ande, ande que es la Nochebuena
+Ande, ande, ande, la marimorena
+Ande, ande, ande que es la Nochebuena
+
+Esta noche es Nochebuena y mañana es Navidad
+Dame la bota, María, que me voy a emborrachar
+Y si quieres comprar pan más blanco que la azucena
+En el portal de Belén, La Virgen es panadera
 
 Ande, ande, ande, la marimorena
-Ande, ande, ande, que es la Nochebuena
-Los pastores con sus zurrones
-Le llevan al Niño
-Quesos, turrones y mantecados
-Y el niño está contento
-Y el niño está callado
+Ande, ande, ande que es la Nochebuena
+Ande, ande, ande, la marimorena
+Ande, ande, ande que es la Nochebuena
 
 Ande, ande, ande, la marimorena
-Ande, ande, ande, que es la Nochebuena
-La Virgen está lavando
-Y San José tendiendo
-Y el niño está llorando
-Por ver a los pasteles correr
+Ande, ande, ande que es la Nochebuena
+Ande, ande, ande, la marimorena
+Ande, ande, ande que es la Nochebuena
+
+En el portal de Belén, hay una piedra redonda
+Donde Cristo puso el pie para subir a la gloria
+Pastores, venid, venid, veréis lo que no habéis visto
+En el portal de Belén, el nacimiento de Cristo
 
 Ande, ande, ande, la marimorena
-Ande, ande, ande, que es la Nochebuena
-En el portal de Belén
-Gitanillos han entrado
-Y le han roto los pañales
-Al Niño que ha nacido
+Ande, ande, ande que es la Nochebuena
+Ande, ande, ande, la marimorena
+Ande, ande, ande que es la Nochebuena
 
 Ande, ande, ande, la marimorena
-Ande, ande, ande, que es la Nochebuena`,
-      nivel: "Intermedio"
+Ande, ande, ande que es la Nochebuena`,
+  
     },
     {
       id: 8,
       titulo: "Mi Burrito Sabanero",
-      acordes: "G - C - G - D7\nG - C - G - G\nC - G - D7 - G\nG - C - G - D7 - G",
-      letra: `Con mi burrito sabanero
-Voy camino de Belén
-Con mi burrito sabanero
-Voy camino de Belén
+      letra: `Con mi burrito sabanero, voy camino de Belén
+Con mi burrito sabanero, voy camino de Belén
+Si me ven, si me ven, voy camino de Belén
+Si me ven, si me ven, voy camino de Belén
 
-Si me ven, si me ven
-Voy camino de Belén
-Si me ven, si me ven
-Voy camino de Belén
+El lucerito mañanero ilumina mi sendero
+El lucerito mañanero ilumina mi sendero
+Si me ven, si me ven, voy camino de Belén
+Si me ven, si me ven, voy camino de Belén
 
-El lucerito mañanero
-Ilumina mi sendero
-El lucerito mañanero
-Ilumina mi sendero
+Con mi cuatrico, voy cantando, mi burrito va trotando
+Con mi cuatrico voy cantando, mi burrito va trotando
+Si me ven, si me ven, voy camino de Belén
+Si me ven, si me ven, voy camino de Belén
 
-Si me ven, si me ven
-Voy camino de Belén
-Si me ven, si me ven
-Voy camino de Belén
+Tuki tuki tuki tuki, tuki tuki tuki ta
+Apúrate, mi burrito, que ya vamos a llegar
+Tuki tuki tuki tuki, tuki tuki tuki tu
+Apúrate, mi burrito, vamos a ver a Jesús
 
-Con mi cuatrico voy cantando
-Mi burrito va trotando
-Con mi cuatrico voy cantando
-Mi burrito va trotando
+Con mi burrito sabanero, voy camino de Belén
+Con mi burrito sabanero, voy camino de Belén
+Si me ven, si me ven, voy camino de Belén
+Si me ven, si me ven, voy camino de Belén
 
-Si me ven, si me ven
-Voy camino de Belén
-Si me ven, si me ven
-Voy camino de Belén
+El lucerito mañanero ilumina mi sendero
+El lucerito mañanero ilumina mi sendero
+Si me ven, si me ven, voy camino de Belén
+Si me ven, si me ven, voy camino de Belén
 
-Tuki tuki tuki tuki
-Tuki tuki tuki ta
-Apúrate mi burrito
-Que ya vamos a llegar
-Tuki tuki tuki tuki
-Tuki tuki tuki ta
-Apúrate mi burrito
-Que ya vamos a llegar
+Con mi cuatrico, voy cantando, mi burrito va trotando
+Con mi cuatrico voy cantando, mi burrito va trotando
+Si me ven, si me ven, voy camino de Belén
+Si me ven, si me ven, voy camino de Belén
 
-Con mi burrito sabanero
-Voy camino de Belén
-Con mi burrito sabanero
-Voy camino de Belén
+Tuki tuki tuki tuki, tuki tuki tuki ta
+Apúrate, mi burrito, que ya vamos a llegar
+Tuki tuki tuki tuki, tuki tuki tuki tu
+Apúrate, mi burrito, vamos a ver a Jesús
 
-Si me ven, si me ven
-Voy camino de Belén
-Si me ven, si me ven
-Voy camino de Belén`,
-      nivel: "Fácil"
+Con mi burrito sabanero, voy camino de Belén
+Con mi burrito sabanero, voy camino de Belén
+Si me ven, si me ven, voy camino de Belén
+Si me ven, si me ven, voy camino de Belén
+
+Si me ven, si me ven, voy camino de Belén
+Si me ven, si me ven, voy camino de Belén
+Si me ven, si me ven, voy camino de Belén
+Si me ven, si me ven, voy camino de Belén`,
+   
     }
   ];
 
@@ -436,7 +371,7 @@ Voy camino de Belén`,
     6: "Dios prepara un corazón puro para nacer en él.",
     7: "María nos enseña a esperar con corazón disponible.",
     8: "La paz comienza con una sonrisa y un corazón reconciliado.",
-    9: "Purifica nuestro corazón, Señor, para recibte.",
+    9: "Purifica nuestro corazón, Señor, para recibirte.",
     10: "Como la estrella, seamos luz que guía hacia Jesús.",
     11: "Alabemos al Señor que viene a salvarnos.",
     12: "La familia es el primer pesebre donde nace Jesús.",
@@ -455,25 +390,91 @@ Voy camino de Belén`,
     25: "¡Feliz Navidad! Hoy nos ha nacido el Salvador."
   };
 
-  // FUNCIÓN MEJORADA: Crear fecha en zona horaria de Honduras (UTC-6)
-  const crearFechaLocal = (año, mes, dia) => {
-    // Honduras está en UTC-6, creamos la fecha ajustada
-    const fecha = new Date(año, mes, dia, 12, 0, 0); // Medio día para evitar problemas de zona horaria
-    return fecha;
+  // EVANGELIOS DIARIOS REALES PARA DICIEMBRE 2025
+  const evangeliosReales = {
+    1: { // Lunes 1 de Diciembre
+      lectura: "En aquel tiempo, al entrar Jesús en Cafarnaúm, se le acercó un oficial romano y le dijo: 'Señor, tengo en mi casa un criado que está en cama, paralítico, y sufre mucho'. Él le contestó: 'Voy a curarlo'. Pero el oficial le replicó: 'Señor, yo no soy digno de que entres en mi casa; con que digas una sola palabra, mi criado quedará sano...'",
+      referencia: "Mateo 8, 5-11",
+      reflexion: "La fe del centurión nos enseña humildad y confianza. En Adviento, reconozcamos que Jesús viene a sanar nuestras vidas con solo una palabra."
+    },
+    2: { // Martes 2 de Diciembre
+      lectura: "En aquella misma hora, Jesús se llenó de júbilo en el Espíritu Santo y exclamó: '¡Yo te alabo, Padre, Señor del cielo y de la tierra, porque has escondido estas cosas a los sabios y a los entendidos, y las has revelado a la gente sencilla!...'",
+      referencia: "Lucas 10, 21-24",
+      reflexion: "Dios revela sus misterios a los sencillos de corazón. En Adviento, pidamos la gracia de un corazón humilde para acoger a Jesús."
+    },
+    3: { // Miércoles 3 de Diciembre
+      lectura: "En aquel tiempo, llegó Jesús a la orilla del mar de Galilea, subió al monte y se sentó. Acudió a él mucha gente, que llevaba consigo tullidos, ciegos, lisiados, sordomudos y muchos otros enfermos... Jesús tomó los siete panes y los pescados, y habiendo dado gracias a Dios, los partió y los fue entregando...",
+      referencia: "Mateo 15, 29-37",
+      reflexion: "Jesús multiplica los panes por compasión. En Adviento, Él quiere saciar nuestro hambre espiritual y curar nuestras heridas."
+    },
+    4: { // Jueves 4 de Diciembre - Día de Santa Bárbara
+      lectura: "Jesús dijo: 'No todo el que me diga: ¡Señor, Señor!, entrará en el Reino de los cielos, sino el que cumpla la voluntad de mi Padre, que está en los cielos'.",
+      referencia: "Mateo 7, 21.24-27",
+      reflexion: "Santa Bárbara, mártir de la fe, nos enseña a construir nuestra vida sobre la roca firme de la voluntad de Dios."
+    },
+    5: { // Viernes 5 de Diciembre
+      lectura: "En aquel tiempo, dos ciegos siguieron a Jesús, gritando: '¡Ten compasión de nosotros, Hijo de David!'... Jesús les preguntó: '¿Creen que puedo hacerlo?' Ellos le contestaron: 'Sí, Señor'. Entonces les tocó los ojos, diciendo: 'Que se haga en ustedes conforme a su fe'.",
+      referencia: "Mateo 9, 27-31",
+      reflexion: "La fe nos abre los ojos para reconocer a Jesús que viene. En Adviento, gritemos con fe: '¡Ten compasión de nosotros!'"
+    },
+    6: { // Sábado 6 de Diciembre - Día de San Nicolás
+      lectura: "Jesús dijo a la multitud: 'Yo soy la luz del mundo; el que me sigue no caminará en la oscuridad, sino que tendrá la luz de la vida'.",
+      referencia: "Juan 8, 12",
+      reflexion: "San Nicolás, modelo de caridad, reflejó la luz de Cristo. En Adviento, seamos luz para los que están en tinieblas."
+    },
+    7: { // Domingo 7 de Diciembre - 2do Domingo de Adviento
+      lectura: "En aquel tiempo, Juan el Bautista predicaba en el desierto de Judea, diciendo: 'Conviértanse, porque ya está cerca el Reino de los cielos'... 'Preparen el camino del Señor, enderecen sus senderos'.",
+      referencia: "Mateo 3, 1-12",
+      reflexion: "Juan Bautista nos llama a preparar el camino para Jesús. Es tiempo de conversión y de allanar los obstáculos que impiden su venida."
+    }
   };
 
-  // GENERAR LAS FECHAS REALES DEL ADVIENTO (30 Nov - 25 Dic)
+  // FUNCIÓN: Obtener hora actual en Honduras (UTC-6)
+  const obtenerHoraHonduras = () => {
+    const ahora = new Date();
+    // Honduras está en UTC-6 (sin horario de verano)
+    const offsetHonduras = -6 * 60 * 60 * 1000; // -6 horas en milisegundos
+    const horaHonduras = new Date(ahora.getTime() + offsetHonduras);
+    return horaHonduras;
+  };
+
+  // FUNCIÓN CORREGIDA: Calcular día actual CORRECTO (30 Nov = día 1)
+  const obtenerDiaAdvientoCorregido = () => {
+    const hoyHonduras = obtenerHoraHonduras();
+    const año = 2025;
+    
+    // Inicio del Adviento: 30 de Noviembre 2025, 00:00 Honduras (día 1)
+    const inicioAdviento = new Date(Date.UTC(año, 10, 30, 6, 0, 0)); // 30 Nov 2025, 00:00 Honduras = 06:00 UTC
+    
+    // Si estamos antes del inicio del Adviento
+    if (hoyHonduras < inicioAdviento) {
+      return null;
+    }
+    
+    // Fin del Adviento: 25 de Diciembre 2025
+    const finAdviento = new Date(Date.UTC(año, 11, 25, 6, 0, 0)); // 25 Dic 2025, 00:00 Honduras
+    
+    // Si estamos después de Navidad
+    if (hoyHonduras > finAdviento) {
+      return 26;
+    }
+    
+    // Calcular diferencia en días desde el 30 de Noviembre
+    const diffTiempo = hoyHonduras.getTime() - inicioAdviento.getTime();
+    const diffDias = Math.floor(diffTiempo / (1000 * 60 * 60 * 24)) + 1;
+    
+    return diffDias;
+  };
+
+  // GENERAR LAS FECHAS REALES DEL ADVIENTO (30 Nov - 25 Dic) con hora Honduras
   const generarFechasAdviento = () => {
     const fechas = [];
-    const inicio = crearFechaLocal(2025, 10, 30); // Noviembre es mes 10 (0-indexed)
-    const fin = crearFechaLocal(2025, 11, 25);    // Diciembre es mes 11
+    const año = 2025;
     
-    const fechaActual = new Date(inicio);
-    
-    while (fechaActual <= fin) {
-      const fechaCopia = new Date(fechaActual);
-      fechas.push(fechaCopia);
-      fechaActual.setDate(fechaActual.getDate() + 1);
+    // Comenzar el 30 de Noviembre (día 1) - 00:00 Honduras
+    for (let i = 0; i < 26; i++) {
+      const fecha = new Date(Date.UTC(año, 10, 30 + i, 6, 0, 0)); // 06:00 UTC = 00:00 Honduras
+      fechas.push(fecha);
     }
     
     return fechas;
@@ -481,24 +482,46 @@ Voy camino de Belén`,
 
   // Eventos litúrgicos importantes
   const eventosLiturgicosAdviento = {
-    "2025-11-30": "1er Domingo de Adviento - Esperanza",
-    "2025-12-07": "2do Domingo de Adviento - Paz", 
-    "2025-12-08": "Inmaculada Concepción de María",
-    "2025-12-14": "3er Domingo de Adviento - Gozo",
-    "2025-12-21": "4to Domingo de Adviento - Amor",
-    "2025-12-24": "Nochebuena - Misa de Gallo",
-    "2025-12-25": "Navidad del Señor"
+    "2025-11-30": "1er Domingo de Adviento",
+    "2025-12-07": "2do Domingo de Adviento", 
+    "2025-12-08": "Inmaculada Concepción",
+    "2025-12-14": "3er Domingo de Adviento",
+    "2025-12-21": "4to Domingo de Adviento",
+    "2025-12-24": "Nochebuena",
+    "2025-12-25": "Navidad"
   };
 
   // Función para manejar la apertura de puertas
   const abrirPuerta = (dia) => {
     if (dia <= diaAdvientoActual) {
       setPuertaAbierta(dia);
-      setDiasAbiertos(prev => {
-        const nuevoSet = new Set(prev);
-        nuevoSet.add(dia);
-        return nuevoSet;
-      });
+    }
+  };
+
+  // FUNCIÓN PARA OBTENER EVANGELIO DE HOY
+  const obtenerEvangelioHoy = async () => {
+    try {
+      const dia = obtenerDiaAdvientoCorregido();
+      
+      // Usar evangelios reales que me diste
+      if (dia && evangeliosReales[dia]) {
+        return evangeliosReales[dia];
+      }
+      
+      // Fallback general para otros días
+      return {
+        lectura: "Velad, pues, porque no sabéis el día ni la hora.",
+        referencia: "Mateo 25, 13",
+        reflexion: "El Adviento nos invita a preparar nuestros corazones para la venida del Salvador."
+      };
+      
+    } catch (error) {
+      console.error("Error obteniendo evangelio:", error);
+      return {
+        lectura: "Estad siempre alegres en el Señor.",
+        referencia: "Filipenses 4, 4",
+        reflexion: "La alegría del Adviento nace de saber que Dios viene a nuestro encuentro."
+      };
     }
   };
 
@@ -530,27 +553,16 @@ Voy camino de Belén`,
 
         setUsuarioActual(usuario);
         
-        // Calcular día actual de Adviento con zona horaria Honduras
-        const hoy = new Date();
-        // Ajustar a zona horaria de Honduras (UTC-6)
-        const hoyHonduras = new Date(hoy.getTime() - (6 * 60 * 60 * 1000));
-        const hoyNormalizado = crearFechaLocal(hoyHonduras.getFullYear(), hoyHonduras.getMonth(), hoyHonduras.getDate());
+        // OBTENER DÍA CORREGIDO con hora Honduras
+        const diaAdviento = obtenerDiaAdvientoCorregido();
+        setDiaAdvientoActual(diaAdviento);
         
-        const inicioAdviento = crearFechaLocal(2025, 10, 30);
-        const finAdviento = crearFechaLocal(2025, 11, 25);
-        
-        if (hoyNormalizado < inicioAdviento) {
-          setDiaAdvientoActual(null);
-        } else if (hoyNormalizado > finAdviento) {
-          setDiaAdvientoActual(26);
-        } else {
-          const diffTiempo = hoyNormalizado - inicioAdviento;
-          const diffDias = Math.floor(diffTiempo / (1000 * 60 * 60 * 24)) + 1;
-          setDiaAdvientoActual(diffDias);
-        }
+        // Obtener evangelio de hoy
+        const evangelio = await obtenerEvangelioHoy();
+        setEvangelioHoy(evangelio);
         
         // Cargar contenido automático
-        await cargarContenidoAutomatico();
+        await cargarContenidoAutomatico(evangelio);
         
       } catch (error) {
         console.error("Error inicializando Adviento:", error);
@@ -562,35 +574,64 @@ Voy camino de Belén`,
     initializeAdviento();
   }, [navigate]);
 
-  // GENERAR CONTENIDO CON FECHAS REALES
-  const generarContenidoAdviento = (evangelioHoy) => {
+  // GENERAR CONTENIDO CON EVANGELIO REAL
+  const generarContenidoAdviento = (evangelio) => {
     const diasAdviento = [];
     const fechas = generarFechasAdviento();
     
     const temasAdviento = [
-      "1er Domingo de Adviento - Esperanza", "La Luz que Viene al Mundo",
-      "Preparad el Camino del Señor", "El Amor se Hizo Carne", "Paz en la Tierra",
-      "El Mejor Regalo", "La Anunciación a María", "2do Domingo de Adviento - Paz",
-      "Inmaculada Concepción", "La Estrella de Belén", "Alabanza y Gozo", "Hogar y Familia",
-      "3er Domingo de Adviento - Gozo", "Jesús, Rey Humilde", "Los Ángeles Cantores",
-      "Las Profecías se Cumplen", "Caridad y Solidaridad", "4to Domingo de Adviento - Amor",
-      "La Noche más Santa", "Sagrada Familia", "Los Regalos de los Magos", "Esperanza Cumplida",
-      "Nochebuena", "El Salvador Nace", "Feliz Navidad"
+      "1er Domingo de Adviento - Esperanza", 
+      "La Luz que Viene al Mundo",
+      "Preparad el Camino del Señor", 
+      "El Amor se Hizo Carne", 
+      "Paz en la Tierra",
+      "El Mejor Regalo", 
+      "La Anunciación a María", 
+      "2do Domingo de Adviento - Paz",
+      "Inmaculada Concepción", 
+      "La Estrella de Belén", 
+      "Alabanza y Gozo", 
+      "Hogar y Familia",
+      "3er Domingo de Adviento - Gozo", 
+      "Jesús, Rey Humilde", 
+      "Los Ángeles Cantores",
+      "Las Profecías se Cumplen", 
+      "Caridad y Solidaridad", 
+      "4to Domingo de Adviento - Amor",
+      "La Noche más Santa", 
+      "Sagrada Familia", 
+      "Los Regalos de los Magos", 
+      "Esperanza Cumplida",
+      "Nochebuena", 
+      "El Salvador Nace", 
+      "Feliz Navidad"
     ];
     
     const accionesAdviento = [
-      "Enciende la primera vela de tu corona de Adviento", "Sé luz para alguien con un acto de bondad",
-      "Haz un examen de conciencia y prepárate para la confesión", "Muestra amor hoy a un familiar",
-      "Haz las paces con alguien hoy", "Agradece a Dios por tres bendiciones específicas hoy",
-      "Imita el 'sí' de María en algo que Dios te pida hoy", "Enciende la segunda vela de tu corona",
-      "Reza un Ave María con especial devoción", "Sé una 'estrella' que guíe a otros hacia Cristo",
-      "Canta o escucha un villancico con el corazón", "Haz algo especial por tu familia hoy",
-      "Enciende la tercera vela (rosa) de tu corona", "Practica la humildad en alguna situación hoy",
-      "Alaba a Dios con tus propias palabras hoy", "Confía en una promesa de Dios para tu vida",
-      "Haz una obra de caridad concreta hoy", "Enciende la cuarta vela de tu corona",
-      "Comparte la alegría de la Navidad con alguien", "Reza por tu familia y por todas las familias",
-      "Ofrece a Jesús un don espiritual hoy", "Renueva tu esperanza en las promesas de Dios",
-      "Asiste a Misa de Gallo y recibe a Jesús en tu corazón", "Celebra el nacimiento de nuestro Salvador",
+      "Enciende la primera vela de tu corona de Adviento", 
+      "Sé luz para alguien con un acto de bondad",
+      "Haz un examen de conciencia y prepárate para la confesión", 
+      "Muestra amor hoy a un familiar",
+      "Haz las paces con alguien hoy", 
+      "Agradece a Dios por tres bendiciones específicas hoy",
+      "Imita el 'sí' de María en algo que Dios te pida hoy", 
+      "Enciende la segunda vela de tu corona",
+      "Reza un Ave María con especial devoción", 
+      "Sé una 'estrella' que guíe a otros hacia Cristo",
+      "Canta o escucha un villancico con el corazón", 
+      "Haz algo especial por tu familia hoy",
+      "Enciende la tercera vela (rosa) de tu corona", 
+      "Practica la humildad en alguna situación hoy",
+      "Alaba a Dios con tus propias palabras hoy", 
+      "Confía en una promesa de Dios para tu vida",
+      "Haz una obra de caridad concreta hoy", 
+      "Enciende la cuarta vela de tu corona",
+      "Comparte la alegría de la Navidad con alguien", 
+      "Reza por tu familia y por todas las familias",
+      "Ofrece a Jesús un don espiritual hoy", 
+      "Renueva tu esperanza en las promesas de Dios",
+      "Asiste a Misa de Gallo y recibe a Jesús en tu corazón", 
+      "Celebra el nacimiento de nuestro Salvador",
       "Da gracias a Dios por el don de su Hijo"
     ];
 
@@ -599,13 +640,26 @@ Voy camino de Belén`,
       const diaNumero = index + 1;
       const esHoy = diaAdvientoActual === diaNumero;
       
-      const contenidoDia = esHoy && evangelioHoy ? evangelioHoy : {
-        lectura: "Velad, pues, porque no sabéis el día ni la hora.",
-        reflexion: "El Adviento nos invita a preparar nuestros corazones para la venida del Salvador.",
-        referencia: "Mateo 25, 13"
-      };
+      // USAR EVANGELIO DE HOY SI ESTÁ DISPONIBLE
+      let contenidoDia;
+      if (esHoy && evangelio) {
+        contenidoDia = {
+          lectura: evangelio.lectura,
+          reflexion: evangelio.reflexion,
+          referencia: evangelio.referencia,
+          fuente: "📖 Evangelio del Día"
+        };
+      } else {
+        // Para días pasados o futuros
+        contenidoDia = evangeliosReales[diaNumero] || {
+          lectura: "Velad, pues, porque no sabéis el día ni la hora.",
+          reflexion: "El Adviento nos invita a preparar nuestros corazones para la venida del Salvador.",
+          referencia: "Mateo 25, 13",
+          fuente: "Liturgia del Adviento"
+        };
+      }
 
-      const esDomingo = fecha.getDay() === 0;
+      const esDomingo = fecha.getUTCDay() === 0;
       
       diasAdviento.push({
         id: `dia_${diaNumero}`,
@@ -618,7 +672,8 @@ Voy camino de Belén`,
         reflexion: contenidoDia.reflexion,
         accion: accionesAdviento[index],
         esDomingo: esDomingo,
-        eventoLiturgico: eventosLiturgicosAdviento[fechaStr]
+        eventoLiturgico: eventosLiturgicosAdviento[fechaStr],
+        fuente: contenidoDia.fuente
       });
     });
     
@@ -626,52 +681,54 @@ Voy camino de Belén`,
   };
 
   // CARGAR CONTENIDO AUTOMÁTICO
-  const cargarContenidoAutomatico = async () => {
+  const cargarContenidoAutomatico = async (evangelio) => {
     try {
-      let evangelioHoy = null;
-      if (diaAdvientoActual) {
-        evangelioHoy = await gobaService.obtenerEvangelioDelDia();
-      }
-      
-      const contenidoGenerado = generarContenidoAdviento(evangelioHoy);
+      const contenidoGenerado = generarContenidoAdviento(evangelio);
       setContenidoAdviento(contenidoGenerado);
       
-      // Cargar reflexiones por defecto
-      const reflexionesPorDefecto = [
-        {
-          titulo: "El Verdadero Sentido del Adviento",
-          contenido: "El Adviento es tiempo de espera gozosa. Preparamos nuestros corazones no solo para recordar el nacimiento de Jesús, sino para recibirlo en nuestro presente.",
-          referencia: "Isaías 9:6"
-        },
-        {
-          titulo: "Espera Activa",
-          contenido: "La espera del Adviento no es pasiva. Es un tiempo de conversión, de preparación interior, de renovar nuestro encuentro con Cristo.",
-          referencia: "Mateo 3:3"
-        }
-      ];
-      
-      setReflexionesAdviento(reflexionesPorDefecto);
+      // Cargar reflexiones
+      if (evangelio) {
+        const reflexiones = [
+          {
+            titulo: "Evangelio del Día",
+            contenido: evangelio.reflexion,
+            referencia: evangelio.referencia,
+            fuente: "Palabra de Dios"
+          }
+        ];
+        
+        setReflexionesAdviento(reflexiones);
+      } else {
+        // Reflexiones por defecto
+        const reflexionesPorDefecto = [
+          {
+            titulo: "El Verdadero Sentido del Adviento",
+            contenido: "El Adviento es tiempo de espera gozosa. Preparamos nuestros corazones no solo para recordar el nacimiento de Jesús, sino para recibirlo en nuestro presente.",
+            referencia: "Isaías 9:6",
+            fuente: "Reflexión"
+          }
+        ];
+        setReflexionesAdviento(reflexionesPorDefecto);
+      }
       
     } catch (error) {
-      console.error("❌ Error cargando contenido automático:", error);
+      console.error("Error cargando contenido:", error);
       const contenidoPorDefecto = generarContenidoAdviento(null);
       setContenidoAdviento(contenidoPorDefecto);
     }
   };
 
-  // OBTENER DÍA DEL MES
+  // OBTENER DÍA DEL MES (corregido para fechas UTC)
   const getDiaDelMes = (fecha) => {
-    return fecha.getDate();
+    return fecha.getUTCDate();
   };
 
-  // OBTENER FECHA FORMATEADA
-  const getFechaFormateada = (fechaStr) => {
-    const fecha = new Date(fechaStr);
+  // OBTENER FECHA FORMATEADA (corregido)
+  const getFechaFormateada = (fecha) => {
     const opciones = { 
       weekday: 'long', 
       day: 'numeric', 
-      month: 'long',
-      timeZone: 'America/Tegucigalpa'
+      month: 'long'
     };
     return fecha.toLocaleDateString('es-ES', opciones);
   };
@@ -684,7 +741,7 @@ Voy camino de Belén`,
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-purple-50 via-blue-50 to-green-50">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-500 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Cargando el Advierto...</p>
+          <p className="mt-4 text-gray-600">Cargando el Adviento...</p>
         </div>
       </div>
     );
@@ -721,7 +778,7 @@ Voy camino de Belén`,
             <div className="inline-flex items-center gap-2 bg-white/80 backdrop-blur-sm px-3 py-1 sm:px-4 sm:py-2 rounded-full shadow-lg border border-purple-200">
               <span className="w-2 h-2 sm:w-3 sm:h-3 bg-green-500 rounded-full animate-pulse"></span>
               <span className="text-sm sm:text-base text-purple-700 font-medium">
-                {getFechaFormateada(diaActual.fecha)} - Día {diaAdvientoActual} de 26
+                {diaActual ? getFechaFormateada(diaActual.fechaObj) : "Cargando..."} - Día {diaAdvientoActual} de 26
               </span>
             </div>
           )}
@@ -732,43 +789,46 @@ Voy camino de Belén`,
           {/* Calendario de Adviento - Ocupa 3 columnas en desktop */}
           <div className="lg:col-span-3">
             <div className="bg-white/90 backdrop-blur-sm rounded-xl sm:rounded-2xl p-4 sm:p-6 shadow-lg border-2 border-purple-200">
-              <h2 className="text-2xl sm:text-3xl font-bold text-purple-700 mb-4 sm:mb-6">
+              <h2 className="text-2xl sm:text-3xl font-bold text-purple-700 mb-6">
                 Calendario de Adviento
               </h2>
               
               {/* Día Actual Expandido */}
               {diaActual && (
-                <div className={`bg-gradient-to-br rounded-xl sm:rounded-2xl p-4 sm:p-6 mb-4 sm:mb-6 border-2 ${
-                  diaActual.esDomingo 
-                    ? 'from-yellow-200 to-orange-200 border-yellow-400' 
-                    : diaActual.eventoLiturgico
+                <div className={`bg-gradient-to-br rounded-xl sm:rounded-2xl p-4 sm:p-6 mb-6 border-2 ${
+                  diaActual.eventoLiturgico
                     ? 'from-red-200 to-pink-200 border-red-400'
                     : 'from-blue-200 to-purple-200 border-blue-400'
                 }`}>
                   <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-3 mb-4">
                     <div>
                       <h3 className="text-xl sm:text-2xl font-bold text-gray-800 mb-2">{diaActual.mensaje}</h3>
-                      <div className="flex flex-wrap gap-2">
-                        {diaActual.esDomingo && (
-                          <span className="inline-block bg-yellow-500 text-white px-2 py-1 rounded-full text-xs sm:text-sm font-medium">
-                            Domingo de Adviento
-                          </span>
-                        )}
+                      <div className="flex flex-wrap gap-2 items-center">
                         {diaActual.eventoLiturgico && (
                           <span className="inline-block bg-red-500 text-white px-2 py-1 rounded-full text-xs sm:text-sm font-medium">
-                            {diaActual.eventoLiturgico.split(' - ')[0]}
+                            {diaActual.eventoLiturgico}
+                          </span>
+                        )}
+                        {diaActual.fuente && (
+                          <span className="inline-flex items-center gap-1 bg-blue-100 text-blue-700 px-2 py-1 rounded-full text-xs">
+                            {diaActual.fuente}
                           </span>
                         )}
                       </div>
                     </div>
-                    <span className="bg-white/90 backdrop-blur-sm px-3 py-1 rounded-full text-xs sm:text-sm font-medium text-purple-700 border border-purple-300 self-start">
-                      {getFechaFormateada(diaActual.fecha)}
-                    </span>
+                    <div className="flex flex-col items-end">
+                      <span className="bg-white/90 backdrop-blur-sm px-3 py-1 rounded-full text-xs sm:text-sm font-medium text-purple-700 border border-purple-300">
+                        {getFechaFormateada(diaActual.fechaObj)}
+                      </span>
+                    </div>
                   </div>
                   
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
                     <div className="bg-white/80 backdrop-blur-sm rounded-lg p-3 border-l-4 border-blue-500">
-                      <h4 className="font-bold text-blue-700 mb-1 text-sm sm:text-base">{diaActual.versiculo}</h4>
+                      <div className="flex justify-between items-start mb-1">
+                        <h4 className="font-bold text-blue-700 text-sm sm:text-base">{diaActual.versiculo}</h4>
+                        <span className="text-xs text-blue-500">📖</span>
+                      </div>
                       <p className="text-gray-700 italic text-xs sm:text-sm">"{diaActual.textoVersiculo}"</p>
                     </div>
                     
@@ -785,7 +845,7 @@ Voy camino de Belén`,
                 </div>
               )}
 
-              {!diaActual && (
+              {!diaActual && diaAdvientoActual === null && (
                 <div className="bg-gradient-to-r from-yellow-100 to-orange-100 rounded-xl sm:rounded-2xl p-6 border-2 border-yellow-300 text-center mb-6">
                   <h3 className="text-xl sm:text-2xl font-bold text-yellow-700 mb-3">El Adviento aún no comienza</h3>
                   <p className="text-yellow-600 text-sm sm:text-base">
@@ -794,85 +854,49 @@ Voy camino de Belén`,
                 </div>
               )}
 
-              {/* NUEVO GRID DE PUERTAS DEL CALENDARIO */}
+              {diaAdvientoActual === 26 && (
+                <div className="bg-gradient-to-r from-green-100 to-emerald-100 rounded-xl sm:rounded-2xl p-6 border-2 border-green-300 text-center mb-6">
+                  <h3 className="text-xl sm:text-2xl font-bold text-green-700 mb-3">¡Feliz Navidad!</h3>
+                  <p className="text-green-600 text-sm sm:text-base">
+                    El tiempo de Adviento ha concluido. ¡Celebramos el nacimiento de nuestro Salvador!
+                  </p>
+                </div>
+              )}
+
+              {/* GRID DE PUERTAS DEL CALENDARIO */}
               <div className="grid grid-cols-4 sm:grid-cols-6 lg:grid-cols-8 gap-2 sm:gap-3">
                 {contenidoAdviento.map((dia) => {
-                  const estaAbierto = diasAbiertos.has(dia.dia);
                   const puedeAbrir = dia.dia <= diaAdvientoActual;
                   
                   return (
                     <div
                       key={dia.dia}
-                      className={`aspect-square rounded-lg sm:rounded-xl border-2 transition-all duration-500 cursor-pointer ${
-                        puedeAbrir 
-                          ? 'hover:scale-105 hover:shadow-lg' 
-                          : 'cursor-not-allowed opacity-60'
+                      className={`aspect-square rounded-lg sm:rounded-xl border-2 transition-all duration-300 ${
+                        puedeAbrir ? 'cursor-pointer hover:scale-105 hover:shadow-lg' : 'cursor-not-allowed opacity-60'
                       } ${
                         dia.dia === diaAdvientoActual
                           ? 'bg-gradient-to-br from-purple-500 to-blue-500 border-white shadow-lg'
                           : dia.dia < diaAdvientoActual
-                          ? dia.esDomingo
-                            ? 'bg-gradient-to-br from-yellow-400 to-orange-400 border-white'
-                            : dia.eventoLiturgico
+                          ? dia.eventoLiturgico
                             ? 'bg-gradient-to-br from-red-400 to-pink-400 border-white'
                             : 'bg-gradient-to-br from-green-400 to-emerald-400 border-white'
                           : 'bg-gradient-to-br from-gray-100 to-gray-200 border-gray-300'
                       }`}
                       onClick={() => abrirPuerta(dia.dia)}
                     >
-                      {/* PUERTA DEL CALENDARIO */}
-                      <div className={`relative w-full h-full rounded-lg sm:rounded-xl overflow-hidden ${
-                        estaAbierto ? 'puerta-abierta' : 'puerta-cerrada'
-                      }`}>
+                      <div className="w-full h-full flex flex-col items-center justify-center p-1">
+                        {/* Número del día - SIEMPRE visible */}
+                        <span className={`text-lg sm:text-xl font-bold ${
+                          dia.dia <= diaAdvientoActual ? 'text-white' : 'text-gray-400'
+                        }`}>
+                          {getDiaDelMes(dia.fechaObj)}
+                        </span>
                         
-                        {/* LADO FRONTAL - PUERTA CERRADA */}
-                        {!estaAbierto && (
-                          <div className="w-full h-full flex flex-col items-center justify-center p-1">
-                            {/* Número del día */}
-                            <span className={`text-lg sm:text-xl font-bold ${
-                              puedeAbrir ? 'text-white' : 'text-gray-400'
-                            }`}>
-                              {getDiaDelMes(dia.fechaObj)}
-                            </span>
-                            
-                            {/* Decoración navideña pequeña */}
-                            {puedeAbrir && (
-                              <div className="text-white opacity-80 mt-1 text-xs">
-                                {dia.dia % 3 === 0 ? '🎄' : 
-                                 dia.dia % 3 === 1 ? '⭐' : '🕯️'}
-                              </div>
-                            )}
-                          </div>
-                        )}
-                        
-                        {/* LADO INTERIOR - CONTENIDO AL ABRIR */}
-                        {estaAbierto && (
-                          <div className="w-full h-full bg-gradient-to-br from-amber-50 to-yellow-100 p-2 overflow-y-auto">
-                            <div className="text-center">
-                              {/* Número del día */}
-                              <div className="text-xs text-amber-600 font-bold mb-1">
-                                Día {dia.dia}
-                              </div>
-                              
-                              {/* Frase del día */}
-                              <p className="text-xs text-amber-800 italic leading-tight mb-2">
-                                "{frasesAdviento[dia.dia] || 'Ven, Señor Jesús, no tardes.'}"
-                              </p>
-                              
-                              {/* Oración */}
-                              <div className="bg-white/70 rounded p-1 mb-1">
-                                <p className="text-[10px] leading-tight text-amber-900 whitespace-pre-line">
-                                  {oracionesAdviento[dia.dia] || 'Ven, Señor Jesús.'}
-                                </p>
-                              </div>
-                              
-                              {/* Acción del día mini */}
-                              <div className="bg-green-50 rounded p-1 border-l-2 border-green-400">
-                                <p className="text-[9px] leading-tight text-green-800">
-                                  {dia.accion}
-                                </p>
-                              </div>
-                            </div>
+                        {/* Decoración navideña pequeña */}
+                        {dia.dia <= diaAdvientoActual && (
+                          <div className="text-white opacity-80 mt-1 text-xs">
+                            {dia.dia % 3 === 0 ? '🎄' : 
+                             dia.dia % 3 === 1 ? '⭐' : '🕯️'}
                           </div>
                         )}
                       </div>
@@ -884,19 +908,19 @@ Voy camino de Belén`,
           </div>
 
           {/* Sidebar - Ocupa 1 columna en desktop */}
-          <div className="space-y-4 sm:space-y-6">
+          <div className="space-y-6">
             {/* Villancicos COMPLETOS */}
             <div className="bg-white/90 backdrop-blur-sm rounded-xl sm:rounded-2xl p-4 sm:p-6 shadow-lg border-2 border-red-200">
-              <h2 className="text-xl sm:text-2xl font-bold text-red-700 mb-3 sm:mb-4">
+              <h2 className="text-xl sm:text-2xl font-bold text-red-700 mb-4">
                 Villancicos Navideños
               </h2>
               
-              <div className="space-y-2 sm:space-y-3 max-h-96 overflow-y-auto">
+              <div className="space-y-3 max-h-96 overflow-y-auto pr-2">
                 {villancicos.map(villancico => (
                   <button
                     key={villancico.id}
                     onClick={() => setVillancicoSeleccionado(villancico)}
-                    className="w-full text-left bg-red-50 hover:bg-red-100 rounded-lg p-3 transition-all border border-red-200 hover:border-red-300"
+                    className="w-full text-left bg-red-50 hover:bg-red-100 rounded-lg p-3 transition-all border border-red-200 hover:border-red-300 hover:shadow-sm"
                   >
                     <div className="flex justify-between items-center">
                       <span className="font-medium text-red-800 text-sm sm:text-base">{villancico.titulo}</span>
@@ -911,14 +935,19 @@ Voy camino de Belén`,
 
             {/* Reflexiones del Adviento */}
             <div className="bg-white/90 backdrop-blur-sm rounded-xl sm:rounded-2xl p-4 sm:p-6 shadow-lg border-2 border-green-200">
-              <h2 className="text-xl sm:text-2xl font-bold text-green-700 mb-3 sm:mb-4">
-                Reflexiones
+              <h2 className="text-xl sm:text-2xl font-bold text-green-700 mb-4">
+                Reflexiones del Día
               </h2>
               
-              <div className="space-y-3 sm:space-y-4">
+              <div className="space-y-4">
                 {reflexionesAdviento.map((reflexion, index) => (
                   <div key={index} className="bg-green-50 rounded-lg p-3 border-l-4 border-green-400">
-                    <h3 className="font-bold text-green-800 mb-1 text-sm sm:text-base">{reflexion.titulo}</h3>
+                    <div className="flex justify-between items-start mb-1">
+                      <h3 className="font-bold text-green-800 text-sm sm:text-base">{reflexion.titulo}</h3>
+                      <span className="text-xs text-green-600 bg-green-100 px-2 py-0.5 rounded">
+                        {reflexion.fuente}
+                      </span>
+                    </div>
                     <p className="text-xs sm:text-sm text-gray-700 mb-2">{reflexion.contenido}</p>
                     <span className="text-xs text-green-600">{reflexion.referencia}</span>
                   </div>
@@ -928,21 +957,21 @@ Voy camino de Belén`,
 
             {/* Progreso del Adviento */}
             {diaAdvientoActual && (
-              <div className="bg-gradient-to-r from-purple-500 to-blue-600 rounded-xl sm:rounded-2xl p-4 sm:p-6 text-white shadow-lg">
-                <h3 className="text-lg font-bold mb-3 text-center">Progreso</h3>
+              <div className="bg-gradient-to-r from-purple-500 to-blue-600 rounded-xl sm:rounded-2xl p-6 text-white shadow-lg">
+                <h3 className="text-lg font-bold mb-3 text-center">Progreso del Adviento</h3>
                 <div className="space-y-2">
                   <div className="flex justify-between text-sm">
                     <span>Días completados</span>
-                    <span>{diaAdvientoActual - 1}/26</span>
+                    <span>{Math.min(diaAdvientoActual - 1, 26)}/26</span>
                   </div>
                   <div className="w-full bg-purple-300 rounded-full h-2">
                     <div 
                       className="bg-white h-2 rounded-full transition-all duration-1000 ease-out"
-                      style={{ width: `${((diaAdvientoActual - 1) / 26) * 100}%` }}
+                      style={{ width: `${(Math.min(diaAdvientoActual - 1, 26) / 26) * 100}%` }}
                     ></div>
                   </div>
                   <div className="text-center text-sm opacity-90">
-                    {26 - (diaAdvientoActual - 1)} días restantes
+                    {Math.max(0, 26 - (diaAdvientoActual - 1))} días restantes
                   </div>
                 </div>
               </div>
@@ -955,7 +984,7 @@ Voy camino de Belén`,
           <div className="fixed inset-0 bg-black/90 backdrop-blur-sm z-50 flex items-center justify-center p-4">
             <div className="bg-white rounded-2xl max-w-4xl w-full max-h-[90vh] overflow-auto">
               <div className="p-4 sm:p-6">
-                <div className="flex justify-between items-start mb-4 sm:mb-6">
+                <div className="flex justify-between items-start mb-6">
                   <h2 className="text-xl sm:text-2xl font-bold text-gray-800">{villancicoSeleccionado.titulo}</h2>
                   <button 
                     onClick={() => setVillancicoSeleccionado(null)}
@@ -965,48 +994,33 @@ Voy camino de Belén`,
                   </button>
                 </div>
                 
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
+                <div className="grid grid-cols-1 gap-6">
                   <div>
-                    <h3 className="font-bold text-gray-700 mb-2 sm:mb-3">Acordes</h3>
-                    <div className="bg-gray-100 rounded-lg p-3 sm:p-4 font-mono text-sm whitespace-pre-line">
-                      {villancicoSeleccionado.acordes}
-                    </div>
-                  </div>
-                  
-                  <div>
-                    <h3 className="font-bold text-gray-700 mb-2 sm:mb-3">Letra Completa</h3>
-                    <div className="bg-gray-100 rounded-lg p-3 sm:p-4 text-sm whitespace-pre-line leading-relaxed">
+                    <h3 className="font-bold text-gray-700 mb-3">Letra Completa</h3>
+                    <div className="bg-gray-100 rounded-lg p-4 text-sm whitespace-pre-line leading-relaxed max-h-[60vh] overflow-y-auto">
                       {villancicoSeleccionado.letra}
                     </div>
                   </div>
-                </div>
-
-                <div className="mt-4 sm:mt-6 p-3 sm:p-4 bg-yellow-50 rounded-lg border border-yellow-200">
-                  <p className="text-xs sm:text-sm text-yellow-800">
-                    <span className="font-bold">Tip:</span> {villancicoSeleccionado.nivel === "Muy Fácil" 
-                      ? "Perfecto para principiantes. Practica los acordes básicos." 
-                      : villancicoSeleccionado.nivel === "Fácil"
-                      ? "Ideal para practicar. Ve lento y disfruta el proceso."
-                      : "Desafío intermedio. Perfecto para mejorar tu técnica."}
-                  </p>
+                  
+              
                 </div>
               </div>
             </div>
           </div>
         )}
 
-        {/* NUEVO MODAL PARA PUERTAS ABIERTAS */}
+        {/* MODAL PARA PUERTAS ABIERTAS */}
         {puertaAbierta && (
           <div className="fixed inset-0 bg-black/90 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-            <div className="bg-gradient-to-br from-amber-100 to-yellow-200 rounded-2xl max-w-md w-full max-h-[80vh] overflow-auto border-4 border-amber-300 shadow-2xl">
+            <div className="bg-gradient-to-br from-amber-100 to-purple-200 rounded-2xl max-w-md w-full max-h-[80vh] overflow-auto border-4 border-amber-300 shadow-2xl">
               
-              {/* Encabezado del modal con estilo navideño */}
+              {/* Encabezado del modal */}
               <div className="bg-gradient-to-r from-green-600 to-green-800 text-white p-4 rounded-t-2xl">
                 <div className="flex justify-between items-center">
                   <div>
-                    <h2 className="text-xl font-bold">Día {puertaAbierta}</h2>
+                    <h2 className="text-xl font-bold">Día {puertaAbierta} de Adviento</h2>
                     <p className="text-amber-200 text-sm">
-                      {getFechaFormateada(contenidoAdviento[puertaAbierta-1]?.fecha)}
+                      {contenidoAdviento[puertaAbierta-1] && getFechaFormateada(contenidoAdviento[puertaAbierta-1].fechaObj)}
                     </p>
                   </div>
                   <button 
@@ -1030,21 +1044,21 @@ Voy camino de Belén`,
                 {/* Oración */}
                 <div className="bg-amber-50 rounded-xl p-4 mb-4 border-2 border-amber-200">
                   <h3 className="font-bold text-amber-700 mb-2 text-center">Oración del Día</h3>
-                  <p className="text-gray-700 whitespace-pre-line leading-relaxed text-center">
+                  <p className="text-gray-700 whitespace-pre-line leading-relaxed text-center text-sm">
                     {oracionesAdviento[puertaAbierta]}
                   </p>
                 </div>
                 
                 {/* Acción del día */}
                 <div className="bg-green-50 rounded-xl p-4 border-2 border-green-200">
-                  <h3 className="font-bold text-green-700 mb-2 text-center">💝 Acción para Hoy</h3>
-                  <p className="text-gray-700 text-center">
+                  <h3 className="font-bold text-green-700 mb-2 text-center">Acción para Hoy</h3>
+                  <p className="text-gray-700 text-center text-sm">
                     {contenidoAdviento[puertaAbierta-1]?.accion}
                   </p>
                 </div>
                 
                 {/* Decoración navideña */}
-                <div className="text-center mt-4 text-2xl">
+                <div className="text-center mt-4 text-2xl animate-pulse">
                   {puertaAbierta % 4 === 0 ? '🎁' : 
                    puertaAbierta % 4 === 1 ? '🌟' :
                    puertaAbierta % 4 === 2 ? '🕊️' : '❤️'}
@@ -1055,10 +1069,10 @@ Voy camino de Belén`,
         )}
 
         {/* Navegación */}
-        <div className="text-center mt-6 sm:mt-8">
+        <div className="text-center mt-8">
           <Link 
             to="/home" 
-            className="inline-flex items-center gap-2 bg-gradient-to-r from-purple-500 to-blue-500 hover:from-purple-600 hover:to-blue-600 text-white font-semibold py-3 px-6 sm:py-4 sm:px-8 rounded-xl transition-all duration-300 transform hover:scale-105 shadow-lg"
+            className="inline-flex items-center gap-2 bg-gradient-to-r from-purple-500 to-blue-500 hover:from-purple-600 hover:to-blue-600 text-white font-semibold py-3 px-8 rounded-xl transition-all duration-300 transform hover:scale-105 shadow-lg"
           >
             ← Volver al Home
           </Link>

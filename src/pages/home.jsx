@@ -103,27 +103,23 @@ export default function Home() {
 
               {/* Días hasta Navidad */}
               <div className="text-center">
-             
-               
+                <div className="text-3xl mb-2">🎄</div>
                 <p className="font-bold text-red-600 text-2xl">
-                     <div className="text-3xl mb-2">🎄</div>
                   {infoFechas.diasNavidad} día{infoFechas.diasNavidad !== 1 ? 's' : ''}
                 </p>
-                 <p className="text-sm text-gray-600 mb-1">Faltan para Navidad</p>
+                <p className="text-sm text-gray-600 mb-1">Faltan para Navidad</p>
               </div>
 
               {/* Días hasta Año Nuevo */}
               <div className="text-center">
                 <div className="text-3xl mb-2">🎆</div>
-           
                 <p className="font-bold text-purple-600 text-2xl">
                   {infoFechas.diasAñoNuevo} día{infoFechas.diasAñoNuevo !== 1 ? 's' : ''}
                 </p>
-                     <p className="text-sm text-gray-600 mb-1">Faltan para Año Nuevo</p>
+                <p className="text-sm text-gray-600 mb-1">Faltan para Año Nuevo</p>
               </div>
 
             </div>
-            
           </div>
         </div>
       </div>
@@ -270,67 +266,23 @@ export default function Home() {
             </div>
           </Link>
 
-            {/* 🎮 JUEGOS 2.0 - ¡DESBLOQUEADO! */}
-          <Link to="/juegos2" className="group">
-            <div className="bg-gradient-to-br from-blue-500 to-purple-600 rounded-3xl p-8 text-white text-center shadow-2xl transform transition-all duration-300 hover:scale-105 hover:shadow-3xl h-full flex flex-col justify-between">
+          {/* 🎮 JUEGOS 3 - ¡ACTIVADO! */}
+          <Link to="/juegos3" className="group">
+            <div className="bg-gradient-to-br from-pink-500 to-rose-600 rounded-3xl p-8 text-white text-center shadow-2xl transform transition-all duration-300 hover:scale-105 hover:shadow-3xl h-full flex flex-col justify-between">
               <div>
-                <div className="text-5xl mb-4">🚀</div>
-                <h3 className="text-2xl font-bold mb-3">Juegos 2.0</h3>
+                <div className="text-5xl mb-4">🎮</div>
+                <h3 className="text-2xl font-bold mb-3">Juegos 3</h3>
                 <p className="text-white/90 mb-4">
-                  Descubre la nueva experiencia de gaming familiar
+                  Clásicos reinventados: Pong, Snake, Sopa de Letras y más
                 </p>
               </div>
               <div className="bg-white/20 rounded-xl p-3 mt-4">
-                <p className="text-sm font-semibold">🎯 ¡Nuevo disponible!</p>
+                <p className="text-sm font-semibold">✨ ¡Activo y disponible!</p>
               </div>
             </div>
           </Link>
-          
-          {/* 🏪 TIENDA NAVIDEÑA - TEMPORALMENTE DESHABILITADA */}
-          <div className="group cursor-not-allowed opacity-60">
-            <div className="bg-gradient-to-br from-green-50 to-red-50 rounded-3xl p-8 text-center border-2 border-green-200 h-full flex flex-col justify-center relative overflow-hidden">
-              
-              <div className="absolute inset-0 bg-gradient-to-br from-green-100/20 to-red-100/20"></div>
-              
-              <div className="relative z-10">
-                <div className="text-5xl mb-4 opacity-70">🎁</div>
-                <p className="text-gray-700 text-lg font-semibold mb-1">
-                  Preparando sorpresa
-                </p>
-                <p className="text-gray-500 text-sm">
-                  Estreno: <span className="font-mono text-gray-600">1 Dic</span>
-                </p>
-              </div>
 
-              <div className="absolute bottom-3 right-3 text-gray-400 text-sm">
-                ✨
-              </div>
-            </div>
-          </div>
-
-        </div>
-        
-        {/* Información adicional */}
-        <div className="mt-16 bg-white rounded-3xl p-8 shadow-2xl border-2 border-green-200">
-          <h3 className="text-2xl font-bold text-center text-gray-800 mb-6">📢 Información Importante</h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-gray-600">
-            <div className="space-y-3">
-              <h4 className="font-semibold text-lg text-green-600">🗳️ GOBA Awards</h4>
-              <ul className="space-y-2">
-                <li>• Fase de Nominaciones: Hasta 10 Dic</li>
-                <li>• Fase de Votación: 12-20 Dic</li>
-                <li>• Gran Gala: 31 Dic</li>
-              </ul>
-            </div>
-            <div className="space-y-3">
-              <h4 className="font-semibold text-lg text-blue-600">🎮 Retos Activos</h4>
-              <ul className="space-y-2">
-                <li>• Retos disponibles todas las semanas </li>
-                <li>• Puntos por completar</li>
-                <li>• ¡Gana premios y sorpresas!</li>
-              </ul>
-            </div>
-          </div>
+      
 
           {/* BOTÓN DE CERRAR SESIÓN */}
           <div className="text-center mt-8 pt-6 border-t border-gray-200">

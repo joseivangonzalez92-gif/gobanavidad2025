@@ -4,500 +4,1287 @@ import { Link } from "react-router-dom";
 import { gobaService } from "../services/firebaseService";
 
 // =============================================
-// 1. 🎨 ZE GEOMETRIC - JUEGO DE BLOQUES GEOMÉTRICOS (CORREGIDO)
+// 🗺️ TERRITORY WARS - POWER POR USUARIO / y reinicio de tablero 
 // =============================================
-const ZeGeometric = ({ volverASeleccion, guardarEnRanking }) => {
-  const [shapes, setShapes] = useState([]);
-  const [selectedShape, setSelectedShape] = useState(null);
-  const [selectedSize, setSelectedSize] = useState('medium');
-  const [figurasUtilizadas, setFigurasUtilizadas] = useState(0);
-  const [selectedShapeOnBoard, setSelectedShapeOnBoard] = useState(null);
-  const [isDragging, setIsDragging] = useState(false);
-  const boardRef = useRef(null);
-
-  // Más figuras geométricas
-  const availableShapes = [
-    { id: 'square', name: 'Cuadrado', type: 'square', color: '#f87171' },
-    { id: 'circle', name: 'Círculo', type: 'circle', color: '#60a5fa' },
-    { id: 'triangle', name: 'Triángulo', type: 'triangle', color: '#34d399' },
-    { id: 'rectangle', name: 'Rectángulo', type: 'rectangle', color: '#fbbf24' },
-    { id: 'pentagon', name: 'Pentágono', type: 'pentagon', color: '#a78bfa' },
-    { id: 'star', name: 'Estrella', type: 'star', color: '#f472b6' },
-    { id: 'hexagon', name: 'Hexágono', type: 'hexagon', color: '#f59e0b' },
-    { id: 'diamond', name: 'Diamante', type: 'diamond', color: '#ec4899' },
-    { id: 'heart', name: 'Corazón', type: 'heart', color: '#ef4444' },
-    { id: 'cloud', name: 'Nube', type: 'cloud', color: '#94a3b8' }
-  ];
-
-  // Tamaños disponibles con dimensiones específicas
-  const sizes = [
-    { id: 'small', name: 'Pequeño', scale: 0.7, baseSize: 35 },
-    { id: 'medium', name: 'Mediano', scale: 1, baseSize: 50 },
-    { id: 'large', name: 'Grande', scale: 1.3, baseSize: 65 }
-  ];
-
-  // Colores disponibles
-  const colors = [
-    '#f87171', '#fb923c', '#fbbf24', '#a3e635', '#34d399',
-    '#22d3ee', '#60a5fa', '#a78bfa', '#e879f9', '#f472b6'
-  ];
-
-  const handleShapeSelect = (shape) => {
-    setSelectedShape(shape);
-    setSelectedSize('medium');
+const TerritoryWars = ({ volverASeleccion, guardarEnRanking, usuarioActual }) => {
+  // 🎯 CONFIGURACIÓN
+  const EQUIPOS = {
+    ROJO: { nombre: "Rojo", color: "bg-red-500", emoji: "🔴", maxJugadores: 5 },
+    AZUL: { nombre: "Azul", color: "bg-blue-500", emoji: "🔵", maxJugadores: 5 },
+    VERDE: { nombre: "Verde", color: "bg-green-500", emoji: "🟢", maxJugadores: 5 },
+    AMARILLO: { nombre: "Amarillo", color: "bg-yellow-500", emoji: "🟡", maxJugadores: 5 }
   };
 
-  const handleDragStart = (e, shape) => {
-    if (!selectedShape) return;
+  // 🎯 SISTEMA DE POWER POR USUARIO (10 diarios a las 6 AM)
+  const COSTOS_POWER = {
+    construir: 3,
+    atacar: 2,
+    proteger: 4,
+    powerDiario: 10,
+    horaReset: 6 // 6 AM hora local
+  };
+
+  // 🎯 DURACIÓN DE PROTECCIÓN (4 horas)
+  const DURACION_PROTECCION = 4 * 60 * 60 * 1000; // 4 horas en milisegundos
+
+  // 🎯 CALCULAR FECHA DE CIERRE (Domingo 6:00 PM Honduras)
+  const calcularCierre = () => {
+    const ahora = new Date();
+    const hoy = ahora.getDay();
+    const horas = ahora.getHours();
+    const minutos = ahora.getMinutes();
     
-    setIsDragging(true);
-    e.dataTransfer.setData('application/json', JSON.stringify({
-      shape: selectedShape,
-      size: selectedSize
-    }));
-  };
-
-  const handleDragOver = (e) => {
-    e.preventDefault();
-    e.dataTransfer.dropEffect = 'copy';
-  };
-
-  const handleDrop = (e) => {
-    e.preventDefault();
-    setIsDragging(false);
+    if (hoy === 0 && (horas < 18 || (horas === 18 && minutos === 0))) {
+      const cierre = new Date(ahora);
+      cierre.setHours(18, 0, 0, 0);
+      return cierre;
+    }
     
+    const diasHastaDomingo = hoy === 0 ? 7 : 7 - hoy;
+    const cierre = new Date(ahora);
+    cierre.setDate(ahora.getDate() + diasHastaDomingo);
+    cierre.setHours(18, 0, 0, 0);
+    return cierre;
+  };
+
+  // 🎯 ESTADO PRINCIPAL
+  const [miEquipo, setMiEquipo] = useState(null);
+  const [tablero, setTablero] = useState([]);
+  const [terrenoSeleccionado, setTerrenoSeleccionado] = useState(null);
+  const [fechaCierre] = useState(calcularCierre());
+  const [jugadoresPorEquipo, setJugadoresPorEquipo] = useState({
+    ROJO: [], AZUL: [], VERDE: [], AMARILLO: []
+  });
+  
+  // 🎯 POWER POR USUARIO - GUARDADO EN FIREBASE
+  // ESTADO INICIAL VACÍO - Se cargará desde Firebase
+  const [power, setPower] = useState(null); // null en lugar de 10
+  const [ultimoReset, setUltimoReset] = useState(null);
+
+  // 🎯 INICIALIZAR TABLERO Y CARGAR DATOS
+  useEffect(() => {
+    console.log(`🔍 INICIO - Cargando datos...`);
+    
+    cargarTableroCompartido();
+    cargarPowerUsuario(); // Cargar power por usuario PRIMERO
+    cargarJugadoresEquipos();
+    asignarEquipoUsuario();
+    
+    // Verificar liberación de protecciones cada minuto
+    const intervalProtecciones = setInterval(verificarProtecciones, 60000);
+    return () => clearInterval(intervalProtecciones);
+  }, []);
+
+  // 👥 CARGAR JUGADORES POR EQUIPO DESDE FIREBASE
+  const cargarJugadoresEquipos = async () => {
     try {
-      const data = JSON.parse(e.dataTransfer.getData('application/json'));
-      if (!data.shape) return;
-
-      const boardRect = boardRef.current.getBoundingClientRect();
-      const x = e.clientX - boardRect.left - 25;
-      const y = e.clientY - boardRect.top - 25;
-
-      const selectedSizeObj = sizes.find(s => s.id === data.size) || sizes[1]; // Default a mediano
-
-      const newShape = {
-        id: Date.now().toString(),
-        type: data.shape.type,
-        color: data.shape.color,
-        x: Math.max(0, x),
-        y: Math.max(0, y),
-        rotation: 0,
-        scale: selectedSizeObj.scale,
-        size: data.size,
-        baseSize: selectedSizeObj.baseSize
-      };
-
-      setShapes(prev => [...prev, newShape]);
-      setFigurasUtilizadas(prev => prev + 1);
-      setSelectedShape(null);
+      const jugadoresData = await gobaService.obtenerDocumentoTerritoryWars('jugadoresEquipos');
+      if (jugadoresData) {
+        setJugadoresPorEquipo(jugadoresData);
+      } else {
+        await guardarJugadoresEquipos({ ROJO: [], AZUL: [], VERDE: [], AMARILLO: [] });
+      }
     } catch (error) {
-      console.log('Error al soltar figura:', error);
+      console.log('Error cargando jugadores:', error);
+      const jugadoresGuardados = localStorage.getItem('territoryWars_jugadoresEquipos');
+      if (jugadoresGuardados) setJugadoresPorEquipo(JSON.parse(jugadoresGuardados));
     }
   };
 
-  const handleDragEnd = () => {
-    setIsDragging(false);
-  };
-
-  const handleBoardClick = (e) => {
-    // Solo deseleccionar si se hace click directamente en el tablero (no en una figura)
-    if (e.target === boardRef.current) {
-      setSelectedShapeOnBoard(null);
+  // 💾 GUARDAR JUGADORES POR EQUIPO EN FIREBASE
+  const guardarJugadoresEquipos = async (nuevosJugadores) => {
+    try {
+      await gobaService.actualizarDocumentoTerritoryWars('jugadoresEquipos', nuevosJugadores);
+      setJugadoresPorEquipo(nuevosJugadores);
+    } catch (error) {
+      console.log('Error guardando en Firebase:', error);
+      setJugadoresPorEquipo(nuevosJugadores);
+      localStorage.setItem('territoryWars_jugadoresEquipos', JSON.stringify(nuevosJugadores));
     }
   };
 
-  const rotateShape = (shapeId) => {
-    setShapes(prev => prev.map(shape => 
-      shape.id === shapeId 
-        ? { ...shape, rotation: (shape.rotation + 45) % 360 }
-        : shape
-    ));
+  // 🗺️ CONVERTIR OBJETO FIREBASE A ARRAY 7x7
+  const convertirAArray = (tableroObjeto) => {
+    const array = Array(7).fill().map(() => Array(7).fill(null));
+    if (!tableroObjeto) return array;
+    
+    Object.entries(tableroObjeto).forEach(([clave, datos]) => {
+      const [fila, columna] = clave.split('-').map(Number);
+      if (fila >= 0 && fila < 7 && columna >= 0 && columna < 7) {
+        array[fila][columna] = { ...datos, fila, columna, id: clave };
+      }
+    });
+    
+    return array;
   };
 
-  const removeShape = (shapeId) => {
-    setShapes(prev => prev.filter(shape => shape.id !== shapeId));
-    setSelectedShapeOnBoard(null);
+  // 🗺️ CARGAR TABLERO COMPARTIDO DESDE FIREBASE
+  const cargarTableroCompartido = async () => {
+    try {
+      const data = await gobaService.obtenerDocumentoTerritoryWars('tableroActual');
+      if (data && data.tablero) {
+        const tableroArray = convertirAArray(data.tablero);
+        setTablero(tableroArray);
+        console.log('✅ Tablero cargado desde Firebase');
+      } else {
+        console.log('🆕 Creando nuevo tablero en Firebase');
+        await inicializarTableroCompartido();
+      }
+    } catch (error) {
+      console.log('Error cargando tablero:', error);
+      inicializarTableroLocal();
+    }
   };
 
-  const changeColor = (shapeId) => {
-    const randomColor = colors[Math.floor(Math.random() * colors.length)];
-    setShapes(prev => prev.map(shape => 
-      shape.id === shapeId 
-        ? { ...shape, color: randomColor }
-        : shape
-    ));
+  // 🗺️ INICIALIZAR TABLERO COMPARTIDO EN FIREBASE
+  const inicializarTableroCompartido = async () => {
+    const tableroObjeto = {};
+    
+    for (let fila = 0; fila < 7; fila++) {
+      for (let columna = 0; columna < 7; columna++) {
+        const clave = `${fila}-${columna}`;
+        tableroObjeto[clave] = {
+          equipo: null, 
+          nivel: 1, 
+          protegido: false, 
+          proteccionHasta: null, 
+          ultimaActualizacion: Date.now()
+        };
+      }
+    }
+
+    // Bases iniciales
+    tableroObjeto['0-0'].equipo = "ROJO";
+    tableroObjeto['0-6'].equipo = "AZUL";
+    tableroObjeto['6-0'].equipo = "VERDE";
+    tableroObjeto['6-6'].equipo = "AMARILLO";
+
+    try {
+      await gobaService.actualizarDocumentoTerritoryWars('tableroActual', {
+        tablero: tableroObjeto,
+        metadata: { 
+          fechaCreacion: Date.now(), 
+          fechaCierre: fechaCierre.getTime(), 
+          version: "3.2" 
+        }
+      });
+      
+      const tableroArray = convertirAArray(tableroObjeto);
+      setTablero(tableroArray);
+      console.log('✅ Tablero inicializado en Firebase');
+    } catch (error) {
+      console.log('Error inicializando tablero:', error);
+      inicializarTableroLocal();
+    }
   };
 
-  const moveShape = (shapeId, direction) => {
-    setShapes(prev => prev.map(shape => {
-      if (shape.id === shapeId) {
-        const moveAmount = 10;
-        switch(direction) {
-          case 'up': return { ...shape, y: Math.max(0, shape.y - moveAmount) };
-          case 'down': return { ...shape, y: shape.y + moveAmount };
-          case 'left': return { ...shape, x: Math.max(0, shape.x - moveAmount) };
-          case 'right': return { ...shape, x: shape.x + moveAmount };
-          default: return shape;
+  // 🗺️ INICIALIZAR TABLERO LOCAL (fallback)
+  const inicializarTableroLocal = () => {
+    const nuevoTablero = Array(7).fill().map((_, fila) => 
+      Array(7).fill().map((_, columna) => ({
+        id: `${fila}-${columna}`, 
+        fila, 
+        columna, 
+        equipo: null, 
+        nivel: 1, 
+        protegido: false, 
+        proteccionHasta: null
+      }))
+    );
+
+    nuevoTablero[0][0].equipo = "ROJO";
+    nuevoTablero[0][6].equipo = "AZUL";
+    nuevoTablero[6][0].equipo = "VERDE";
+    nuevoTablero[6][6].equipo = "AMARILLO";
+
+    setTablero(nuevoTablero);
+  };
+
+  // 🔄 ESCUCHAR CAMBIOS EN EL TABLERO EN TIEMPO REAL
+  useEffect(() => {
+    const unsubscribe = gobaService.escucharDocumentoTerritoryWars('tableroActual', (data) => {
+      if (data && data.tablero) {
+        const tableroActualizado = convertirAArray(data.tablero);
+        setTablero(tableroActualizado);
+        console.log('🔄 Tablero actualizado en tiempo real');
+      }
+    });
+
+    return () => unsubscribe();
+  }, []);
+
+  // 👤 ASIGNAR EQUIPO AL USUARIO
+  const asignarEquipoUsuario = async () => {
+    try {
+      const data = await gobaService.obtenerDocumentoTerritoryWars('equiposUsuarios');
+      if (data) {
+        const equipoGuardado = data[usuarioActual.id];
+        if (equipoGuardado && EQUIPOS[equipoGuardado]) {
+          setMiEquipo(equipoGuardado);
+          return;
         }
       }
-      return shape;
-    }));
+    } catch (error) {
+      console.log('Error cargando equipo:', error);
+      const equipoGuardado = localStorage.getItem(`territoryWars_equipo_${usuarioActual.id}`);
+      if (equipoGuardado && EQUIPOS[equipoGuardado]) {
+        setMiEquipo(equipoGuardado);
+        return;
+      }
+    }
+    setMiEquipo(null);
   };
 
-  const clearBoard = () => {
-    setShapes([]);
-    setFigurasUtilizadas(0);
-    setSelectedShapeOnBoard(null);
-  };
+  // 🎯 ELEGIR EQUIPO CON LÍMITE
+  const elegirEquipo = async (equipoElegido) => {
+    const jugadoresEnEquipo = jugadoresPorEquipo[equipoElegido] || [];
+    
+    if (jugadoresEnEquipo.length >= EQUIPOS[equipoElegido].maxJugadores) {
+      alert(`❌ El ${EQUIPOS[equipoElegido].nombre} ya está completo (5/5 jugadores)`);
+      return;
+    }
 
-  const guardarCreacion = () => {
-    guardarEnRanking("ze-geometric", figurasUtilizadas, {
-      figurasCreadas: shapes.length,
-      complejidad: shapes.length
+    const nuevosJugadores = { ...jugadoresPorEquipo };
+    Object.keys(nuevosJugadores).forEach(equipo => {
+      nuevosJugadores[equipo] = nuevosJugadores[equipo].filter(jugador => jugador.id !== usuarioActual.id);
+    });
+
+    const infoJugador = {
+      id: usuarioActual.id,
+      nombre: usuarioActual.nombre || usuarioActual.usuario || 'Jugador',
+      fechaUnion: new Date().toISOString()
+    };
+
+    nuevosJugadores[equipoElegido] = [...(nuevosJugadores[equipoElegido] || []), infoJugador];
+    
+    await guardarJugadoresEquipos(nuevosJugadores);
+    setMiEquipo(equipoElegido);
+    
+    try {
+      await gobaService.actualizarDocumentoTerritoryWars('equiposUsuarios', {
+        [usuarioActual.id]: equipoElegido
+      });
+    } catch (error) {
+      localStorage.setItem(`territoryWars_equipo_${usuarioActual.id}`, equipoElegido);
+    }
+    
+    guardarEnRanking("territory-wars", 0, {
+      accion: "unirse_equipo", 
+      equipo: equipoElegido, 
+      jugadoresEnEquipo: nuevosJugadores[equipoElegido].length
     });
   };
 
-  const handleShapeClick = (shape, e) => {
-    e.stopPropagation(); // Prevenir que el click llegue al tablero
-    setSelectedShapeOnBoard(shape.id === selectedShapeOnBoard ? null : shape.id);
-  };
-
-  // Función para obtener las dimensiones reales de cada figura
-  const getShapeDimensions = (shape) => {
-    const baseSize = shape.baseSize || 50;
-    
-    switch(shape.type) {
-      case 'square':
-        return { width: baseSize, height: baseSize };
-      case 'circle':
-        return { width: baseSize, height: baseSize };
-      case 'triangle':
-        return { width: baseSize, height: baseSize };
-      case 'rectangle':
-        return { width: baseSize * 1.6, height: baseSize * 0.8 };
-      case 'pentagon':
-        return { width: baseSize, height: baseSize };
-      case 'star':
-        return { width: baseSize, height: baseSize };
-      case 'hexagon':
-        return { width: baseSize, height: baseSize };
-      case 'diamond':
-        return { width: baseSize, height: baseSize };
-      case 'heart':
-        return { width: baseSize, height: baseSize };
-      case 'cloud':
-        return { width: baseSize * 1.2, height: baseSize * 0.8 };
-      default:
-        return { width: baseSize, height: baseSize };
+  // ⚡ CARGAR POWER - POR USUARIO DESDE FIREBASE (SIMPLIFICADO)
+  const cargarPowerUsuario = async () => {
+    try {
+      console.log(`🔍 Cargando power para usuario: ${usuarioActual.id}`);
+      
+      // Intentar cargar desde Firebase
+      const powerData = await gobaService.obtenerDocumentoTerritoryWars('powerUsuarios');
+      
+      if (powerData && powerData[usuarioActual.id]) {
+        const userPower = powerData[usuarioActual.id];
+        console.log(`📊 Datos encontrados en Firebase:`, userPower);
+        
+        const ahora = new Date();
+        
+        // Calcular la hora de reset más reciente (6 AM)
+        const ultimoResetCalculado = new Date(
+          ahora.getFullYear(),
+          ahora.getMonth(),
+          ahora.getDate(),
+          COSTOS_POWER.horaReset, 0, 0, 0
+        );
+        
+        // Si son antes de las 6 AM, el último reset fue ayer
+        if (ahora.getHours() < COSTOS_POWER.horaReset) {
+          ultimoResetCalculado.setDate(ultimoResetCalculado.getDate() - 1);
+        }
+        
+        const ultimoResetCalculadoTime = ultimoResetCalculado.getTime();
+        const ultimoResetGuardado = userPower.ultimoReset || ultimoResetCalculadoTime;
+        
+        console.log(`🕒 Comparando tiempos:
+          - Ahora: ${ahora.toLocaleString()}
+          - Último reset guardado: ${new Date(ultimoResetGuardado).toLocaleString()}
+          - Último reset calculado (6AM): ${new Date(ultimoResetCalculadoTime).toLocaleString()}
+        `);
+        
+        // Si el último reset guardado es ANTES del último reset calculado, NECESITA RESET
+        if (ultimoResetGuardado < ultimoResetCalculadoTime) {
+          console.log(`🔄 RESET NECESARIO: Último reset fue hace más de un día`);
+          
+          const nuevoPower = COSTOS_POWER.powerDiario;
+          const nuevoReset = ultimoResetCalculadoTime;
+          
+          setPower(nuevoPower);
+          setUltimoReset(nuevoReset);
+          
+          await guardarPowerUsuarioFirebase(nuevoPower, nuevoReset);
+          
+          console.log(`✅ Power reseteado a ${nuevoPower}/10 (nuevo reset: ${new Date(nuevoReset).toLocaleString()})`);
+        } else {
+          // NO necesita reset, usar valores guardados
+          const nuevoPower = Math.min(userPower.power || COSTOS_POWER.powerDiario, COSTOS_POWER.powerDiario);
+          const nuevoReset = ultimoResetGuardado;
+          
+          setPower(nuevoPower);
+          setUltimoReset(nuevoReset);
+          
+          console.log(`✅ Power cargado: ${nuevoPower}/10 (último reset: ${new Date(nuevoReset).toLocaleString()})`);
+        }
+        
+      } else {
+        // Primer inicio para este usuario
+        console.log(`🆕 Primer inicio para usuario ${usuarioActual.id}`);
+        
+        const ahora = new Date();
+        const ultimoResetCalculado = new Date(
+          ahora.getFullYear(),
+          ahora.getMonth(),
+          ahora.getDate(),
+          COSTOS_POWER.horaReset, 0, 0, 0
+        );
+        
+        if (ahora.getHours() < COSTOS_POWER.horaReset) {
+          ultimoResetCalculado.setDate(ultimoResetCalculado.getDate() - 1);
+        }
+        
+        const nuevoPower = COSTOS_POWER.powerDiario;
+        const nuevoReset = ultimoResetCalculado.getTime();
+        
+        setPower(nuevoPower);
+        setUltimoReset(nuevoReset);
+        
+        await guardarPowerUsuarioFirebase(nuevoPower, nuevoReset);
+        
+        console.log(`✅ Power inicializado: ${nuevoPower}/10`);
+      }
+      
+    } catch (error) {
+      console.log('❌ Error cargando power desde Firebase:', error);
+      
+      // Fallback a localStorage por usuario
+      console.log(`🔄 Intentando cargar desde localStorage...`);
+      
+      const savedPower = localStorage.getItem(`territoryWars_power_${usuarioActual.id}`);
+      const savedReset = localStorage.getItem(`territoryWars_reset_${usuarioActual.id}`);
+      
+      const ahora = new Date();
+      const ultimoResetCalculado = new Date(
+        ahora.getFullYear(),
+        ahora.getMonth(),
+        ahora.getDate(),
+        COSTOS_POWER.horaReset, 0, 0, 0
+      );
+      
+      if (ahora.getHours() < COSTOS_POWER.horaReset) {
+        ultimoResetCalculado.setDate(ultimoResetCalculado.getDate() - 1);
+      }
+      
+      let nuevoPower = COSTOS_POWER.powerDiario;
+      let nuevoReset = ultimoResetCalculado.getTime();
+      
+      if (savedReset && savedPower) {
+        const ultimoResetTime = parseInt(savedReset);
+        const powerGuardado = parseInt(savedPower);
+        
+        console.log(`📊 Datos localStorage: power=${powerGuardado}, reset=${new Date(ultimoResetTime).toLocaleString()}`);
+        
+        // Solo usar los valores guardados si no es necesario resetear
+        if (ultimoResetTime >= ultimoResetCalculado.getTime()) {
+          nuevoPower = Math.min(powerGuardado, COSTOS_POWER.powerDiario);
+          nuevoReset = ultimoResetTime;
+          console.log(`✅ Usando power guardado: ${nuevoPower}/10`);
+        } else {
+          console.log(`🔄 Reset necesario en localStorage`);
+        }
+      } else {
+        console.log(`📝 No hay datos en localStorage, usando valores por defecto`);
+      }
+      
+      setPower(nuevoPower);
+      setUltimoReset(nuevoReset);
+      
+      localStorage.setItem(`territoryWars_power_${usuarioActual.id}`, nuevoPower.toString());
+      localStorage.setItem(`territoryWars_reset_${usuarioActual.id}`, nuevoReset.toString());
+      
+      console.log(`💾 Power guardado en localStorage: ${nuevoPower}/10`);
     }
   };
 
-  // Función para renderizar la vista previa de cada figura
-  const renderShapePreview = (shape) => {
-    const style = {
-      backgroundColor: shape.color,
-      width: '30px',
-      height: '30px'
+  // 💾 GUARDAR POWER POR USUARIO EN FIREBASE
+  const guardarPowerUsuarioFirebase = async (nuevoPower, nuevoReset) => {
+    try {
+      console.log(`💾 Guardando power en Firebase: ${nuevoPower}/10, reset: ${new Date(nuevoReset).toLocaleString()}`);
+      
+      const powerData = await gobaService.obtenerDocumentoTerritoryWars('powerUsuarios');
+      const nuevosDatos = {
+        ...(powerData || {}),
+        [usuarioActual.id]: {
+          power: nuevoPower,
+          ultimoReset: nuevoReset,
+          usuario: usuarioActual.nombre || usuarioActual.usuario,
+          ultimaActualizacion: Date.now()
+        }
+      };
+      
+      await gobaService.actualizarDocumentoTerritoryWars('powerUsuarios', nuevosDatos);
+      console.log(`✅ Power guardado en Firebase para ${usuarioActual.nombre}`);
+      
+      // También guardar en localStorage como backup
+      localStorage.setItem(`territoryWars_power_${usuarioActual.id}`, nuevoPower.toString());
+      localStorage.setItem(`territoryWars_reset_${usuarioActual.id}`, nuevoReset.toString());
+      
+    } catch (error) {
+      console.log('❌ Error guardando power en Firebase:', error);
+      // Fallback a localStorage
+      localStorage.setItem(`territoryWars_power_${usuarioActual.id}`, nuevoPower.toString());
+      localStorage.setItem(`territoryWars_reset_${usuarioActual.id}`, nuevoReset.toString());
+    }
+  };
+
+  // 🎯 VERIFICAR RESET DIARIO - SIMPLIFICADO
+  const verificarResetDiario = async () => {
+    if (power === null || ultimoReset === null) {
+      console.log('⏳ Power no cargado todavía, omitiendo verificación');
+      return false;
+    }
+    
+    const ahora = new Date();
+    
+    // Crear fecha de reset de hoy a las 6 AM
+    const hoy6AM = new Date(
+      ahora.getFullYear(),
+      ahora.getMonth(),
+      ahora.getDate(),
+      COSTOS_POWER.horaReset, 0, 0, 0
+    );
+    
+    // Si son antes de las 6 AM, usar el reset de ayer
+    if (ahora.getHours() < COSTOS_POWER.horaReset) {
+      hoy6AM.setDate(hoy6AM.getDate() - 1);
+    }
+    
+    const hoy6AMTime = hoy6AM.getTime();
+    
+    console.log(`🕒 Verificando reset diario:
+      - Power actual: ${power}
+      - Último reset: ${new Date(ultimoReset).toLocaleString()}
+      - Hoy 6AM: ${new Date(hoy6AMTime).toLocaleString()}
+      - Comparación: ${ultimoReset} < ${hoy6AMTime} ? ${ultimoReset < hoy6AMTime}
+    `);
+    
+    // Solo resetear si el último reset fue ANTES de la última hora de reset (6 AM)
+    if (ultimoReset < hoy6AMTime) {
+      console.log(`🔄 RESET DIARIO NECESARIO!`);
+      
+      const nuevoPower = COSTOS_POWER.powerDiario;
+      const nuevoReset = hoy6AMTime;
+      
+      setPower(nuevoPower);
+      setUltimoReset(nuevoReset);
+      
+      await guardarPowerUsuarioFirebase(nuevoPower, nuevoReset);
+      
+      console.log(`✅ Power reseteado a ${nuevoPower}/10`);
+      return true;
+    }
+    
+    console.log(`⏳ No es hora de reset todavía`);
+    return false;
+  };
+
+  // 💾 GASTAR POWER
+  const gastarPower = async (costo) => {
+    if (power === null) {
+      console.log('❌ Power no cargado, no se puede gastar');
+      return;
+    }
+    
+    const nuevoPower = Math.max(0, power - costo);
+    console.log(`💸 Gastando power: ${power} - ${costo} = ${nuevoPower}`);
+    
+    setPower(nuevoPower);
+    
+    await guardarPowerUsuarioFirebase(nuevoPower, ultimoReset);
+  };
+
+  // 🔓 VERIFICAR Y LIBERAR PROTECCIONES CADUCADAS
+  const verificarProtecciones = async () => {
+    const ahora = Date.now();
+    let necesitaActualizar = false;
+    const nuevoTablero = [...tablero];
+    
+    for (let fila = 0; fila < 7; fila++) {
+      for (let columna = 0; columna < 7; columna++) {
+        const terreno = nuevoTablero[fila][columna];
+        if (terreno && terreno.protegido && terreno.proteccionHasta && terreno.proteccionHasta <= ahora) {
+          console.log(`🛡️ Protección liberada en ${fila}-${columna}`);
+          nuevoTablero[fila][columna] = {
+            ...terreno,
+            protegido: false,
+            proteccionHasta: null
+          };
+          necesitaActualizar = true;
+        }
+      }
+    }
+    
+    if (necesitaActualizar) {
+      await actualizarTableroCompleto(nuevoTablero);
+    }
+  };
+
+  // 💾 ACTUALIZAR TABLERO COMPLETO EN FIREBASE
+  const actualizarTableroCompleto = async (nuevoTableroArray) => {
+    try {
+      const tableroObjeto = {};
+      nuevoTableroArray.forEach((fila, filaIndex) => {
+        fila.forEach((terreno, columnaIndex) => {
+          if (terreno) {
+            const clave = `${filaIndex}-${columnaIndex}`;
+            tableroObjeto[clave] = {
+              equipo: terreno.equipo,
+              nivel: terreno.nivel || 1,
+              protegido: terreno.protegido || false,
+              proteccionHasta: terreno.proteccionHasta || null,
+              ultimaActualizacion: Date.now()
+            };
+          }
+        });
+      });
+      
+      await gobaService.actualizarDocumentoTerritoryWars('tableroActual', {
+        tablero: tableroObjeto,
+        metadata: { 
+          fechaCreacion: Date.now(), 
+          fechaCierre: fechaCierre.getTime(), 
+          version: "3.2",
+          ultimaActualizacion: Date.now()
+        }
+      });
+      
+      setTablero(nuevoTableroArray);
+      console.log('✅ Protecciones actualizadas en Firebase');
+    } catch (error) {
+      console.error('Error actualizando protecciones:', error);
+    }
+  };
+
+  // 💾 ACTUALIZAR TERRENO EN FIREBASE
+  const actualizarTerrenoEnFirebase = async (fila, columna, nuevosDatos) => {
+    const clave = `${fila}-${columna}`;
+    try {
+      const documentoCompleto = await gobaService.obtenerDocumentoTerritoryWars('tableroActual');
+      
+      if (!documentoCompleto || !documentoCompleto.tablero) {
+        alert('Error: No se pudo cargar el tablero.');
+        return false;
+      }
+
+      const tableroActualizado = {
+        ...documentoCompleto.tablero,
+        [clave]: {
+          ...documentoCompleto.tablero[clave],
+          ...nuevosDatos,
+          ultimaActualizacion: Date.now(),
+          ultimoJugador: usuarioActual.id
+        }
+      };
+
+      const exito = await gobaService.actualizarDocumentoTerritoryWars('tableroActual', {
+        ...documentoCompleto,
+        tablero: tableroActualizado,
+        ultimaActualizacion: Date.now()
+      });
+
+      if (exito) {
+        const nuevoTableroArray = convertirAArray(tableroActualizado);
+        setTablero(nuevoTableroArray);
+        return true;
+      }
+      return false;
+
+    } catch (error) {
+      console.error('Error actualizando terreno:', error);
+      alert('Error de conexión. Intenta nuevamente.');
+      return false;
+    }
+  };
+
+  // 🏗️ CONSTRUIR - Costo: 3 power
+  const construir = async () => {
+    if (!terrenoSeleccionado || power === null || power < COSTOS_POWER.construir || !miEquipo) {
+      console.log(`❌ No se puede construir: power=${power}, miEquipo=${miEquipo}`);
+      return;
+    }
+
+    const { fila, columna } = terrenoSeleccionado;
+    const terreno = tablero[fila][columna];
+
+    if (terreno && terreno.equipo === null) {
+      const nuevoTerreno = { 
+        ...terreno, 
+        equipo: miEquipo, 
+        nivel: 1, 
+        protegido: false 
+      };
+      
+      const exito = await actualizarTerrenoEnFirebase(fila, columna, nuevoTerreno);
+      
+      if (exito) {
+        await gastarPower(COSTOS_POWER.construir);
+        
+        guardarEnRanking("territory-wars", 10, { 
+          accion: "construir", 
+          equipo: miEquipo, 
+          territorio: `${fila}-${columna}`,
+          jugador: usuarioActual.nombre
+        });
+      }
+    } else {
+      alert('❌ Solo puedes construir en territorios neutrales');
+    }
+  };
+
+  // ⚔️ ATACAR - Costo: 2 power
+  const atacar = async () => {
+    if (!terrenoSeleccionado || power === null || power < COSTOS_POWER.atacar || !miEquipo) {
+      console.log(`❌ No se puede atacar: power=${power}, miEquipo=${miEquipo}`);
+      return;
+    }
+
+    const { fila, columna } = terrenoSeleccionado;
+    const terreno = tablero[fila][columna];
+
+    if (terreno && terreno.equipo && terreno.equipo !== miEquipo && !terreno.protegido) {
+      const nuevoTerreno = { 
+        ...terreno, 
+        equipo: null, 
+        nivel: 1, 
+        protegido: false 
+      };
+      
+      const exito = await actualizarTerrenoEnFirebase(fila, columna, nuevoTerreno);
+      
+      if (exito) {
+        await gastarPower(COSTOS_POWER.atacar);
+        
+        guardarEnRanking("territory-wars", 15, { 
+          accion: "atacar", 
+          equipoAtacante: miEquipo, 
+          equipoDefensor: terreno.equipo, 
+          territorio: `${fila}-${columna}`,
+          jugador: usuarioActual.nombre
+        });
+      }
+    } else {
+      if (terreno?.protegido) {
+        alert('❌ Este territorio está protegido');
+      } else {
+        alert('❌ Solo puedes atacar territorios enemigos');
+      }
+    }
+  };
+
+  // 🛡️ PROTEGER - Costo: 4 power
+  const proteger = async () => {
+    if (!terrenoSeleccionado || power === null || power < COSTOS_POWER.proteger || !miEquipo) {
+      console.log(`❌ No se puede proteger: power=${power}, miEquipo=${miEquipo}`);
+      return;
+    }
+
+    const { fila, columna } = terrenoSeleccionado;
+    const terreno = tablero[fila][columna];
+
+    if (terreno && terreno.equipo === miEquipo && !terreno.protegido) {
+      const proteccionHasta = Date.now() + DURACION_PROTECCION;
+      const nuevoTerreno = { 
+        ...terreno, 
+        protegido: true, 
+        proteccionHasta: proteccionHasta 
+      };
+      
+      const exito = await actualizarTerrenoEnFirebase(fila, columna, nuevoTerreno);
+      
+      if (exito) {
+        await gastarPower(COSTOS_POWER.proteger);
+        
+        guardarEnRanking("territory-wars", 5, { 
+          accion: "proteger", 
+          equipo: miEquipo, 
+          territorio: `${fila}-${columna}`,
+          proteccionHasta: proteccionHasta,
+          duracionHoras: 4,
+          jugador: usuarioActual.nombre
+        });
+      }
+    } else {
+      if (terreno?.protegido) {
+        alert('❌ Este territorio ya está protegido');
+      } else {
+        alert('❌ Solo puedes proteger tus propios territorios');
+      }
+    }
+  };
+
+  // 🎯 SELECCIONAR TERRENO
+  const seleccionarTerreno = (fila, columna) => {
+    setTerrenoSeleccionado({ fila, columna });
+  };
+
+  // ⚡ VERIFICAR RESET CADA MINUTO
+  useEffect(() => {
+    if (power !== null && ultimoReset !== null) {
+      const interval = setInterval(() => {
+        verificarResetDiario();
+      }, 60000); // Cada minuto
+      
+      return () => clearInterval(interval);
+    }
+  }, [power, ultimoReset]);
+
+  // 📊 CALCULAR ESTADÍSTICAS
+  const [estadisticas, setEstadisticas] = useState({
+    ROJO: { territorios: 0, poder: 0 },
+    AZUL: { territorios: 0, poder: 0 },
+    VERDE: { territorios: 0, poder: 0 },
+    AMARILLO: { territorios: 0, poder: 0 }
+  });
+
+  useEffect(() => {
+    const calcular = () => {
+      const nuevasStats = { 
+        ROJO: { territorios: 0, poder: 0 }, 
+        AZUL: { territorios: 0, poder: 0 }, 
+        VERDE: { territorios: 0, poder: 0 }, 
+        AMARILLO: { territorios: 0, poder: 0 } 
+      };
+
+      tablero.forEach(fila => {
+        fila.forEach(terreno => {
+          if (terreno && terreno.equipo) {
+            nuevasStats[terreno.equipo].territorios++;
+            nuevasStats[terreno.equipo].poder += terreno.nivel || 1;
+          }
+        });
+      });
+
+      setEstadisticas(nuevasStats);
     };
 
-    switch(shape.type) {
-      case 'square':
-        return <div className="rounded-md" style={style} />;
-      case 'circle':
-        return <div className="rounded-full" style={style} />;
-      case 'triangle':
-        return <div className="triangle-preview" style={{...style, backgroundColor: 'transparent', borderBottom: `30px solid ${shape.color}`}} />;
-      case 'rectangle':
-        return <div className="rounded-md" style={{...style, width: '40px', height: '20px'}} />;
-      case 'pentagon':
-        return <div className="pentagon-preview" style={style} />;
-      case 'star':
-        return <div className="star-preview" style={style} />;
-      case 'hexagon':
-        return <div className="hexagon-preview" style={style} />;
-      case 'diamond':
-        return <div className="diamond-preview" style={style} />;
-      case 'heart':
-        return <div className="heart-preview" style={style} />;
-      case 'cloud':
-        return <div className="cloud-preview" style={style} />;
-      default:
-        return <div className="rounded-md" style={style} />;
+    if (tablero.length > 0) {
+      calcular();
     }
+  }, [tablero]);
+
+  // ⏰ CALCULAR TIEMPO RESTANTE PARA CIERRE
+  const calcularTiempoRestanteCierre = () => {
+    const ahora = new Date();
+    const diferencia = fechaCierre - ahora;
+    
+    if (diferencia <= 0) {
+      return { dias: 0, horas: 0, minutos: 0, terminado: true };
+    }
+    
+    const dias = Math.floor(diferencia / (1000 * 60 * 60 * 24));
+    const horas = Math.floor((diferencia % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+    const minutos = Math.floor((diferencia % (1000 * 60 * 60)) / (1000 * 60));
+    
+    return { dias, horas, minutos, terminado: false };
   };
 
-  return (
-    <div className="text-center max-w-6xl mx-auto">
-      <h2 className="text-3xl font-bold mb-6">🎨 Ze Geometric Blocks</h2>
-      
-      <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-        {/* Panel de figuras y controles */}
-        <div className="space-y-6">
-          {/* Contador de figuras */}
-          <div className="bg-white rounded-2xl p-4 shadow-lg">
-            <div className="text-2xl font-bold text-purple-600">{figurasUtilizadas}</div>
-            <div className="text-sm text-gray-600">Figuras utilizadas</div>
-          </div>
+  // ⏰ CALCULAR TIEMPO PARA PRÓXIMO RESET (6 AM)
+  const calcularTiempoParaReset = () => {
+    const ahora = new Date();
+    const hoy6AM = new Date(
+      ahora.getFullYear(),
+      ahora.getMonth(),
+      ahora.getDate(),
+      COSTOS_POWER.horaReset, 0, 0, 0
+    );
+    
+    // Si ya pasaron las 6 AM de hoy, el próximo reset es mañana a las 6 AM
+    if (ahora.getTime() >= hoy6AM.getTime()) {
+      hoy6AM.setDate(hoy6AM.getDate() + 1);
+    }
+    
+    const diferencia = hoy6AM - ahora;
+    const horas = Math.floor(diferencia / (1000 * 60 * 60));
+    const minutos = Math.floor((diferencia % (1000 * 60 * 60)) / (1000 * 60));
+    
+    return { horas, minutos };
+  };
 
-          {/* Selección de figuras */}
-          <div className="bg-white rounded-2xl p-4 shadow-lg">
-            <h3 className="font-bold mb-4 text-gray-800">Figuras Disponibles</h3>
-            <div className="grid grid-cols-2 gap-3">
-              {availableShapes.map(shape => (
-                <div
-                  key={shape.id}
-                  draggable={!!selectedShape && selectedShape.id === shape.id}
-                  onDragStart={(e) => handleDragStart(e, shape)}
-                  onDragEnd={handleDragEnd}
-                  className={`p-3 rounded-lg border-2 transition-all cursor-pointer ${
-                    selectedShape?.id === shape.id 
-                      ? 'border-purple-500 bg-purple-50 scale-105' 
-                      : 'border-gray-200 hover:border-gray-300 hover:scale-105'
-                  } ${selectedShape?.id === shape.id ? 'cursor-grab active:cursor-grabbing' : ''}`}
-                  onClick={() => handleShapeSelect(shape)}
-                >
-                  <div className="flex justify-center mb-2">
-                    {renderShapePreview(shape)}
-                  </div>
-                  <span className="text-xs font-medium text-gray-700">{shape.name}</span>
-                </div>
-              ))}
-            </div>
-          </div>
+  // 🎨 RENDERIZAR TABLERO
+  const renderTablero = () => {
+    const tiempoRestante = calcularTiempoRestanteCierre();
+    
+    return (
+      <div className="bg-white rounded-2xl p-6 shadow-2xl border-2 border-purple-200">
+        <div className="text-center mb-6">
+          <h3 className="text-2xl font-bold text-gray-800 mb-2">🗺️ Tablero del Reino</h3>
+          <p className="text-gray-600 text-sm">Construye territorios, defiende y conquista para tu equipo</p>
+        </div>
 
-          {/* Selección de tamaño */}
-          {selectedShape && (
-            <div className="bg-white rounded-2xl p-4 shadow-lg">
-              <h3 className="font-bold mb-3 text-gray-800">Tamaño</h3>
-              <div className="space-y-2">
-                {sizes.map(size => (
-                  <button
-                    key={size.id}
-                    onClick={() => setSelectedSize(size.id)}
-                    className={`w-full py-2 rounded-lg border transition-all ${
-                      selectedSize === size.id 
-                        ? 'border-blue-500 bg-blue-50 text-blue-700 font-bold' 
-                        : 'border-gray-200 hover:border-gray-300'
-                    }`}
-                  >
-                    {size.name}
-                  </button>
-                ))}
-              </div>
-              <p className="text-xs text-gray-500 mt-3">
-                {isDragging ? "➡️ Arrastra al tablero..." : `Tamaño seleccionado: ${sizes.find(s => s.id === selectedSize)?.name}`}
-              </p>
-            </div>
-          )}
-
-          {/* Controles generales */}
-          <div className="space-y-3">
-            <button
-              onClick={clearBoard}
-              className="w-full bg-red-500 hover:bg-red-600 text-white py-3 rounded-xl font-bold transition-all"
-            >
-              🗑️ Limpiar Todo
-            </button>
-            <button
-              onClick={guardarCreacion}
-              className="w-full bg-green-500 hover:bg-green-600 text-white py-3 rounded-xl font-bold transition-all"
-            >
-              💾 Guardar Creación
-            </button>
+        <div className="mb-6 bg-gradient-to-r from-purple-500 to-pink-500 rounded-lg p-4 text-white">
+          <div className="text-sm font-bold">⏰ FINALIZA:</div>
+          <div className="text-lg font-bold">
+            {tiempoRestante.terminado ? "🎉 ¡COMPETICIÓN TERMINADA!" : `Domingo 6:00 PM • ${tiempoRestante.dias}d ${tiempoRestante.horas}h ${tiempoRestante.minutos}m`}
           </div>
         </div>
 
-        {/* Área de trabajo */}
-        <div className="lg:col-span-3">
-          <div 
-            ref={boardRef}
-            className="bg-gradient-to-br from-gray-50 to-gray-100 rounded-2xl h-[600px] border-2 border-dashed border-gray-300 relative overflow-hidden cursor-pointer"
-            onDragOver={handleDragOver}
-            onDrop={handleDrop}
-            onClick={handleBoardClick}
-          >
-            {shapes.map(shape => {
-              const dimensions = getShapeDimensions(shape);
-              return (
-                <div
-                  key={shape.id}
-                  className={`absolute transition-all ${
-                    selectedShapeOnBoard === shape.id ? 'z-10 ring-2 ring-blue-400' : 'z-0'
-                  }`}
-                  style={{
-                    left: `${shape.x}px`,
-                    top: `${shape.y}px`,
-                    transform: `rotate(${shape.rotation}deg) scale(${shape.scale})`,
-                    width: `${dimensions.width}px`,
-                    height: `${dimensions.height}px`
-                  }}
-                  onClick={(e) => handleShapeClick(shape, e)}
-                >
-                  <div 
-                    className={`shape ${shape.type} w-full h-full`}
-                    style={{ backgroundColor: shape.color }}
-                  >
-                    {/* Controles de forma seleccionada */}
-                    {selectedShapeOnBoard === shape.id && (
-                      <div className="shape-controls">
-                        <div className="flex flex-col gap-1">
-                          <button 
-                            onClick={(e) => { e.stopPropagation(); rotateShape(shape.id); }}
-                            className="w-8 h-8 bg-white rounded-full text-xs flex items-center justify-center shadow-md hover:scale-110 transition-all"
-                            title="Rotar"
-                          >
-                            🔄
-                          </button>
-                          <button 
-                            onClick={(e) => { e.stopPropagation(); changeColor(shape.id); }}
-                            className="w-8 h-8 bg-white rounded-full text-xs flex items-center justify-center shadow-md hover:scale-110 transition-all"
-                            title="Cambiar color"
-                          >
-                            🎨
-                          </button>
-                          <button 
-                            onClick={(e) => { e.stopPropagation(); removeShape(shape.id); }}
-                            className="w-8 h-8 bg-white rounded-full text-xs flex items-center justify-center shadow-md hover:scale-110 transition-all"
-                            title="Eliminar"
-                          >
-                            ❌
-                          </button>
-                        </div>
-                        <div className="flex gap-1 mt-2">
-                          <button 
-                            onClick={(e) => { e.stopPropagation(); moveShape(shape.id, 'up'); }}
-                            className="w-6 h-6 bg-white rounded text-xs flex items-center justify-center shadow-md hover:scale-110 transition-all"
-                            title="Mover arriba"
-                          >
-                            ↑
-                          </button>
-                          <button 
-                            onClick={(e) => { e.stopPropagation(); moveShape(shape.id, 'left'); }}
-                            className="w-6 h-6 bg-white rounded text-xs flex items-center justify-center shadow-md hover:scale-110 transition-all"
-                            title="Mover izquierda"
-                          >
-                            ←
-                          </button>
-                          <button 
-                            onClick={(e) => { e.stopPropagation(); moveShape(shape.id, 'right'); }}
-                            className="w-6 h-6 bg-white rounded text-xs flex items-center justify-center shadow-md hover:scale-110 transition-all"
-                            title="Mover derecha"
-                          >
-                            →
-                          </button>
-                          <button 
-                            onClick={(e) => { e.stopPropagation(); moveShape(shape.id, 'down'); }}
-                            className="w-6 h-6 bg-white rounded text-xs flex items-center justify-center shadow-md hover:scale-110 transition-all"
-                            title="Mover abajo"
-                          >
-                            ↓
-                          </button>
-                        </div>
-                      </div>
-                    )}
+        <div className="bg-gray-50 rounded-xl p-3 mx-auto max-w-xs border border-gray-200">
+          <div className="grid grid-cols-7 gap-1 mx-auto">
+            {tablero.map((fila, filaIndex) =>
+              fila.map((terreno, columnaIndex) => {
+                const equipo = terreno ? EQUIPOS[terreno.equipo] : null;
+                const estaSeleccionado = terrenoSeleccionado?.fila === filaIndex && terrenoSeleccionado?.columna === columnaIndex;
+
+                return (
+                  <button
+                    key={`${filaIndex}-${columnaIndex}`}
+                    onClick={() => seleccionarTerreno(filaIndex, columnaIndex)}
+                    className={`
+                      w-8 h-8 rounded-md border transition-all duration-200 relative
+                      ${equipo ? equipo.color : 'bg-gray-400'}
+                      ${estaSeleccionado ? 'ring-2 ring-purple-500 scale-110' : 'hover:scale-105'}
+                      ${terreno?.protegido ? 'ring-1 ring-yellow-400 animate-pulse' : ''}
+                      border-gray-300
+                    `}
+                  />
+                );
+              })
+            )}
+          </div>
+        </div>
+        
+        <div className="mt-6 grid grid-cols-2 gap-2 text-xs">
+          <div className="flex items-center gap-2 justify-center bg-red-50 px-2 py-1 rounded">
+            <div className="w-3 h-3 bg-red-500 rounded"></div>
+            <span className="text-gray-700 font-medium">Rojo</span>
+          </div>
+          <div className="flex items-center gap-2 justify-center bg-blue-50 px-2 py-1 rounded">
+            <div className="w-3 h-3 bg-blue-500 rounded"></div>
+            <span className="text-gray-700 font-medium">Azul</span>
+          </div>
+          <div className="flex items-center gap-2 justify-center bg-green-50 px-2 py-1 rounded">
+            <div className="w-3 h-3 bg-green-500 rounded"></div>
+            <span className="text-gray-700 font-medium">Verde</span>
+          </div>
+          <div className="flex items-center gap-2 justify-center bg-yellow-50 px-2 py-1 rounded">
+            <div className="w-3 h-3 bg-yellow-500 rounded"></div>
+            <span className="text-gray-700 font-medium">Amarillo</span>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  // 📊 RENDERIZAR ESTADÍSTICAS
+  const renderEstadisticas = () => {
+    const equipoGanador = Object.entries(estadisticas).reduce((ganador, [equipo, stats]) => 
+      stats.territorios > estadisticas[ganador].territorios ? equipo : ganador, "ROJO"
+    );
+
+    const tiempoRestante = calcularTiempoRestanteCierre();
+
+    return (
+      <div className="bg-white rounded-2xl p-4 shadow-lg border-2 border-purple-200">
+        <h3 className="font-bold mb-4 text-gray-800 text-center">🏆 Clasificación</h3>
+        
+        <div className="grid grid-cols-2 gap-4 mb-3 px-2">
+          <div className="text-left text-sm font-bold text-gray-600">Equipo</div>
+          <div className="text-right text-sm font-bold text-gray-600">Territorios</div>
+        </div>
+
+        <div className="space-y-2">
+          {Object.entries(EQUIPOS).map(([key, equipo]) => {
+            const jugadoresEnEquipo = jugadoresPorEquipo[key] || [];
+            
+            return (
+              <div
+                key={key}
+                className={`flex items-center justify-between p-2 rounded-lg border transition-all ${
+                  key === equipoGanador && tiempoRestante.terminado
+                    ? 'bg-gradient-to-r from-yellow-100 to-yellow-200 border-yellow-400' 
+                    : 'bg-gray-50 border-gray-200'
+                } ${key === miEquipo ? 'ring-1 ring-blue-400' : ''}`}
+              >
+                <div className="flex items-center gap-2">
+                  <div className={`w-4 h-4 rounded ${equipo.color}`}></div>
+                  <div className="min-w-0 flex-1">
+                    <div className={`font-bold text-xs truncate ${key === miEquipo ? 'text-blue-600' : 'text-gray-700'}`}>
+                      {key === miEquipo ? 'Mi Equipo' : `Equipo ${equipo.nombre}`}
+                    </div>
+                    <div className="text-xs text-gray-500 truncate">
+                      {jugadoresEnEquipo.length} jugador{jugadoresEnEquipo.length !== 1 ? 'es' : ''}
+                    </div>
                   </div>
                 </div>
-              );
-            })}
-            
-            {shapes.length === 0 && (
-              <div className="absolute inset-0 flex items-center justify-center text-gray-400">
-                <div className="text-center">
-                  <div className="text-4xl mb-2">🎨</div>
-                  <p className="text-lg">Selecciona una figura y arrástrala aquí</p>
-                  <p className="text-sm mt-2">Haz clic en las figuras para editarlas</p>
-                  <p className="text-sm mt-1">Clic en el área vacía para deseleccionar</p>
+                
+                <div className="text-right min-w-0 flex-shrink-0">
+                  <div className="font-bold text-gray-800 text-sm whitespace-nowrap">
+                    {estadisticas[key].territorios}
+                  </div>
                 </div>
               </div>
+            );
+          })}
+        </div>
+
+        <div className={`mt-4 rounded-lg p-2 text-center ${
+          tiempoRestante.terminado 
+            ? 'bg-gradient-to-r from-green-100 to-green-200 border border-green-300'
+            : 'bg-gradient-to-r from-blue-100 to-blue-200 border border-blue-300'
+        }`}>
+          <div className="text-xs font-bold mb-1 whitespace-nowrap">
+            {tiempoRestante.terminado ? '🎉 COMPETICIÓN TERMINADA' : '⏰ EN CURSO'}
+          </div>
+          <div className="text-xs truncate">
+            {tiempoRestante.terminado 
+              ? `Ganador: ${EQUIPOS[equipoGanador].nombre}`
+              : 'Domino 6:00 PM Honduras'
+            }
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  // ⚡ RENDERIZAR PANEL DE POWER
+  const renderPanelPower = () => {
+    const tiempoParaReset = calcularTiempoParaReset();
+    
+    // Mostrar "Cargando..." si el power no se ha cargado todavía
+    if (power === null) {
+      return (
+        <div className="bg-white rounded-2xl p-4 shadow-lg border-2 border-green-200">
+          <h3 className="font-bold mb-4 text-gray-800 text-center">⚡ Power Diario</h3>
+          <div className="text-center py-8">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mx-auto"></div>
+            <p className="text-gray-600 mt-4">Cargando power...</p>
+          </div>
+        </div>
+      );
+    }
+
+    return (
+      <div className="bg-white rounded-2xl p-4 shadow-lg border-2 border-green-200">
+        <h3 className="font-bold mb-4 text-gray-800 text-center">⚡ Power Diario</h3>
+        
+        <div className="text-center mb-4">
+          <div className="text-3xl font-bold text-purple-700">{power}/{COSTOS_POWER.powerDiario}</div>
+          <div className="text-sm text-gray-600">
+            {power === COSTOS_POWER.powerDiario ? "¡Completo! 🎉" : `${COSTOS_POWER.powerDiario - power} restantes`}
+          </div>
+        </div>
+
+        <div className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg p-3 border border-blue-200">
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-xs font-medium text-gray-700">Próximo reset:</span>
+            <span className="text-xs font-bold text-blue-700">
+              {tiempoParaReset.horas}h {tiempoParaReset.minutos}m
+            </span>
+          </div>
+          
+          <div className="w-full bg-gray-200 rounded-full h-2.5">
+            <div 
+              className="bg-gradient-to-r from-green-400 to-blue-500 h-2.5 rounded-full transition-all duration-300"
+              style={{ width: `${(power / COSTOS_POWER.powerDiario) * 100}%` }}
+            ></div>
+          </div>
+          
+          <div className="text-xs text-center text-gray-500 mt-1">
+            +10 power cada día a las 6:00 AM
+          </div>
+        </div>
+
+        <div className="mt-4 bg-yellow-50 border border-yellow-200 rounded-lg p-3">
+          <div className="text-xs font-bold text-yellow-700 mb-1">📝 Costos de Power</div>
+          <div className="grid grid-cols-3 gap-1 text-xs">
+            <div className="text-center">
+              <div className="font-bold text-gray-800">🏗️ Construir</div>
+              <div className="text-gray-600">{COSTOS_POWER.construir} power</div>
+            </div>
+            <div className="text-center">
+              <div className="font-bold text-gray-800">⚔️ Atacar</div>
+              <div className="text-gray-600">{COSTOS_POWER.atacar} power</div>
+            </div>
+            <div className="text-center">
+              <div className="font-bold text-gray-800">🛡️ Proteger</div>
+              <div className="text-gray-600">{COSTOS_POWER.proteger} power</div>
+            </div>
+          </div>
+        </div>
+
+        {/* 🛡️ INFO PROTECCIONES */}
+        <div className="mt-3 bg-blue-50 border border-blue-200 rounded-lg p-2">
+          <div className="text-xs font-bold text-blue-700">🛡️ Protecciones</div>
+          <div className="text-xs text-blue-600">
+            Duración: <span className="font-bold">4 horas</span>
+            <br />
+            Protegen de ataques enemigos
+          </div>
+        </div>
+
+        {/* 👥 INFO MULTIUSUARIO */}
+        <div className="mt-3 bg-purple-50 border border-purple-200 rounded-lg p-2">
+          <div className="text-xs font-bold text-purple-700">Cierre Domingo 6pm</div>
+          <div className="text-xs text-purple-600">
+            Equipo con más territorios ganará
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  // 🎮 RENDERIZAR ACCIONES
+  const renderAcciones = () => {
+    let terreno = null;
+    if (terrenoSeleccionado && tablero[terrenoSeleccionado.fila]) {
+      terreno = tablero[terrenoSeleccionado.fila][terrenoSeleccionado.columna];
+    }
+    
+    const esDeMiEquipo = terreno?.equipo === miEquipo;
+    const esDeOtroEquipo = terreno?.equipo && terreno.equipo !== miEquipo;
+    const esNeutral = terreno?.equipo === null;
+    const tiempoRestante = calcularTiempoRestanteCierre();
+    
+    // Si el power no se ha cargado, mostrar botones deshabilitados
+    if (power === null) {
+      return (
+        <div className="bg-white rounded-2xl p-4 shadow-lg border-2 border-blue-200">
+          <h3 className="font-bold mb-4 text-gray-800 text-center">🎮 Acciones</h3>
+          <div className="text-center py-4">
+            <p className="text-gray-600">Cargando power...</p>
+          </div>
+        </div>
+      );
+    }
+
+    return (
+      <div className="bg-white rounded-2xl p-4 shadow-lg border-2 border-blue-200">
+        <h3 className="font-bold mb-4 text-gray-800 text-center">🎮 Acciones</h3>
+        
+        {terreno ? (
+          <div className="mb-4 p-3 bg-blue-50 rounded-lg border border-blue-200">
+            <div className="text-sm text-blue-700 font-medium mb-1">
+              Terreno {terreno.fila + 1}-{terreno.columna + 1}
+            </div>
+            <div className="font-bold text-gray-800 text-sm mb-1">
+              {terreno.equipo ? EQUIPOS[terreno.equipo].nombre : 'Territorio Neutral'}
+            </div>
+            <div className="text-xs text-gray-600">
+              Nivel {terreno.nivel} • {terreno.protegido ? '🛡️ Protegido' : '⚔️ Vulnerable'}
+            </div>
+          </div>
+        ) : (
+          <div className="mb-4 p-3 bg-yellow-50 rounded-lg text-center border border-yellow-200">
+            <div className="text-sm text-yellow-700 font-medium">
+              {terrenoSeleccionado ? "❌ Error: Terreno no encontrado" : "Selecciona un territorio en el mapa"}
+            </div>
+            {terrenoSeleccionado && (
+              <div className="text-xs text-yellow-600 mt-1">
+                Coordenadas: {terrenoSeleccionado.fila}-{terrenoSeleccionado.columna}
+              </div>
             )}
+          </div>
+        )}
+
+        <div className="space-y-3">
+          <button
+            onClick={construir}
+            disabled={!terreno || power < COSTOS_POWER.construir || !esNeutral || tiempoRestante.terminado || !miEquipo}
+            className="w-full bg-green-600 hover:bg-green-700 disabled:bg-gray-300 text-white py-3 rounded-xl font-bold text-sm transition-all disabled:cursor-not-allowed shadow-md"
+          >
+            🏗️ Construir ({COSTOS_POWER.construir} power)
+          </button>
+
+          <button
+            onClick={atacar}
+            disabled={!terreno || power < COSTOS_POWER.atacar || !esDeOtroEquipo || terreno?.protegido || tiempoRestante.terminado || !miEquipo}
+            className="w-full bg-red-600 hover:bg-red-700 disabled:bg-gray-300 text-white py-3 rounded-xl font-bold text-sm transition-all disabled:cursor-not-allowed shadow-md"
+          >
+            ⚔️ Atacar ({COSTOS_POWER.atacar} power)
+          </button>
+
+          <button
+            onClick={proteger}
+            disabled={!terreno || power < COSTOS_POWER.proteger || !esDeMiEquipo || terreno?.protegido || tiempoRestante.terminado || !miEquipo}
+            className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-gray-300 text-white py-3 rounded-xl font-bold text-sm transition-all disabled:cursor-not-allowed shadow-md"
+          >
+            🛡️ Proteger ({COSTOS_POWER.proteger} power)
+          </button>
+        </div>
+
+        {tiempoRestante.terminado && (
+          <div className="mt-4 bg-gradient-to-r from-green-100 to-green-200 rounded-lg p-3 text-center border border-green-300">
+            <div className="text-green-700 font-bold text-sm">🏆 Competencia Finalizada</div>
+            <div className="text-xs text-green-600">Espera la próxima semana</div>
+          </div>
+        )}
+      </div>
+    );
+  };
+
+  // 🎯 RENDERIZAR SELECTOR DE EQUIPO
+  const renderSelectorEquipo = () => {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-purple-600 to-pink-600 p-4">
+        <div className="max-w-4xl mx-auto">
+          <div className="text-center mb-8 pt-8">
+            <h2 className="text-4xl font-bold text-white mb-2">🗺️ Territory Control</h2>
+            <p className="text-lg text-white/80"> - ¡Domina el mapa!</p>
+          </div>
+
+          <div className="bg-white rounded-2xl p-8 max-w-md mx-auto text-center shadow-2xl">
+            <h3 className="text-2xl font-bold mb-4 text-gray-800">🎯 Elige tu Equipo</h3>
+            <p className="text-gray-600 mb-6 text-sm">
+              Selecciona un equipo para unirte a la competencia semanal
+              <br />
+              <span className="text-xs text-orange-600 font-medium">Máximo 5 jugadores por equipo</span>
+            </p>
+            
+            <div className="grid grid-cols-2 gap-4 mb-6">
+              {Object.entries(EQUIPOS).map(([key, equipo]) => {
+                const jugadoresEnEquipo = jugadoresPorEquipo[key] || [];
+                const estaLleno = jugadoresEnEquipo.length >= equipo.maxJugadores;
+                const porcentajeLleno = (jugadoresEnEquipo.length / equipo.maxJugadores) * 100;
+                
+                return (
+                  <button
+                    key={key}
+                    onClick={() => !estaLleno && elegirEquipo(key)}
+                    disabled={estaLleno}
+                    className={`p-4 rounded-xl border-2 transition-all ${
+                      estaLleno 
+                        ? 'bg-gray-300 cursor-not-allowed opacity-60' 
+                        : `${equipo.color} text-white hover:scale-105`
+                    } border-white/30 relative overflow-hidden`}
+                  >
+                    <div 
+                      className={`absolute top-0 left-0 h-1 ${
+                        porcentajeLleno >= 80 ? 'bg-red-500' : 
+                        porcentajeLleno >= 60 ? 'bg-orange-500' : 'bg-green-500'
+                      }`}
+                      style={{ width: `${porcentajeLleno}%` }}
+                    ></div>
+                    
+                    <div className="text-2xl mb-2">{equipo.emoji}</div>
+                    <div className="font-bold text-sm">{equipo.nombre}</div>
+                    <div className="text-xs mt-1">{jugadoresEnEquipo.length}/{equipo.maxJugadores}</div>
+                    
+                    {estaLleno && (
+                      <div className="absolute inset-0 bg-black/50 flex items-center justify-center rounded-xl">
+                        <span className="text-white font-bold text-xs">🔒 COMPLETO</span>
+                      </div>
+                    )}
+                  </button>
+                );
+              })}
+            </div>
+            
+            <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3 mb-6">
+              <p className="text-sm text-yellow-700 font-medium">
+                ⚠️ Una vez elegido el equipo, no podrás cambiarlo durante esta competencia semanal
+              </p>
+            </div>
+
+            <button
+              onClick={volverASeleccion}
+              className="w-full bg-gradient-to-r from-purple-500 to-pink-500 text-white py-4 rounded-xl font-bold text-lg hover:from-purple-600 hover:to-pink-600 transition-all transform hover:scale-105 shadow-2xl"
+            >
+              ← Volver a Juegos 3
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  // Si el usuario no ha elegido equipo, mostrar selector
+  if (!miEquipo) {
+    return renderSelectorEquipo();
+  }
+
+  // Mostrar loading mientras se carga el power
+  if (power === null) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-purple-600 mx-auto"></div>
+          <p className="mt-4 text-gray-600">Cargando Territory Wars...</p>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="text-center max-w-6xl mx-auto p-4">
+      <h2 className="text-4xl font-bold mb-2 text-gray-800">🗺️ Territory Control</h2>
+      <p className="text-lg mb-6 text-gray-600">¡Domina el tablero!</p>
+
+      <div className="bg-gradient-to-r from-blue-100 to-purple-100 rounded-2xl p-4 mb-6 border-2 border-blue-300">
+        <div className="flex items-center justify-center gap-4">
+          <span className="text-2xl">{EQUIPOS[miEquipo].emoji}</span>
+          <div>
+            <div className="font-bold text-lg text-blue-700">
+              {usuarioActual.nombre} - {EQUIPOS[miEquipo].nombre}
+            </div>
+            <div className="text-sm text-gray-600">
+              {jugadoresPorEquipo[miEquipo]?.length || 0}/5 jugadores en tu equipo
+            </div>
           </div>
         </div>
       </div>
 
+      <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 mb-8">
+        <div className="lg:col-span-1 space-y-6">
+          {renderPanelPower()}
+          {renderAcciones()}
+        </div>
+
+        <div className="lg:col-span-2">
+          {renderTablero()}
+        </div>
+
+        <div className="lg:col-span-1">
+          {renderEstadisticas()}
+        </div>
+      </div>
+
+      <div className="bg-gradient-to-r from-green-50 to-blue-50 rounded-2xl p-6 mb-6 border-2 border-green-200">
+        <h3 className="font-bold mb-4 text-gray-800 text-center">🎯 Cómo Jugar</h3>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+          <div className="text-center bg-white p-4 rounded-xl border border-green-200">
+            <div className="text-2xl mb-2">🏗️</div>
+            <p className="text-gray-700 font-medium"><strong>Construir ({COSTOS_POWER.construir} power):</strong> Conquista territorio neutral</p>
+          </div>
+          <div className="text-center bg-white p-4 rounded-xl border border-red-200">
+            <div className="text-2xl mb-2">⚔️</div>
+            <p className="text-gray-700 font-medium"><strong>Atacar ({COSTOS_POWER.atacar} power):</strong> Convierte territorio enemigo en neutral</p>
+          </div>
+          <div className="text-center bg-white p-4 rounded-xl border border-blue-200">
+            <div className="text-2xl mb-2">🛡️</div>
+            <p className="text-gray-700 font-medium"><strong>Proteger ({COSTOS_POWER.proteger} power):</strong> 4h de inmunidad en territorio</p>
+          </div>
+        </div>
+        <div className="mt-4 text-center text-sm text-gray-600 bg-white/50 py-2 rounded-lg">
+          ⚡ <strong>Power:</strong> 10 diarios por usuario a las 6:00 AM • ⏰ <strong>Finaliza:</strong> Domingo 6:00 PM Honduras
+        </div>
+      </div>
+
+     
+          
       <button
         onClick={volverASeleccion}
-        className="w-full mt-6 bg-gradient-to-r from-purple-500 to-pink-500 text-white py-3 rounded-xl font-bold hover:from-purple-600 hover:to-pink-600 transition-all"
+        className="w-full bg-gradient-to-r from-purple-500 to-pink-500 text-white py-4 rounded-xl font-bold text-lg hover:from-purple-600 hover:to-pink-600 transition-all transform hover:scale-105 shadow-2xl"
       >
         ← Volver a Juegos 3
       </button>
-
-      <style jsx>{`
-        .shape {
-          position: relative;
-          transition: all 0.3s ease;
-        }
-        .shape:hover {
-          filter: brightness(1.1);
-        }
-        .shape-controls {
-          position: absolute;
-          top: -45px;
-          left: 50%;
-          transform: translateX(-50%);
-          display: flex;
-          flex-direction: column;
-          align-items: center;
-          gap: 4px;
-        }
-        .triangle-preview {
-          width: 0;
-          height: 0;
-          border-left: 15px solid transparent;
-          border-right: 15px solid transparent;
-          border-bottom: 30px solid;
-          background: transparent !important;
-        }
-        .pentagon-preview {
-          clip-path: polygon(50% 0%, 100% 38%, 82% 100%, 18% 100%, 0% 38%);
-        }
-        .star-preview {
-          clip-path: polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%);
-        }
-        .hexagon-preview {
-          clip-path: polygon(25% 0%, 75% 0%, 100% 50%, 75% 100%, 25% 100%, 0% 50%);
-        }
-        .diamond-preview {
-          clip-path: polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%);
-        }
-        .heart-preview {
-          clip-path: path('M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z');
-        }
-        .cloud-preview {
-          clip-path: path('M20 35c-5.5 0-10-4.5-10-10 0-4 2.5-7.5 6-9 1-5.5 5.5-10 11-10 6 0 10.5 4.5 11 10 3.5 1.5 6 5 6 9 0 5.5-4.5 10-10 10H20z');
-        }
-        .square { border-radius: 8px; }
-        .circle { border-radius: 50%; }
-        .triangle { 
-          background: transparent !important;
-          clip-path: polygon(50% 0%, 0% 100%, 100% 100%);
-        }
-        .rectangle { border-radius: 8px; }
-        .pentagon {
-          background: transparent !important;
-          clip-path: polygon(50% 0%, 100% 38%, 82% 100%, 18% 100%, 0% 38%);
-        }
-        .star {
-          background: transparent !important;
-          clip-path: polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%);
-        }
-        .hexagon {
-          background: transparent !important;
-          clip-path: polygon(25% 0%, 75% 0%, 100% 50%, 75% 100%, 25% 100%, 0% 50%);
-        }
-        .diamond {
-          background: transparent !important;
-          clip-path: polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%);
-        }
-        .heart {
-          background: transparent !important;
-          clip-path: path('M20 35c-5.5 0-10-4.5-10-10 0-4 2.5-7.5 6-9 1-5.5 5.5-10 11-10 6 0 10.5 4.5 11 10 3.5 1.5 6 5 6 9 0 5.5-4.5 10-10 10H20z');
-        }
-        .cloud {
-          background: transparent !important;
-          clip-path: path('M20 35c-5.5 0-10-4.5-10-10 0-4 2.5-7.5 6-9 1-5.5 5.5-10 11-10 6 0 10.5 4.5 11 10 3.5 1.5 6 5 6 9 0 5.5-4.5 10-10 10H20z');
-        }
-      `}</style>
     </div>
   );
 };
@@ -510,22 +1297,98 @@ const Pong = ({ volverASeleccion, guardarEnRanking }) => {
   const animationRef = useRef(null);
   const [gameState, setGameState] = useState('menu');
   const [score, setScore] = useState({ player: 0, computer: 0 });
-  const [gameSpeed, setGameSpeed] = useState(1);
+  const [timeLeft, setTimeLeft] = useState(180);
+  const [gameTime, setGameTime] = useState(0);
+  const [touchStartY, setTouchStartY] = useState(null);
+  const [playerY, setPlayerY] = useState(250);
+  const [isServing, setIsServing] = useState(true);
+  const [serveCountdown, setServeCountdown] = useState(3);
+  const timerRef = useRef(null);
+  const startTimeRef = useRef(null);
+  const [highScore, setHighScore] = useState(0);
+  const serveTimerRef = useRef(null);
 
   const gameStateRef = useRef({
-    ball: { x: 400, y: 300, dx: 5, dy: 5, radius: 8 },
-    player: { x: 30, y: 250, width: 10, height: 80, dy: 0 },
-    computer: { x: 760, y: 250, width: 10, height: 80, speed: 5 },
-    keys: {}
+    ball: { x: 400, y: 300, dx: 0, dy: 0, radius: 8, visible: false },
+    player: { x: 40, y: 250, width: 10, height: 80, dy: 0 },
+    computer: { x: 750, y: 250, width: 10, height: 80, speed: 4.5 },
+    keys: {},
+    speedMultiplier: 1,
+    gameOverTriggered: false,
+    lastScorer: 'player',
+    baseSpeed: 5
   });
 
+  // Efecto para sincronizar playerY con gameStateRef
+  useEffect(() => {
+    gameStateRef.current.player.y = playerY;
+  }, [playerY]);
+
+  // Efecto para manejar el bucle del juego
+  useEffect(() => {
+    if (gameState === 'playing') {
+      if (isServing) {
+        startServeCountdown();
+      } else {
+        gameLoop();
+      }
+    }
+    
+    return () => {
+      if (animationRef.current) {
+        cancelAnimationFrame(animationRef.current);
+      }
+      if (serveTimerRef.current) {
+        clearInterval(serveTimerRef.current);
+      }
+    };
+  }, [gameState, isServing]);
+
+  // Timer para el juego
+  useEffect(() => {
+    if (gameState === 'playing' && !isServing) {
+      startTimeRef.current = Date.now();
+      gameStateRef.current.gameOverTriggered = false;
+      timerRef.current = setInterval(() => {
+        setTimeLeft(prev => {
+          if (prev <= 1) {
+            endGame();
+            return 0;
+          }
+          return prev - 1;
+        });
+      }, 1000);
+    } else {
+      if (timerRef.current) {
+        clearInterval(timerRef.current);
+      }
+    }
+
+    return () => {
+      if (timerRef.current) {
+        clearInterval(timerRef.current);
+      }
+    };
+  }, [gameState, isServing]);
+
+  // Controles de teclado
   useEffect(() => {
     const handleKeyDown = (e) => {
-      gameStateRef.current.keys[e.key] = true;
+      const key = e.key.toLowerCase();
+      gameStateRef.current.keys[key] = true;
+      
+      if (gameState === 'playing' && !isServing) {
+        if (key === 'arrowup' || key === 'w') {
+          setPlayerY(prev => Math.max(0, prev - 12));
+        }
+        if (key === 'arrowdown' || key === 's') {
+          setPlayerY(prev => Math.min(520, prev + 12));
+        }
+      }
     };
 
     const handleKeyUp = (e) => {
-      gameStateRef.current.keys[e.key] = false;
+      gameStateRef.current.keys[e.key.toLowerCase()] = false;
     };
 
     window.addEventListener('keydown', handleKeyDown);
@@ -534,26 +1397,139 @@ const Pong = ({ volverASeleccion, guardarEnRanking }) => {
     return () => {
       window.removeEventListener('keydown', handleKeyDown);
       window.removeEventListener('keyup', handleKeyUp);
-      if (animationRef.current) {
-        cancelAnimationFrame(animationRef.current);
-      }
     };
-  }, []);
+  }, [gameState, isServing]);
 
-  const startGame = () => {
+  // Controles táctiles para móvil
+  const handleTouchStart = (e) => {
+    e.preventDefault();
+    if (gameState === 'playing' && !isServing) {
+      const touch = e.touches[0];
+      setTouchStartY(touch.clientY);
+    }
+  };
+
+  const handleTouchMove = (e) => {
+    e.preventDefault();
+    if (touchStartY !== null && gameState === 'playing' && !isServing) {
+      const touch = e.touches[0];
+      const deltaY = touch.clientY - touchStartY;
+      setTouchStartY(touch.clientY);
+      
+      setPlayerY(prev => {
+        const newY = prev + deltaY * 1.3;
+        return Math.max(0, Math.min(520, newY));
+      });
+    }
+  };
+
+  const handleTouchEnd = () => {
+    setTouchStartY(null);
+  };
+
+  const startServeCountdown = () => {
+    setServeCountdown(3);
+    serveTimerRef.current = setInterval(() => {
+      setServeCountdown(prev => {
+        if (prev <= 1) {
+          clearInterval(serveTimerRef.current);
+          serveBall();
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+  };
+
+  const serveBall = () => {
     const state = gameStateRef.current;
-    state.ball = { x: 400, y: 300, dx: 5 * gameSpeed, dy: 5 * gameSpeed, radius: 8 };
-    state.player = { x: 30, y: 250, width: 10, height: 80, dy: 0 };
-    state.computer = { x: 760, y: 250, width: 10, height: 80, speed: 5 * gameSpeed };
-    setScore({ player: 0, computer: 0 });
-    setGameState('playing');
+    state.ball.visible = true;
+    state.ball.x = state.player.x + state.player.width + state.ball.radius;
+    state.ball.y = state.player.y + state.player.height / 2;
+    
+    // Sacar hacia la derecha (hacia la IA)
+    state.ball.dx = state.baseSpeed;
+    state.ball.dy = (Math.random() - 0.5) * 3;
+    
+    setIsServing(false);
     gameLoop();
   };
 
+  const startGame = () => {
+    const state = gameStateRef.current;
+    state.ball = { 
+      x: 400, 
+      y: 300, 
+      dx: 0, 
+      dy: 0, 
+      radius: 8,
+      visible: false 
+    };
+    state.player = { x: 40, y: 250, width: 10, height: 80, dy: 0 };
+    state.computer = { x: 750, y: 250, width: 10, height: 80, speed: 4.5 };
+    state.speedMultiplier = 1;
+    state.baseSpeed = 5;
+    state.lastScorer = 'player';
+    setPlayerY(250);
+    setScore({ player: 0, computer: 0 });
+    setTimeLeft(180);
+    setGameTime(0);
+    setGameState('playing');
+    setIsServing(true);
+  };
+
+  const endGame = () => {
+    if (gameStateRef.current.gameOverTriggered) return;
+    
+    gameStateRef.current.gameOverTriggered = true;
+    const elapsedTime = Math.floor((Date.now() - startTimeRef.current) / 1000);
+    setGameTime(elapsedTime);
+    
+    // Calcular puntuación con escala más pequeña
+    const baseScore = score.player * 10;
+    const winBonus = score.player > score.computer ? 50 : 0;
+    const diffBonus = Math.max(0, (score.player - score.computer) * 5);
+    const timePenalty = Math.max(0, 30 - Math.floor(elapsedTime / 6));
+    const efficiencyBonus = elapsedTime > 0 ? Math.floor((score.player * 60) / elapsedTime) : 0;
+    
+    const finalScore = baseScore + winBonus + diffBonus + timePenalty + efficiencyBonus;
+    
+    // Factores de desempate
+    const tiebreakers = {
+      puntosJugador: score.player,
+      diferencia: score.player - score.computer,
+      eficiencia: efficiencyBonus,
+      tiempoRapido: timePenalty,
+      victoria: score.player > score.computer ? 1 : 0
+    };
+    
+    if (finalScore > highScore) {
+      setHighScore(finalScore);
+    }
+    
+    guardarEnRanking("pong", finalScore, {
+      puntos: score.player,
+      puntosIA: score.computer,
+      tiempo: elapsedTime,
+      tiempoFormato: `${Math.floor(elapsedTime / 60)}:${(elapsedTime % 60).toString().padStart(2, '0')}`,
+      resultado: score.player > score.computer ? "Victoria" : "Derrota",
+      diferencia: score.player - score.computer,
+      eficiencia: efficiencyBonus,
+      desempate_puntos: score.player,
+      desempate_diferencia: score.player - score.computer,
+      desempate_eficiencia: efficiencyBonus,
+      desempate_tiempo: elapsedTime
+    });
+    
+    setGameState('gameOver');
+  };
+
   const gameLoop = () => {
-    if (gameState !== 'playing') return;
+    if (gameState !== 'playing' || isServing) return;
 
     const canvas = canvasRef.current;
+    if (!canvas) return;
+    
     const ctx = canvas.getContext('2d');
     const state = gameStateRef.current;
 
@@ -561,533 +1537,1575 @@ const Pong = ({ volverASeleccion, guardarEnRanking }) => {
     ctx.fillStyle = '#000';
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-    // Mover jugador
-    if (state.keys['ArrowUp'] || state.keys['w']) {
-      state.player.y = Math.max(0, state.player.y - 8);
-    }
-    if (state.keys['ArrowDown'] || state.keys['s']) {
-      state.player.y = Math.min(canvas.height - state.player.height, state.player.y + 8);
-    }
-
-    // IA simple
+    // IA ORIGINAL - Buena pero con errores
     const computerCenter = state.computer.y + state.computer.height / 2;
-    if (computerCenter < state.ball.y - 10) {
-      state.computer.y += state.computer.speed;
-    } else if (computerCenter > state.ball.y + 10) {
-      state.computer.y -= state.computer.speed;
+    
+    // La IA original predecía la trayectoria con precisión pero con error ocasional
+    const predictionError = Math.random() < 0.25 ? (Math.random() - 0.5) * 50 : 0;
+    
+    // Predecir donde llegará la pelota con la IA original
+    const timeToReach = Math.abs(state.computer.x - state.ball.x) / Math.abs(state.ball.dx);
+    let predictedY = state.ball.y + (state.ball.dy * timeToReach) + predictionError;
+    
+    // Ajustar predicción si rebota en paredes (como la IA original)
+    while (predictedY < 0 || predictedY > canvas.height) {
+      if (predictedY < 0) predictedY = -predictedY;
+      if (predictedY > canvas.height) predictedY = 2 * canvas.height - predictedY;
     }
+    
+    const targetY = predictedY - state.computer.height / 2;
+    const diff = targetY - computerCenter;
+    
+    // Movimiento suave de la IA original
+    const moveSpeed = Math.min(state.computer.speed, Math.abs(diff) * 0.15);
+    
+    // La IA original tenía un 85% de precisión
+    const isAccurate = Math.random() < 0.85;
+    
+    if (isAccurate) {
+      if (diff > 8) {
+        state.computer.y += moveSpeed;
+      } else if (diff < -8) {
+        state.computer.y -= moveSpeed;
+      }
+    } else {
+      // Error ocasional - se mueve en dirección contraria o muy lento
+      const mistakeDirection = Math.random() > 0.5 ? 1 : -1;
+      const mistakeSpeed = state.computer.speed * 0.4;
+      state.computer.y += mistakeDirection * mistakeSpeed;
+    }
+    
+    // La IA original a veces era lenta en reaccionar
+    if (Math.random() < 0.15) {
+      state.computer.y += (Math.random() - 0.5) * state.computer.speed * 0.5;
+    }
+    
+    // Limitar movimiento
     state.computer.y = Math.max(0, Math.min(canvas.height - state.computer.height, state.computer.y));
 
-    // Mover pelota
-    state.ball.x += state.ball.dx;
-    state.ball.y += state.ball.dy;
+    // Mover pelota si es visible
+    if (state.ball.visible) {
+      state.ball.x += state.ball.dx * state.speedMultiplier;
+      state.ball.y += state.ball.dy * state.speedMultiplier;
+    }
 
-    // Colisiones
+    // Colisiones con top y bottom
     if (state.ball.y - state.ball.radius <= 0 || state.ball.y + state.ball.radius >= canvas.height) {
       state.ball.dy = -state.ball.dy;
     }
 
-    // Colisión con paletas
-    if (state.ball.x - state.ball.radius <= state.player.x + state.player.width &&
-        state.ball.y >= state.player.y && state.ball.y <= state.player.y + state.player.height) {
+    // Colisión con paleta del jugador
+    if (
+      state.ball.visible &&
+      state.ball.x - state.ball.radius <= state.player.x + state.player.width &&
+      state.ball.x + state.ball.radius >= state.player.x &&
+      state.ball.y >= state.player.y &&
+      state.ball.y <= state.player.y + state.player.height
+    ) {
       state.ball.dx = Math.abs(state.ball.dx);
+      const hitPoint = (state.ball.y - state.player.y) / state.player.height;
+      state.ball.dy = (hitPoint - 0.5) * 8;
+      
+      // ✅ Aumentar velocidad SOLO cuando se golpea (0.1 por golpe)
+      state.speedMultiplier = Math.min(1.8, state.speedMultiplier + 0.1);
+      
+      // Aplicar la velocidad actualizada manteniendo dirección
+      const currentSpeed = Math.sqrt(state.ball.dx * state.ball.dx + state.ball.dy * state.ball.dy);
+      const angle = Math.atan2(state.ball.dy, state.ball.dx);
+      state.ball.dx = Math.cos(angle) * state.baseSpeed * state.speedMultiplier;
+      state.ball.dy = Math.sin(angle) * state.baseSpeed * state.speedMultiplier;
     }
 
-    if (state.ball.x + state.ball.radius >= state.computer.x &&
-        state.ball.y >= state.computer.y && state.ball.y <= state.computer.y + state.computer.height) {
+    // Colisión con paleta de la computadora
+    if (
+      state.ball.visible &&
+      state.ball.x + state.ball.radius >= state.computer.x &&
+      state.ball.x - state.ball.radius <= state.computer.x + state.computer.width &&
+      state.ball.y >= state.computer.y &&
+      state.ball.y <= state.computer.y + state.computer.height
+    ) {
       state.ball.dx = -Math.abs(state.ball.dx);
+      const hitPoint = (state.ball.y - state.computer.y) / state.computer.height;
+      state.ball.dy = (hitPoint - 0.5) * 8;
+      
+      // ✅ Aumentar velocidad SOLO cuando se golpea (0.1 por golpe)
+      state.speedMultiplier = Math.min(1.8, state.speedMultiplier + 0.1);
+      
+      // Aplicar la velocidad actualizada manteniendo dirección
+      const currentSpeed = Math.sqrt(state.ball.dx * state.ball.dx + state.ball.dy * state.ball.dy);
+      const angle = Math.atan2(state.ball.dy, state.ball.dx);
+      state.ball.dx = Math.cos(angle) * state.baseSpeed * state.speedMultiplier;
+      state.ball.dy = Math.sin(angle) * state.baseSpeed * state.speedMultiplier;
     }
 
     // Puntuación
-    if (state.ball.x < 0) {
-      setScore(prev => ({ ...prev, computer: prev.computer + 1 }));
-      resetBall();
-    } else if (state.ball.x > canvas.width) {
-      setScore(prev => ({ ...prev, player: prev.player + 1 }));
-      resetBall();
+    if (state.ball.visible && state.ball.x < 0) {
+      state.ball.visible = false;
+      state.lastScorer = 'computer';
+      setScore(prev => {
+        const newScore = { ...prev, computer: prev.computer + 1 };
+        if (newScore.computer >= 15 || newScore.player >= 15) {
+          setTimeout(endGame, 800);
+        } else {
+          setIsServing(true);
+          // Resetear velocidad al punto inicial cuando hay punto
+          state.speedMultiplier = 1;
+        }
+        return newScore;
+      });
+    } else if (state.ball.visible && state.ball.x > canvas.width) {
+      state.ball.visible = false;
+      state.lastScorer = 'player';
+      setScore(prev => {
+        const newScore = { ...prev, player: prev.player + 1 };
+        if (newScore.computer >= 15 || newScore.player >= 15) {
+          setTimeout(endGame, 800);
+        } else {
+          setIsServing(true);
+          // Resetear velocidad al punto inicial cuando hay punto
+          state.speedMultiplier = 1;
+        }
+        return newScore;
+      });
     }
 
-    // Dibujar
+    // Dibujar elementos del juego
     ctx.fillStyle = '#fff';
+    
+    // Paleta del jugador
     ctx.fillRect(state.player.x, state.player.y, state.player.width, state.player.height);
+    
+    // Paleta de la computadora
     ctx.fillRect(state.computer.x, state.computer.y, state.computer.width, state.computer.height);
     
-    ctx.beginPath();
-    ctx.arc(state.ball.x, state.ball.y, state.ball.radius, 0, Math.PI * 2);
-    ctx.fill();
+    // Pelota si es visible
+    if (state.ball.visible) {
+      ctx.beginPath();
+      ctx.arc(state.ball.x, state.ball.y, state.ball.radius, 0, Math.PI * 2);
+      ctx.fill();
+    }
 
-    // Línea central
+    // Línea central punteada
     ctx.setLineDash([5, 15]);
     ctx.beginPath();
     ctx.moveTo(canvas.width / 2, 0);
     ctx.lineTo(canvas.width / 2, canvas.height);
-    ctx.strokeStyle = '#fff';
+    ctx.strokeStyle = '#666';
     ctx.stroke();
     ctx.setLineDash([]);
 
-    // Verificar fin del juego
-    if (score.player >= 5 || score.computer >= 5) {
-      setGameState('gameOver');
-      guardarEnRanking("pong", score.player * 100, {
-        puntosPlayer: score.player,
-        puntosComputer: score.computer
-      });
-      return;
+    // Mostrar información
+    ctx.fillStyle = '#fff';
+    ctx.font = '14px Arial';
+    ctx.textAlign = 'left';
+    const minutes = Math.floor(timeLeft / 60);
+    const seconds = timeLeft % 60;
+    ctx.fillText(`⏱️ ${minutes}:${seconds < 10 ? '0' : ''}${seconds}`, 25, 25);
+    
+    ctx.textAlign = 'right';
+    ctx.fillText(`⚡ ${state.speedMultiplier.toFixed(1)}x`, canvas.width - 25, 25);
+    
+    ctx.textAlign = 'center';
+    ctx.font = '16px Arial';
+    ctx.fillText(`Gana con 15 puntos`, canvas.width / 2, 25);
+
+    // Mostrar saque si está en modo saque
+    if (isServing) {
+      ctx.textAlign = 'center';
+      ctx.font = '28px Arial';
+      ctx.fillStyle = '#ffcc00';
+      if (serveCountdown > 0) {
+        ctx.fillText(`${serveCountdown}`, canvas.width / 2, canvas.height / 2);
+      } else {
+        ctx.fillText(`¡SACA!`, canvas.width / 2, canvas.height / 2);
+      }
     }
 
-    animationRef.current = requestAnimationFrame(gameLoop);
+    // Solo continuar el bucle si estamos jugando y no en saque
+    if (gameState === 'playing' && !isServing) {
+      animationRef.current = requestAnimationFrame(gameLoop);
+    }
   };
 
-  const resetBall = () => {
-    const state = gameStateRef.current;
-    state.ball.x = 400;
-    state.ball.y = 300;
-    state.ball.dx = (Math.random() > 0.5 ? 1 : -1) * 5 * gameSpeed;
-    state.ball.dy = (Math.random() * 2 - 1) * 5 * gameSpeed;
-  };
+  // Inicializar el canvas
+  useEffect(() => {
+    if (canvasRef.current) {
+      const canvas = canvasRef.current;
+      const ctx = canvas.getContext('2d');
+      
+      ctx.fillStyle = '#000';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      
+      ctx.setLineDash([5, 15]);
+      ctx.beginPath();
+      ctx.moveTo(canvas.width / 2, 0);
+      ctx.lineTo(canvas.width / 2, canvas.height);
+      ctx.strokeStyle = '#666';
+      ctx.stroke();
+      ctx.setLineDash([]);
+      
+      ctx.fillStyle = '#fff';
+      ctx.font = '18px Arial';
+      ctx.textAlign = 'center';
+      ctx.fillText('¡Presiona "Comenzar Juego"!', canvas.width / 2, canvas.height / 2);
+    }
+  }, []);
 
   return (
-    <div className="text-center max-w-md mx-auto">
-      <h2 className="text-3xl font-bold mb-6">🎮 Pong</h2>
+    <div className="text-center max-w-lg mx-auto">
+      <h2 className="text-3xl font-bold mb-5">🎮 PONG CLÁSICO</h2>
       
-      <div className="bg-gradient-to-br from-gray-800 to-gray-900 rounded-2xl p-6 mb-6">
+      <div className="bg-gradient-to-br from-gray-800 to-gray-900 rounded-xl p-5 mb-5">
         <div className="flex justify-between items-center mb-4 text-white">
-          <div className="text-2xl font-bold">{score.player}</div>
-          <div className="text-lg">VS</div>
-          <div className="text-2xl font-bold">{score.computer}</div>
+          <div className="text-center">
+            <div className="text-xs text-gray-300 mb-1">JUGADOR</div>
+            <div className="text-3xl font-bold text-blue-300">{score.player}</div>
+          </div>
+          
+          <div className="text-center">
+            <div className="text-lg font-bold">VS</div>
+            <div className="text-xs text-gray-300 mt-1">
+              {timeLeft > 0 ? 
+                `${Math.floor(timeLeft / 60)}:${(timeLeft % 60).toString().padStart(2, '0')}` : 
+                '0:00'}
+            </div>
+          </div>
+          
+          <div className="text-center">
+            <div className="text-xs text-gray-300 mb-1">COMPUTADORA</div>
+            <div className="text-3xl font-bold text-red-300">{score.computer}</div>
+          </div>
         </div>
 
-        <canvas
-          ref={canvasRef}
-          width={800}
-          height={600}
-          className="w-full h-64 bg-black rounded-lg"
-        />
+        {highScore > 0 && (
+          <div className="mb-3 text-yellow-300 text-sm font-bold">
+            🏆 Mejor: {highScore} puntos
+          </div>
+        )}
+
+        <div
+          onTouchStart={handleTouchStart}
+          onTouchMove={handleTouchMove}
+          onTouchEnd={handleTouchEnd}
+          className="relative"
+        >
+          <canvas
+            ref={canvasRef}
+            width={800}
+            height={600}
+            className="w-full h-80 bg-black rounded-lg border border-gray-600 touch-none"
+          />
+          
+          {/* Indicador de controles para móvil - SIN W/S */}
+          {gameState === 'playing' && (
+            <div className="absolute inset-0 pointer-events-none flex flex-col justify-between p-3">
+              <div className="text-white text-center text-xs">
+                {isServing ? (
+                  <div className="inline-block bg-black/70 px-3 py-1 rounded">
+                    ⏳ SAQUE EN {serveCountdown > 0 ? serveCountdown : '...'}
+                  </div>
+                ) : (
+                  <div className="inline-block bg-black/70 px-3 py-1 rounded">
+                    📱 DESLIZA PARA MOVER
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+        </div>
+        
+        <div className="mt-4 text-white text-xs">
+          <div className="grid grid-cols-2 gap-3 mb-3">
+            <div className="bg-gray-700/50 p-2 rounded">
+              <p className="font-bold mb-1">🎯 OBJETIVO</p>
+              <p className="text-gray-300">15 puntos o 3 min</p>
+            </div>
+            <div className="bg-gray-700/50 p-2 rounded">
+              <p className="font-bold mb-1">⚡ VELOCIDAD</p>
+              <p className="text-gray-300">+0.1x por golpe</p>
+            </div>
+          </div>
+          <div className="bg-gray-700/50 p-2 rounded">
+            <p className="font-bold mb-1">🏆 PUNTUACIÓN</p>
+            <p className="text-gray-300">10 pts/gol + bonus victoria/diferencia</p>
+          </div>
+        </div>
       </div>
 
       {gameState === 'menu' && (
-        <div className="bg-white rounded-2xl p-6 mb-6">
-          <div className="text-4xl mb-4">🎮</div>
+        <div className="bg-white rounded-xl p-5 mb-5 shadow">
+          <div className="text-4xl mb-4">🏓</div>
+          <h3 className="text-xl font-bold mb-2">PONG CLÁSICO</h3>
+          <p className="text-gray-600 mb-4">
+            Juego clásico de tenis de mesa. Controla tu paleta y anota puntos.
+          </p>
+          
+          <div className="mb-4 p-3 bg-gray-100 rounded text-center">
+            <p className="font-bold text-sm mb-1">📱 JUGAR EN MÓVIL</p>
+            <p className="text-gray-600 text-xs">Desliza arriba/abajo en la pantalla</p>
+          </div>
+          
           <button
             onClick={startGame}
-            className="w-full bg-green-500 hover:bg-green-600 text-white py-3 rounded-xl font-bold transition-all"
+            className="w-full bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white py-4 rounded-lg font-bold shadow"
           >
-            Comenzar Juego
+            🚀 COMENZAR JUEGO
           </button>
         </div>
       )}
 
       {gameState === 'gameOver' && (
-        <div className="bg-yellow-100 border-2 border-yellow-400 rounded-2xl p-6 mb-6">
-          <div className="text-2xl font-bold mb-2">
-            {score.player >= 5 ? '🎉 ¡Ganaste!' : '💀 Game Over'}
+        <div className="bg-gradient-to-br from-blue-50 to-indigo-50 border border-blue-300 rounded-xl p-5 mb-5 shadow">
+          <div className="text-2xl font-bold mb-4">
+            {score.player > score.computer ? '🏆 ¡VICTORIA!' : 'FIN DEL JUEGO'}
           </div>
-          <p className="mb-4">Puntuación: {score.player} - {score.computer}</p>
-          <button
-            onClick={startGame}
-            className="w-full bg-blue-500 hover:bg-blue-600 text-white py-3 rounded-xl font-bold transition-all"
-          >
-            🔄 Jugar Otra Vez
-          </button>
+          
+          <div className="bg-white rounded-lg p-4 mb-5">
+            <div className="grid grid-cols-2 gap-4 mb-4">
+              <div className={`text-center p-3 rounded ${score.player > score.computer ? 'bg-blue-50 border border-blue-200' : 'bg-gray-50'}`}>
+                <div className="text-xs text-gray-600 font-bold">TUS PUNTOS</div>
+                <div className="text-3xl font-bold mt-1">{score.player}</div>
+              </div>
+              <div className={`text-center p-3 rounded ${score.computer > score.player ? 'bg-red-50 border border-red-200' : 'bg-gray-50'}`}>
+                <div className="text-xs text-gray-600 font-bold">COMPUTADORA</div>
+                <div className="text-3xl font-bold mt-1">{score.computer}</div>
+              </div>
+            </div>
+            
+            <div className="text-center">
+              <div className="text-lg font-bold mb-2">RESUMEN</div>
+              <div className="grid grid-cols-2 gap-2 mb-3">
+                <div className="bg-gray-50 p-2 rounded">
+                  <p className="text-gray-700 font-bold text-xs">⏱️ TIEMPO</p>
+                  <p className="text-sm">{Math.floor(gameTime / 60)}:{(gameTime % 60).toString().padStart(2, '0')}</p>
+                </div>
+                <div className="bg-gray-50 p-2 rounded">
+                  <p className="text-gray-700 font-bold text-xs">📊 DIFERENCIA</p>
+                  <p className="text-sm">{Math.abs(score.player - score.computer)}</p>
+                </div>
+              </div>
+              <div className="bg-green-50 p-3 rounded border border-green-300">
+                <p className="text-green-800 font-bold">
+                  PUNTUACIÓN: {score.player * 10 + (score.player > score.computer ? 50 : 0) + Math.max(0, (score.player - score.computer) * 5)}
+                </p>
+              </div>
+            </div>
+          </div>
+          
+          <div className="space-y-3">
+            <button
+              onClick={startGame}
+              className="w-full bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white py-3 rounded-lg font-bold"
+            >
+              🔄 JUGAR DE NUEVO
+            </button>
+            <button
+              onClick={() => {
+                setGameState('menu');
+                setScore({ player: 0, computer: 0 });
+                setTimeLeft(180);
+              }}
+              className="w-full bg-gray-500 hover:bg-gray-600 text-white py-3 rounded-lg font-bold"
+            >
+              📋 VOLVER AL MENÚ
+            </button>
+          </div>
         </div>
       )}
 
       <button
         onClick={volverASeleccion}
-        className="w-full bg-gradient-to-r from-purple-500 to-pink-500 text-white py-3 rounded-xl font-bold hover:from-purple-600 hover:to-pink-600 transition-all"
+        className="w-full bg-gradient-to-r from-purple-500 to-pink-500 text-white py-3 rounded-lg font-bold hover:from-purple-600 hover:to-pink-600 shadow"
       >
-        ← Volver a Juegos 3
+        ← VOLVER A JUEGOS
       </button>
     </div>
   );
 };
 
 // =============================================
-// 3. ❄️ CORTADOR DE COPOS DE NIEVE (FRUIT NINJA)
+// 3. 🧩 SOPA DE LETRAS NAVIDEÑA - VERSIÓN DE 3 NIVELES
 // =============================================
-const CortadorCopos = ({ volverASeleccion, guardarEnRanking }) => {
-  const [copos, setCopos] = useState([]);
-  const [puntuacion, setPuntuacion] = useState(0);
-  const [vidas, setVidas] = useState(3);
-  const [tiempoRestante, setTiempoRestante] = useState(60);
-  const [jugando, setJugando] = useState(false);
-  const [combo, setCombo] = useState(0);
-  const gameAreaRef = useRef(null);
+const SopaLetrasNavidenia = ({ volverASeleccion, guardarEnRanking }) => {
+  const NIVELES = [
+    {
+      id: 1,
+      nombre: "🎄 Nivel Fácil - Decoraciones",
+      tamaño: 8,
+      palabras: ["ARBOL", "ESTRELLA", "CAMPANA", "LUZ", "VELA", "ESFERA"],
+      tiempoLimite: 180,
+      puntosBase: 100,
+      direcciones: ["horizontal", "vertical"]
+    },
+    {
+      id: 2, 
+      nombre: "🍽️ Nivel Medio - Comidas Navideñas",
+      tamaño: 10,
+      palabras: ["TAMAL", "PONCHE", "PAVO", "BUÑUELO", "ROMERITOS", "BACALAO"],
+      tiempoLimite: 240,
+      puntosBase: 150,
+      direcciones: ["horizontal", "vertical", "diagonal"]
+    },
+    {
+      id: 3,
+      nombre: "🎅 Nivel Difícil - Tradiciones",
+      tamaño: 12, 
+      palabras: ["POSADAS", "VILLANCICOS", "PESEBRE", "REYES", "PIÑATA", "AGUINALDO"],
+      tiempoLimite: 300,
+      puntosBase: 200,
+      direcciones: ["horizontal", "vertical", "diagonal", "inversa"]
+    }
+  ];
 
+  // Estados del juego
+  const [nivelActual, setNivelActual] = useState(0);
+  const [grid, setGrid] = useState([]);
+  const [seleccionActual, setSeleccionActual] = useState([]);
+  const [palabrasEncontradas, setPalabrasEncontradas] = useState([]);
+  const [posicionesEncontradas, setPosicionesEncontradas] = useState([]);
+  const [tiempoRestante, setTiempoRestante] = useState(0);
+  const [juegoActivo, setJuegoActivo] = useState(false);
+  const [juegoTerminado, setJuegoTerminado] = useState(false);
+  const [puntuacionTotal, setPuntuacionTotal] = useState(0);
+  const [puntuacionNivel, setPuntuacionNivel] = useState(0);
+  const [efectos, setEfectos] = useState([]);
+
+  // Inicializar juego
+  const iniciarJuego = () => {
+    setNivelActual(0);
+    setPuntuacionTotal(0);
+    setJuegoActivo(true);
+    setJuegoTerminado(false);
+    iniciarNivel(0);
+  };
+
+  const iniciarNivel = (nivelIndex) => {
+    const nivel = NIVELES[nivelIndex];
+    setTiempoRestante(nivel.tiempoLimite);
+    setPalabrasEncontradas([]);
+    setPosicionesEncontradas([]);
+    setSeleccionActual([]);
+    setPuntuacionNivel(0);
+    setEfectos([]);
+    
+    // Generar grid para el nivel
+    const nuevoGrid = generarSopaLetras(nivel);
+    setGrid(nuevoGrid);
+  };
+
+  // 🎯 GENERADOR DE SOPA DE LETRAS
+  const generarSopaLetras = (nivel) => {
+    const tamaño = nivel.tamaño;
+    // Crear grid vacío
+    let grid = Array(tamaño).fill().map(() => Array(tamaño).fill(''));
+    
+    // Colocar palabras
+    nivel.palabras.forEach(palabra => {
+      colocarPalabraEnGrid(grid, palabra, nivel.direcciones, tamaño);
+    });
+    
+    // Rellenar espacios vacíos con letras aleatorias
+    const letras = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+    for (let i = 0; i < tamaño; i++) {
+      for (let j = 0; j < tamaño; j++) {
+        if (grid[i][j] === '') {
+          grid[i][j] = letras[Math.floor(Math.random() * letras.length)];
+        }
+      }
+    }
+    
+    return grid;
+  };
+
+  const colocarPalabraEnGrid = (grid, palabra, direcciones, tamaño) => {
+    let colocada = false;
+    let intentos = 0;
+    
+    while (!colocada && intentos < 100) {
+      intentos++;
+      const direccion = direcciones[Math.floor(Math.random() * direcciones.length)];
+      const fila = Math.floor(Math.random() * tamaño);
+      const columna = Math.floor(Math.random() * tamaño);
+      
+      if (puedeColocarPalabra(grid, palabra, fila, columna, direccion, tamaño)) {
+        colocarPalabra(grid, palabra, fila, columna, direccion);
+        colocada = true;
+      }
+    }
+    
+    return colocada;
+  };
+
+  const puedeColocarPalabra = (grid, palabra, fila, columna, direccion, tamaño) => {
+    const longitud = palabra.length;
+    
+    switch (direccion) {
+      case 'horizontal':
+        if (columna + longitud > tamaño) return false;
+        for (let i = 0; i < longitud; i++) {
+          if (grid[fila][columna + i] !== '' && grid[fila][columna + i] !== palabra[i]) {
+            return false;
+          }
+        }
+        break;
+        
+      case 'vertical':
+        if (fila + longitud > tamaño) return false;
+        for (let i = 0; i < longitud; i++) {
+          if (grid[fila + i][columna] !== '' && grid[fila + i][columna] !== palabra[i]) {
+            return false;
+          }
+        }
+        break;
+        
+      case 'diagonal':
+        if (fila + longitud > tamaño || columna + longitud > tamaño) return false;
+        for (let i = 0; i < longitud; i++) {
+          if (grid[fila + i][columna + i] !== '' && grid[fila + i][columna + i] !== palabra[i]) {
+            return false;
+          }
+        }
+        break;
+        
+      case 'inversa':
+        if (columna - longitud < -1) return false;
+        for (let i = 0; i < longitud; i++) {
+          if (grid[fila][columna - i] !== '' && grid[fila][columna - i] !== palabra[i]) {
+            return false;
+          }
+        }
+        break;
+        
+      case 'vertical-inversa':
+        if (fila - longitud < -1) return false;
+        for (let i = 0; i < longitud; i++) {
+          if (grid[fila - i][columna] !== '' && grid[fila - i][columna] !== palabra[i]) {
+            return false;
+          }
+        }
+        break;
+    }
+    
+    return true;
+  };
+
+  const colocarPalabra = (grid, palabra, fila, columna, direccion) => {
+    for (let i = 0; i < palabra.length; i++) {
+      switch (direccion) {
+        case 'horizontal':
+          grid[fila][columna + i] = palabra[i];
+          break;
+        case 'vertical':
+          grid[fila + i][columna] = palabra[i];
+          break;
+        case 'diagonal':
+          grid[fila + i][columna + i] = palabra[i];
+          break;
+        case 'inversa':
+          grid[fila][columna - i] = palabra[i];
+          break;
+        case 'vertical-inversa':
+          grid[fila - i][columna] = palabra[i];
+          break;
+      }
+    }
+  };
+
+  // 🖱️ MANEJO DE SELECCIÓN DE LETRAS
+  const manejarClickLetra = (fila, columna) => {
+    if (!juegoActivo || juegoTerminado) return;
+    
+    // Verificar si ya está en la selección
+    const yaSeleccionada = seleccionActual.some(
+      pos => pos.fila === fila && pos.columna === columna
+    );
+    
+    if (yaSeleccionada) {
+      // Deseleccionar si ya está seleccionada
+      setSeleccionActual(prev => prev.filter(
+        pos => !(pos.fila === fila && pos.columna === columna)
+      ));
+      return;
+    }
+    
+    // Si no hay selección previa o está contigua, agregar
+    const letra = grid[fila][columna];
+    const nuevaSeleccion = [...seleccionActual, { fila, columna, letra }];
+    setSeleccionActual(nuevaSeleccion);
+    
+    // Verificar si forma palabra válida (mínimo 3 letras)
+    if (nuevaSeleccion.length >= 3) {
+      verificarPalabra(nuevaSeleccion);
+    }
+  };
+
+  const sonContiguas = (posiciones) => {
+    if (posiciones.length < 2) return true;
+    
+    const ordenadas = [...posiciones].sort((a, b) => {
+      if (a.fila !== b.fila) return a.fila - b.fila;
+      return a.columna - b.columna;
+    });
+    
+    // Verificar que todas las posiciones sean adyacentes
+    for (let i = 1; i < ordenadas.length; i++) {
+      const anterior = ordenadas[i - 1];
+      const actual = ordenadas[i];
+      
+      const diffFila = Math.abs(actual.fila - anterior.fila);
+      const diffCol = Math.abs(actual.columna - anterior.columna);
+      
+      // Deben ser adyacentes (diferencias de 0 o 1, pero no ambas 0)
+      if ((diffFila > 1 || diffCol > 1) || (diffFila === 0 && diffCol === 0)) {
+        return false;
+      }
+    }
+    
+    return true;
+  };
+
+  const verificarPalabra = (seleccion) => {
+    // Primero verificar que sean contiguas
+    if (!sonContiguas(seleccion)) {
+      setSeleccionActual([]);
+      return;
+    }
+    
+    // Ordenar las posiciones
+    const ordenadas = [...seleccion].sort((a, b) => {
+      if (a.fila !== b.fila) return a.fila - b.fila;
+      return a.columna - b.columna;
+    });
+    
+    const palabraFormada = ordenadas.map(pos => pos.letra).join('');
+    const nivel = NIVELES[nivelActual];
+    
+    // Verificar si es una palabra del nivel
+    if (
+      nivel.palabras.includes(palabraFormada) && 
+      !palabrasEncontradas.includes(palabraFormada)
+    ) {
+      // Verificar que las letras estén en línea recta
+      if (esLineaRecta(ordenadas)) {
+        marcarPalabraEncontrada(palabraFormada, ordenadas);
+      } else {
+        setSeleccionActual([]);
+      }
+    }
+  };
+
+  const esLineaRecta = (posiciones) => {
+    if (posiciones.length <= 1) return true;
+    
+    const primera = posiciones[0];
+    const ultima = posiciones[posiciones.length - 1];
+    
+    // Horizontal
+    if (posiciones.every(p => p.fila === primera.fila)) {
+      for (let i = 1; i < posiciones.length; i++) {
+        if (posiciones[i].columna !== posiciones[i-1].columna + 1) {
+          return false;
+        }
+      }
+      return true;
+    }
+    
+    // Vertical
+    if (posiciones.every(p => p.columna === primera.columna)) {
+      for (let i = 1; i < posiciones.length; i++) {
+        if (posiciones[i].fila !== posiciones[i-1].fila + 1) {
+          return false;
+        }
+      }
+      return true;
+    }
+    
+    // Diagonal
+    const diffFila = ultima.fila - primera.fila;
+    const diffCol = ultima.columna - primera.columna;
+    
+    if (Math.abs(diffFila) === Math.abs(diffCol)) {
+      const pasoFila = diffFila > 0 ? 1 : -1;
+      const pasoCol = diffCol > 0 ? 1 : -1;
+      
+      for (let i = 0; i < posiciones.length; i++) {
+        const filaEsperada = primera.fila + (i * pasoFila);
+        const colEsperada = primera.columna + (i * pasoCol);
+        
+        if (posiciones[i].fila !== filaEsperada || posiciones[i].columna !== colEsperada) {
+          return false;
+        }
+      }
+      return true;
+    }
+    
+    return false;
+  };
+
+  // 🎯 CALCULAR PUNTOS
+  const calcularPuntosPalabra = (palabra) => {
+    const nivel = NIVELES[nivelActual];
+    const basePorPalabra = nivel.puntosBase / nivel.palabras.length;
+    const factorTiempo = tiempoRestante / nivel.tiempoLimite;
+    const factorLongitud = 1 + (palabra.length / 10);
+    
+    const puntos = Math.max(
+      10, 
+      Math.floor(basePorPalabra * factorTiempo * factorLongitud)
+    );
+    
+    return puntos;
+  };
+
+  const marcarPalabraEncontrada = (palabra, seleccion) => {
+    setPalabrasEncontradas(prev => [...prev, palabra]);
+    
+    // Agregar posiciones
+    const nuevasPosiciones = seleccion.map(p => ({fila: p.fila, columna: p.columna}));
+    setPosicionesEncontradas(prev => [...prev, ...nuevasPosiciones]);
+    
+    setSeleccionActual([]);
+    
+    // Calcular puntos
+    const puntosPalabra = calcularPuntosPalabra(palabra);
+    setPuntuacionNivel(prev => prev + puntosPalabra);
+    
+    // Efecto visual
+    const primeraPos = seleccion[0];
+    setEfectos(prev => [...prev, {
+      id: Date.now(),
+      texto: `+${puntosPalabra}`,
+      palabra: palabra,
+      fila: primeraPos?.fila || 0,
+      columna: primeraPos?.columna || 0
+    }]);
+    
+    setTimeout(() => {
+      setEfectos(prev => prev.filter(e => Date.now() - e.id < 1000));
+    }, 1000);
+    
+    // Verificar si nivel completado
+    const nivel = NIVELES[nivelActual];
+    if (palabrasEncontradas.length + 1 === nivel.palabras.length) {
+      setTimeout(() => {
+        nivelCompletado();
+      }, 500);
+    }
+  };
+
+  const nivelCompletado = () => {
+    const nivel = NIVELES[nivelActual];
+    
+    // Bonus por tiempo restante
+    const bonusTiempo = Math.floor((tiempoRestante / nivel.tiempoLimite) * 50);
+    const bonusCompletado = 25;
+    const puntosNivel = puntuacionNivel + bonusTiempo + bonusCompletado;
+    
+    setPuntuacionTotal(prev => prev + puntosNivel);
+    
+    // Efecto especial
+    setEfectos(prev => [...prev, {
+      id: Date.now() + 1,
+      texto: `🎉 ¡Nivel ${nivelActual + 1} Completado!`,
+      palabra: '',
+      fila: Math.floor(nivel.tamaño / 2),
+      columna: Math.floor(nivel.tamaño / 2)
+    }]);
+    
+    // Verificar si es el último nivel
+    if (nivelActual === NIVELES.length - 1) {
+      setTimeout(() => {
+        juegoCompletado();
+      }, 2000);
+    } else {
+      setTimeout(() => {
+        setNivelActual(prev => prev + 1);
+        iniciarNivel(nivelActual + 1);
+      }, 2000);
+    }
+  };
+
+  const juegoCompletado = () => {
+    setJuegoActivo(false);
+    setJuegoTerminado(true);
+    
+    guardarEnRanking("sopa-letras", puntuacionTotal, {
+      nivelesCompletados: NIVELES.length,
+      tiempoTotal: NIVELES.reduce((acc, nivel) => acc + nivel.tiempoLimite, 0) - tiempoRestante,
+      palabrasTotales: NIVELES.reduce((acc, nivel) => acc + nivel.palabras.length, 0),
+      fecha: new Date().toISOString()
+    });
+  };
+
+  // ⏰ TIMER
   useEffect(() => {
-    if (!jugando) return;
-
+    if (!juegoActivo || juegoTerminado) return;
+    
     const timer = setInterval(() => {
       setTiempoRestante(prev => {
         if (prev <= 1) {
-          setJugando(false);
-          guardarEnRanking("cortador-copos", puntuacion, {
-            tiempo: 60,
-            comboMaximo: combo,
-            vidasRestantes: vidas
-          });
+          clearInterval(timer);
+          tiempoAgotado();
           return 0;
         }
         return prev - 1;
       });
     }, 1000);
+    
+    return () => clearInterval(timer);
+  }, [juegoActivo, juegoTerminado]);
 
-    const generarCopo = () => {
-      const tipos = [
-        { emoji: "❄️", puntos: 10, velocidad: 3, esBomba: false },
-        { emoji: "⭐", puntos: 20, velocidad: 4, esBomba: false },
-        { emoji: "💎", puntos: 50, velocidad: 5, esBomba: false },
-        { emoji: "💣", puntos: -100, velocidad: 2, esBomba: true }
-      ];
+  const tiempoAgotado = () => {
+    setJuegoActivo(false);
+    setJuegoTerminado(true);
+    
+    guardarEnRanking("sopa-letras", puntuacionTotal, {
+      nivelesCompletados: nivelActual + 1,
+      tiempoAgotado: true,
+      palabrasEncontradas: palabrasEncontradas.length,
+      fecha: new Date().toISOString()
+    });
+  };
 
-      const tipo = tipos[Math.floor(Math.random() * tipos.length)];
-      const direccion = Math.random() > 0.5 ? 1 : -1;
-      
-      setCopos(prev => [...prev, {
-        id: Date.now() + Math.random(),
-        x: direccion > 0 ? -50 : 150,
-        y: Math.random() * 80 + 10,
-        tipo: tipo,
-        velocidadX: tipo.velocidad * direccion,
-        velocidadY: (Math.random() - 0.5) * 2,
-        cortado: false
-      }]);
+  // 🎨 RENDER DEL COMPONENTE - AJUSTADO PARA 3 NIVELES
+  const nivel = NIVELES[nivelActual] || NIVELES[0];
+  const progreso = nivel ? (palabrasEncontradas.length / nivel.palabras.length) * 100 : 0;
+  const tamañoGrid = nivel?.tamaño || 8;
+
+  // Calcular tamaño de celda según el grid (ahora solo 8, 10, 12)
+  const getCellSize = () => {
+    if (tamañoGrid === 8) return "w-10 h-10 text-base";      // 2.5rem x 2.5rem
+    if (tamañoGrid === 10) return "w-9 h-9 text-sm";        // 2.25rem x 2.25rem  
+    if (tamañoGrid === 12) return "w-8 h-8 text-xs";        // 2rem x 2rem
+    return "w-10 h-10 text-base";
+  };
+
+  const getGridPadding = () => {
+    if (tamañoGrid === 8) return "p-4";
+    if (tamañoGrid === 10) return "p-3";
+    if (tamañoGrid === 12) return "p-2";
+    return "p-4";
+  };
+
+  const cellSize = getCellSize();
+  const gridPadding = getGridPadding();
+
+  return (
+    <div className="text-center max-w-4xl mx-auto p-4">
+      <h2 className="text-3xl font-bold mb-6 bg-gradient-to-r from-green-500 to-red-500 bg-clip-text text-transparent">
+         Sopa de Letras Navideña
+      </h2>
+
+      {!juegoActivo && !juegoTerminado ? (
+        // PANTALLA DE INICIO
+        <div className="bg-gradient-to-br from-green-100 to-blue-100 rounded-2xl p-8 mb-6">
+          <div className="text-4xl mb-6"></div>
+          <h3 className="text-2xl font-bold text-green-800 mb-4">Sopa de Letras Navideña</h3>
+          <div className="text-left space-y-3 mb-6">
+            <p className="flex items-center">
+              <span className="text-green-500 mr-2">🎯</span>
+             3 niveles 
+            </p>
+            <p className="flex items-center">
+              <span className="text-green-500 mr-2">🔤</span>
+              Selecciona letra x letra 
+            </p>
+            <p className="flex items-center">
+              <span className="text-green-500 mr-2">⏱️</span>
+              Tiempo límite por nivel
+            </p>
+            <p className="flex items-center">
+              <span className="text-green-500 mr-2">🏆</span>
+              velocidad y precisión
+            </p>
+            <p className="flex items-center">
+              <span className="text-green-500 mr-2">💡</span>
+              Orientación H, V, D
+            </p>
+          </div>
+          
+          <button
+            onClick={iniciarJuego}
+            className="bg-green-500 hover:bg-green-600 text-white px-8 py-4 rounded-xl font-bold text-lg transition-all w-full transform hover:scale-105"
+          >
+            🎮 Comenzar Aventura
+          </button>
+        </div>
+      ) : juegoTerminado ? (
+        // PANTALLA DE FINAL
+        <div className="bg-gradient-to-br from-green-100 to-blue-100 rounded-2xl p-8 mb-6">
+          <div className="text-4xl mb-4">🎉</div>
+          <h3 className="text-2xl font-bold text-green-800 mb-2">¡Juego Completado!</h3>
+          <p className="text-gray-700 mb-4 text-xl">
+            Puntuación final: <strong className="text-green-600">{puntuacionTotal} puntos</strong>
+          </p>
+          <div className="grid grid-cols-2 gap-4 mb-6">
+            <div className="bg-white rounded-xl p-4">
+              <div className="text-2xl font-bold text-blue-600">{nivelActual + 1}/3</div>
+              <div className="text-gray-600">Niveles</div>
+            </div>
+            <div className="bg-white rounded-xl p-4">
+              <div className="text-2xl font-bold text-purple-600">{palabrasEncontradas.length}</div>
+              <div className="text-gray-600">Palabras encontradas</div>
+            </div>
+          </div>
+          <div className="flex gap-3">
+            <button
+              onClick={iniciarJuego}
+              className="flex-1 bg-green-500 hover:bg-green-600 text-white px-4 py-3 rounded-xl font-bold transition-all"
+            >
+              🔄 Jugar Otra Vez
+            </button>
+            <button
+              onClick={volverASeleccion}
+              className="flex-1 bg-gray-500 hover:bg-gray-600 text-white px-4 py-3 rounded-xl font-bold transition-all"
+            >
+              ← Volver
+            </button>
+          </div>
+        </div>
+      ) : (
+        // JUEGO EN CURSO
+        <>
+          {/* PANEL SUPERIOR */}
+          <div className="bg-gradient-to-br from-blue-100 to-purple-100 rounded-2xl p-4 mb-6">
+            <div className="flex justify-between items-center mb-3">
+              <div className="text-left">
+                <div className="font-bold text-lg">{nivel.nombre}</div>
+                <div className="text-sm text-gray-600">
+                  Palabras: {palabrasEncontradas.length}/{nivel.palabras.length}
+                </div>
+              </div>
+              <div className="text-right">
+                <div className="font-bold text-xl text-green-600">{puntuacionTotal + puntuacionNivel}</div>
+                <div className="text-sm text-gray-600">
+                  Puntos (+{puntuacionNivel} este nivel)
+                </div>
+              </div>
+            </div>
+            
+            {/* BARRA DE PROGRESO */}
+            <div className="w-full bg-gray-200 rounded-full h-3 mb-2">
+              <div 
+                className="bg-green-500 h-3 rounded-full transition-all duration-500"
+                style={{ width: `${progreso}%` }}
+              ></div>
+            </div>
+            
+            {/* TIEMPO */}
+            <div className="text-center">
+              <div className={`font-bold text-lg ${
+                tiempoRestante <= 30 ? 'text-red-500 animate-pulse' : 
+                tiempoRestante <= 60 ? 'text-orange-500' : 'text-blue-500'
+              }`}>
+                ⏱️ {Math.floor(tiempoRestante / 60)}:{(tiempoRestante % 60).toString().padStart(2, '0')}
+              </div>
+            </div>
+          </div>
+
+          {/* LISTA DE PALABRAS */}
+          <div className="bg-white rounded-2xl p-4 mb-6 shadow-lg">
+            <h4 className="font-bold mb-3 text-gray-700">Palabras a encontrar:</h4>
+            <div className="grid grid-cols-2 gap-2">
+              {nivel.palabras.map((palabra, index) => (
+                <div
+                  key={index}
+                  className={`p-2 rounded-lg text-sm font-medium transition-all ${
+                    palabrasEncontradas.includes(palabra)
+                      ? 'bg-green-100 text-green-700 line-through'
+                      : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                  }`}
+                >
+                  {palabra}
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* GRID DE SOPA DE LETRAS - TAMAÑOS MEJORADOS */}
+          <div className="bg-gradient-to-br from-white to-gray-50 rounded-2xl mb-6 border-2 border-blue-200 overflow-x-auto">
+            <div className="inline-block min-w-min">
+              <div 
+                className={`grid gap-1 ${gridPadding} bg-white rounded-lg`}
+                style={{
+                  gridTemplateColumns: `repeat(${tamañoGrid}, minmax(0, 1fr))`
+                }}
+              >
+                {grid.map((fila, filaIndex) => 
+                  fila.map((letra, columnaIndex) => {
+                    const estaSeleccionada = seleccionActual.some(
+                      pos => pos.fila === filaIndex && pos.columna === columnaIndex
+                    );
+                    const estaEncontrada = posicionesEncontradas.some(
+                      pos => pos.fila === filaIndex && pos.columna === columnaIndex
+                    );
+                    
+                    return (
+                      <button
+                        key={`${filaIndex}-${columnaIndex}`}
+                        onClick={() => manejarClickLetra(filaIndex, columnaIndex)}
+                        className={`
+                          ${cellSize}
+                          flex items-center justify-center
+                          font-bold transition-all
+                          ${estaEncontrada
+                            ? 'bg-green-300 text-green-800 hover:bg-green-400 border border-green-500'
+                            : estaSeleccionada
+                            ? 'bg-blue-500 text-white scale-105 hover:bg-blue-600 border border-blue-600'
+                            : 'bg-blue-50 text-blue-800 hover:bg-blue-100 border border-blue-200'
+                          }
+                        `}
+                      >
+                        {letra}
+                      </button>
+                    );
+                  })
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* EFECTOS VISUALES */}
+          <div className="relative h-0">
+            {efectos.map((efecto, index) => {
+              // Calcular posición basada en el tamaño de celda
+              let cellWidth;
+              if (tamañoGrid === 8) cellWidth = 44;   // w-10 + gap-1 = 2.5rem + 0.25rem ≈ 44px
+              else if (tamañoGrid === 10) cellWidth = 40;  // w-9 + gap-1 = 2.25rem + 0.25rem ≈ 40px
+              else cellWidth = 36;  // w-8 + gap-1 = 2rem + 0.25rem ≈ 36px
+              
+              return (
+                <div
+                  key={efecto.id}
+                  className="absolute font-bold animate-bounce z-50 pointer-events-none"
+                  style={{
+                    left: `${(efecto.columna * cellWidth) + 25}px`,
+                    top: `${(efecto.fila * cellWidth) + 25 + (index * 20)}px`,
+                    color: efecto.palabra ? '#10b981' : '#8b5cf6',
+                    fontSize: efecto.palabra ? '1.125rem' : '1rem',
+                    textShadow: '0 2px 4px rgba(0,0,0,0.2)',
+                    whiteSpace: 'nowrap'
+                  }}
+                >
+                  {efecto.texto}
+                </div>
+              );
+            })}
+          </div>
+
+          {/* CONTROLES */}
+          <div className="flex gap-3">
+            <button
+              onClick={() => setSeleccionActual([])}
+              className="flex-1 bg-red-500 hover:bg-red-600 text-white py-3 rounded-xl font-bold transition-all"
+            >
+              🔄 Reiniciar Selección
+            </button>
+            <button
+              onClick={volverASeleccion}
+              className="flex-1 bg-gray-500 hover:bg-gray-600 text-white py-3 rounded-xl font-bold transition-all"
+            >
+              ← Salir
+            </button>
+          </div>
+
+          {/* INSTRUCCIONES RÁPIDAS */}
+          <div className="mt-4 text-sm text-gray-600">
+            <p>💡 <strong>Instrucciones:</strong> Haz clic en letras contiguas en línea recta para formar palabras</p>
+          </div>
+        </>
+      )}
+    </div>
+    
+  );
+};
+
+// =============================================
+// 🎅 SANTA GIFTS - VERSIÓN FINAL CON BONIFICACIONES
+// =============================================
+const SantaGifts = ({ volverASeleccion, guardarEnRanking }) => {
+  const CONFIG = {
+    ROWS: 5,
+    GIFTS_LIMIT: 10,
+    GRAVITY: 3,
+    SPEED_MULTIPLIERS: [1.0, 0.8, 0.7, 0.6, 0.5]
+  };
+
+  const [santaX, setSantaX] = useState(50);
+  const [gifts, setGifts] = useState([]);
+  const [children, setChildren] = useState([
+    { id: 1, row: 0, x: 20, direction: 1, speed: 1.0, hit: false },
+    { id: 2, row: 1, x: 80, direction: -1, speed: 0.8, hit: false },
+    { id: 3, row: 2, x: 40, direction: 1, speed: 0.7, hit: false },
+    { id: 4, row: 3, x: 60, direction: -1, speed: 0.6, hit: false },
+    { id: 5, row: 4, x: 30, direction: 1, speed: 0.5, hit: false }
+  ]);
+  const [grinches, setGrinches] = useState([
+    { id: 1, row: 0, x: 70, direction: -1, speed: 1.0 },
+    { id: 2, row: 1, x: 30, direction: 1, speed: 0.8 },
+    { id: 3, row: 2, x: 90, direction: -1, speed: 0.7 },
+    { id: 4, row: 3, x: 10, direction: 1, speed: 0.6 },
+    { id: 5, row: 4, x: 50, direction: -1, speed: 0.5 }
+  ]);
+  const [giftsLeft, setGiftsLeft] = useState(CONFIG.GIFTS_LIMIT);
+  const [score, setScore] = useState(0);
+  const [gameActive, setGameActive] = useState(false);
+  const [gameOver, setGameOver] = useState(false);
+  const [startTime, setStartTime] = useState(null);
+  const [regalosQueGolpearonNiños, setRegalosQueGolpearonNiños] = useState(0);
+
+  // Mover Santa con teclado
+  useEffect(() => {
+    if (!gameActive) return;
+
+    const handleKeyDown = (e) => {
+      if (e.key === 'ArrowLeft' && santaX > 5) {
+        setSantaX(prev => prev - 5);
+      } else if (e.key === 'ArrowRight' && santaX < 95) {
+        setSantaX(prev => prev + 5);
+      } else if (e.key === ' ' && giftsLeft > 0) {
+        lanzarRegalo();
+      }
     };
 
-    const moverCopos = setInterval(() => {
-      setCopos(prev => {
-        return prev.map(copo => ({
-          ...copo,
-          x: copo.x + copo.velocidadX,
-          y: copo.y + copo.velocidadY
-        })).filter(copo => 
-          copo.x > -100 && copo.x < 200 && copo.y > -20 && copo.y < 120
-        );
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [santaX, gameActive, giftsLeft]);
+
+  const lanzarRegalo = () => {
+    if (giftsLeft <= 0) return;
+    setGifts(prev => [...prev, { 
+      id: Date.now(), 
+      x: santaX, 
+      y: 15
+    }]);
+    setGiftsLeft(prev => prev - 1);
+  };
+
+  // Game loop principal
+  useEffect(() => {
+    if (!gameActive || gameOver) return;
+
+    const gameLoop = setInterval(() => {
+      // 1. Mover regalos hacia abajo
+      setGifts(prevGifts => {
+        const updatedGifts = prevGifts.map(gift => ({
+          ...gift,
+          y: gift.y + CONFIG.GRAVITY
+        })).filter(gift => gift.y < 95);
+
+        // Verificar colisiones
+        const remainingGifts = [];
+        updatedGifts.forEach(gift => {
+          let regaloDestruido = false;
+          const filaRegalo = Math.floor((gift.y - 30) / 13);
+
+          // Solo verificar colisiones si la fila es válida
+          if (filaRegalo < 0 || filaRegalo >= CONFIG.ROWS) {
+            remainingGifts.push(gift);
+            return;
+          }
+
+          // Colisión con niños (solo si NO están felices)
+          const niñoEnFila = children.find(child => 
+            child.row === filaRegalo && !child.hit
+          );
+          
+          if (niñoEnFila && Math.abs(gift.x - niñoEnFila.x) < 10) {
+            setScore(prev => prev + 10);
+            setRegalosQueGolpearonNiños(prev => prev + 1);
+            setChildren(prev => prev.map(c => 
+              c.id === niñoEnFila.id ? { ...c, hit: true } : c
+            ));
+            regaloDestruido = true;
+          }
+
+          // Colisión con Grinches (siempre, sin importar niño)
+          const grinchEnFila = grinches.find(grinch => grinch.row === filaRegalo);
+          
+          if (grinchEnFila && Math.abs(gift.x - grinchEnFila.x) < 10 && !regaloDestruido) {
+            setScore(prev => Math.max(0, prev - 5));
+            regaloDestruido = true;
+          }
+
+          if (!regaloDestruido) {
+            remainingGifts.push(gift);
+          }
+        });
+
+        return remainingGifts;
       });
+
+      // 2. Mover niños (TODOS se mueven, felices o no)
+      setChildren(prev => 
+        prev.map(child => {
+          let newX = child.x + (child.direction * child.speed);
+          
+          // Rebote en bordes
+          if (newX <= 0 || newX >= 100) {
+            newX = Math.max(0, Math.min(100, newX));
+            return { ...child, x: newX, direction: -child.direction };
+          }
+          
+          return { ...child, x: newX };
+        })
+      );
+
+      // 3. Mover Grinches
+      setGrinches(prev => 
+        prev.map(grinch => {
+          let newX = grinch.x + (grinch.direction * grinch.speed);
+          
+          // Rebote en bordes
+          if (newX <= 0 || newX >= 100) {
+            newX = Math.max(0, Math.min(100, newX));
+            return { ...grinch, x: newX, direction: -grinch.direction };
+          }
+          
+          return { ...grinch, x: newX };
+        })
+      );
+
     }, 50);
 
-    const generador = setInterval(generarCopo, 800);
+    return () => clearInterval(gameLoop);
+  }, [gameActive, gameOver, children, grinches]);
 
-    return () => {
-      clearInterval(timer);
-      clearInterval(moverCopos);
-      clearInterval(generador);
-    };
-  }, [jugando, puntuacion, combo, vidas]);
-
-  const manejarCorte = (copoId, esBomba) => {
-    if (!jugando) return;
-
-    if (esBomba) {
-      setVidas(prev => {
-        const nuevasVidas = prev - 1;
-        if (nuevasVidas <= 0) {
-          setJugando(false);
-          guardarEnRanking("cortador-copos", puntuacion, {
-            tiempoRestante: tiempoRestante,
-            comboMaximo: combo
-          });
-        }
-        return nuevasVidas;
-      });
-      setCombo(0);
-    } else {
-      setPuntuacion(prev => prev + 10 * (combo + 1));
-      setCombo(prev => prev + 1);
-    }
-
-    setCopos(prev => prev.map(c => 
-      c.id === copoId ? { ...c, cortado: true } : c
-    ));
-
-    setTimeout(() => {
-      setCopos(prev => prev.filter(c => c.id !== copoId));
-    }, 200);
-  };
-
-  const iniciarJuego = () => {
-    setCopos([]);
-    setPuntuacion(0);
-    setVidas(3);
-    setTiempoRestante(60);
-    setCombo(0);
-    setJugando(true);
-  };
-
-  const manejarTouchMove = (e) => {
-    if (!jugando) return;
+  // Calcular bonificaciones
+  const calcularPuntuacionFinal = () => {
+    const niñosFelices = children.filter(c => c.hit).length;
+    const todosFelices = niñosFelices === CONFIG.ROWS;
+    const tiempoTranscurrido = startTime ? Date.now() - startTime : 0;
     
-    const rect = gameAreaRef.current.getBoundingClientRect();
-    const touch = e.touches[0];
-    const x = ((touch.clientX - rect.left) / rect.width) * 100;
-    const y = ((touch.clientY - rect.top) / rect.height) * 100;
+    // Puntos base (score ya tiene +10 por niño, -5 por duende)
+    let puntuacionFinal = score;
+    
+    // Bonus por todos felices
+    const bonusTodosFelices = todosFelices ? 20 : 0;
+    puntuacionFinal += bonusTodosFelices;
+    
+    // Bonus por eficiencia (menos regalos usados = más puntos)
+    const regalosUsados = CONFIG.GIFTS_LIMIT - giftsLeft;
+    const regalosEfectivos = regalosQueGolpearonNiños;
+    const bonusEficiencia = Math.max(0, (CONFIG.GIFTS_LIMIT - regalosEfectivos) * 5);
+    puntuacionFinal += bonusEficiencia;
+    
+    return {
+      puntuacion: Math.max(0, puntuacionFinal),
+      tiempo: tiempoTranscurrido,
+      regalosUsados: regalosUsados,
+      regalosEfectivos: regalosEfectivos,
+      niñosFelices: niñosFelices,
+      todosFelices: todosFelices,
+      bonusEficiencia: bonusEficiencia,
+      bonusTodosFelices: bonusTodosFelices,
+      puntosBase: score
+    };
+  };
 
-    // Detectar colisión con copos
-    copos.forEach(copo => {
-      const distancia = Math.sqrt(Math.pow(copo.x - x, 2) + Math.pow(copo.y - y, 2));
-      if (distancia < 10 && !copo.cortado) {
-        manejarCorte(copo.id, copo.tipo.esBomba);
+  // Verificar fin del juego
+  useEffect(() => {
+    if (!gameActive || gameOver) return;
+
+    const niñosFelices = children.filter(c => c.hit).length;
+    const todosFelices = niñosFelices === CONFIG.ROWS;
+    
+    const condicionFinJuego = 
+      (giftsLeft <= 0 && gifts.length === 0) || // Sin regalos y ninguno en el aire
+      todosFelices; // Todos los niños felices
+
+    if (condicionFinJuego) {
+      setGameOver(true);
+      setGameActive(false);
+      
+      const resultado = calcularPuntuacionFinal();
+      
+      // Guardar en ranking con datos para desempate
+      guardarEnRanking("santa-gifts", resultado.puntuacion, {
+        tiempo: resultado.tiempo,
+        regalosUsados: resultado.regalosUsados,
+        regalosEfectivos: resultado.regalosEfectivos,
+        niñosFelices: resultado.niñosFelices,
+        todosFelices: resultado.todosFelices,
+        bonusEficiencia: resultado.bonusEficiencia,
+        bonusTodosFelices: resultado.bonusTodosFelices,
+        puntosBase: resultado.puntosBase,
+        // Para desempates: primero puntos, luego tiempo, luego eficiencia
+        _desempate: {
+          puntos: resultado.puntuacion,
+          tiempo: resultado.tiempo,
+          eficiencia: resultado.regalosEfectivos
+        }
+      });
+    }
+  }, [giftsLeft, gifts.length, gameOver, gameActive, children]);
+
+  const startGame = () => {
+    setSantaX(50);
+    setGifts([]);
+    setRegalosQueGolpearonNiños(0);
+    // Resetear niños y grinches
+    setChildren([
+      { id: 1, row: 0, x: 20, direction: 1, speed: 1.0, hit: false },
+      { id: 2, row: 1, x: 80, direction: -1, speed: 0.8, hit: false },
+      { id: 3, row: 2, x: 40, direction: 1, speed: 0.7, hit: false },
+      { id: 4, row: 3, x: 60, direction: -1, speed: 0.6, hit: false },
+      { id: 5, row: 4, x: 30, direction: 1, speed: 0.5, hit: false }
+    ]);
+    setGrinches([
+      { id: 1, row: 0, x: 70, direction: -1, speed: 1.0 },
+      { id: 2, row: 1, x: 30, direction: 1, speed: 0.8 },
+      { id: 3, row: 2, x: 90, direction: -1, speed: 0.7 },
+      { id: 4, row: 3, x: 10, direction: 1, speed: 0.6 },
+      { id: 5, row: 4, x: 50, direction: -1, speed: 0.5 }
+    ]);
+    setGiftsLeft(CONFIG.GIFTS_LIMIT);
+    setScore(0);
+    setGameActive(true);
+    setGameOver(false);
+    setStartTime(Date.now());
+  };
+
+  const endGame = () => {
+    setGameActive(false);
+    setGameOver(true);
+    
+    const resultado = calcularPuntuacionFinal();
+    guardarEnRanking("santa-gifts", resultado.puntuacion, {
+      tiempo: resultado.tiempo,
+      regalosUsados: resultado.regalosUsados,
+      regalosEfectivos: resultado.regalosEfectivos,
+      niñosFelices: resultado.niñosFelices,
+      todosFelices: resultado.todosFelices,
+      bonusEficiencia: resultado.bonusEficiencia,
+      bonusTodosFelices: resultado.bonusTodosFelices,
+      puntosBase: resultado.puntosBase,
+      _desempate: {
+        puntos: resultado.puntuacion,
+        tiempo: resultado.tiempo,
+        eficiencia: resultado.regalosEfectivos
       }
     });
   };
 
+  // Calcular posición vertical de cada fila
+  const getRowPosition = (row) => {
+    return 30 + (row * 13);
+  };
+
+  const niñosFelices = children.filter(c => c.hit).length;
+  const todosFelices = niñosFelices === CONFIG.ROWS;
+  const resultado = gameOver ? calcularPuntuacionFinal() : null;
+
   return (
-    <div className="text-center max-w-md mx-auto">
-      <h2 className="text-3xl font-bold mb-6">❄️ Cortador de Copos</h2>
-      
-      <div className="bg-gradient-to-br from-blue-100 to-cyan-100 rounded-2xl p-4 mb-6">
-        <div className="grid grid-cols-4 gap-3">
-          <div className="bg-white rounded-xl p-3">
-            <div className="text-xl font-bold text-blue-600">{puntuacion}</div>
-            <div className="text-sm text-gray-600">Puntos</div>
+    <div className="text-center max-w-md mx-auto px-4">
+     
+
+      <div className="bg-gradient-to-br from-blue-900 to-blue-950 rounded-2xl p-4 mb-6 border-2 border-yellow-400">
+        {/* UI Superior */}
+        <div className="grid grid-cols-3 gap-2 mb-4">
+          <div className="bg-blue-800/50 rounded-lg p-3">
+            <div className="text-2xl font-bold text-yellow-300">{score}</div>
+            <div className="text-sm text-white/80">Puntos</div>
           </div>
-          <div className="bg-white rounded-xl p-3">
-            <div className={`text-xl font-bold ${
-              tiempoRestante <= 10 ? "text-red-500 animate-pulse" : "text-green-600"
-            }`}>
-              {tiempoRestante}s
-            </div>
-            <div className="text-sm text-gray-600">Tiempo</div>
+          
+          <div className="bg-blue-800/50 rounded-lg p-3">
+            <div className="text-2xl font-bold text-green-400">{giftsLeft}</div>
+            <div className="text-sm text-white/80">Regalos</div>
           </div>
-          <div className="bg-white rounded-xl p-3">
-            <div className="text-xl font-bold text-red-500">{vidas} ❤️</div>
-            <div className="text-sm text-gray-600">Vidas</div>
-          </div>
-          <div className="bg-white rounded-xl p-3">
-            <div className="text-xl font-bold text-purple-600">x{combo}</div>
-            <div className="text-sm text-gray-600">Combo</div>
+          
+          <div className="bg-blue-800/50 rounded-lg p-3">
+            <div className="text-2xl font-bold text-pink-400">{niñosFelices}/5</div>
+            <div className="text-sm text-white/80">Felices</div>
           </div>
         </div>
-      </div>
 
-      <div 
-        ref={gameAreaRef}
-        onTouchMove={manejarTouchMove}
-        className="relative bg-gradient-to-b from-blue-200 to-purple-200 rounded-2xl h-96 mb-6 border-2 border-blue-400 overflow-hidden touch-none"
-      >
-        {copos.map(copo => (
-          <div
-            key={copo.id}
-            className={`absolute text-3xl transition-all duration-150 ${
-              copo.cortado ? 'opacity-0 scale-150' : 'opacity-100'
-            } ${copo.tipo.esBomba ? 'animate-pulse' : 'animate-bounce'}`}
-            style={{
-              left: `${copo.x}%`,
-              top: `${copo.y}%`,
-              transform: 'translate(-50%, -50%)',
-              filter: copo.cortado ? 'blur(5px)' : 'none'
-            }}
+        {/* Área de Juego */}
+        <div className="relative bg-gradient-to-b from-blue-800/30 to-blue-900/20 rounded-xl h-80 border border-blue-400/20 overflow-hidden mb-4">
+          {/* Santa */}
+          <div 
+            className="absolute top-4 text-4xl z-20 transition-all duration-100"
+            style={{ left: `${santaX}%`, transform: 'translateX(-50%)' }}
           >
-            {copo.tipo.emoji}
+            🎅
           </div>
-        ))}
-        
-        {!jugando && (
-          <div className="absolute inset-0 flex items-center justify-center bg-white bg-opacity-90 rounded-2xl">
-            <div className="text-center p-6">
-              {tiempoRestante === 0 || vidas === 0 ? (
-                <>
-                  <div className="text-3xl font-bold mb-2 text-red-600">
-                    {vidas === 0 ? '💥 Game Over' : '⏰ ¡Tiempo!'}
+          
+          {/* Regalos cayendo */}
+          {gifts.map(gift => (
+            <div 
+              key={gift.id} 
+              className="absolute text-2xl z-10 transition-all duration-50"
+              style={{
+                left: `${gift.x}%`,
+                top: `${gift.y}%`,
+                transform: 'translate(-50%, -50%)'
+              }}
+            >
+              🎁
+            </div>
+          ))}
+          
+          {/* Filas con líneas */}
+          {[...Array(CONFIG.ROWS)].map((_, row) => (
+            <div key={row} className="absolute left-0 right-0 h-px bg-blue-400/30"
+                 style={{ top: `${getRowPosition(row)}%` }}>
+              {/* Niño en esta fila */}
+              {children.map(child => child.row === row && (
+                <div 
+                  key={child.id}
+                  className="absolute text-2xl transition-all duration-100"
+                  style={{
+                    left: `${child.x}%`,
+                    top: '50%',
+                    transform: 'translate(-50%, -50%)',
+                    opacity: child.hit ? 0.7 : 1
+                  }}
+                >
+                  {child.hit ? '😊' : '😢'}
+                </div>
+              ))}
+              
+              {/* Grinch en esta fila */}
+              {grinches.map(grinch => grinch.row === row && (
+                <div 
+                  key={grinch.id}
+                  className="absolute text-2xl transition-all duration-100"
+                  style={{
+                    left: `${grinch.x}%`,
+                    top: '50%',
+                    transform: 'translate(-50%, -50%)'
+                  }}
+                >
+                  🧌
+                </div>
+              ))}
+            </div>
+          ))}
+
+          {/* Pantalla de inicio */}
+          {!gameActive && !gameOver && (
+            <div className="absolute inset-0 bg-black/80 flex items-center justify-center rounded-xl">
+              <div className="text-center text-white p-6">
+      
+                <h3 className="text-xl font-bold mb-2">¡Entrega regalos!</h3>
+                <p className="mb-4 text-sm text-white/80">
+                  • 10 regalos<br/>
+                  • 😢 → 😊 = +10 puntos<br/>
+                  • 🧌 intercepta = -5 puntos<br/>
+                  • Bonus por eficiencia
+                </p>
+                <button 
+                  onClick={startGame}
+                  className="bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-lg font-bold transition-all"
+                >
+                  Comenzar Juego
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* Game Over */}
+          {gameOver && resultado && (
+            <div className="absolute inset-0 bg-black/90 flex items-center justify-center rounded-xl">
+              <div className="text-center text-white p-6 max-w-xs">
+                <div className="text-3xl mb-4">.</div>
+                <h3 className="text-xl font-bold mb-2">
+                  {resultado.todosFelices ? '🎉 ¡Felicidades!' : '¡Juego Terminado!'}
+                </h3>
+                
+                <div className="space-y-2 mb-4 text-left text-sm bg-white/10 p-3 rounded-lg">
+                  <div className="flex justify-between">
+                    <span>Puntos base:</span>
+                    <span className="font-bold">{resultado.puntosBase}</span>
                   </div>
-                  <p className="text-gray-700 mb-4">Puntuación: {puntuacion}</p>
-                </>
-              ) : (
-                <>
-                  <div className="text-4xl mb-4">⚔️</div>
-                  <p className="text-gray-700 mb-4">Corta los copos, evita las bombas</p>
-                </>
-              )}
+                  {resultado.bonusTodosFelices > 0 && (
+                    <div className="flex justify-between text-green-300">
+                      <span>Bonus todos felices:</span>
+                      <span className="font-bold">+{resultado.bonusTodosFelices}</span>
+                    </div>
+                  )}
+                  {resultado.bonusEficiencia > 0 && (
+                    <div className="flex justify-between text-yellow-300">
+                      <span>Bonus eficiencia:</span>
+                      <span className="font-bold">+{resultado.bonusEficiencia}</span>
+                    </div>
+                  )}
+                  <div className="flex justify-between border-t border-white/20 pt-2 mt-2">
+                    <span className="font-bold">TOTAL:</span>
+                    <span className="text-2xl font-bold text-yellow-300">{resultado.puntuacion}</span>
+                  </div>
+                </div>
+                
+                <div className="flex gap-2">
+                  <button 
+                    onClick={startGame}
+                    className="flex-1 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-bold transition-all"
+                  >
+                    Jugar Otra Vez
+                  </button>
+                  <button 
+                    onClick={volverASeleccion}
+                    className="flex-1 bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg font-bold transition-all"
+                  >
+                    Menú
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Controles móviles */}
+        {gameActive && (
+          <div className="space-y-3">
+            <div className="flex justify-center gap-6">
               <button
-                onClick={iniciarJuego}
-                className="bg-blue-500 hover:bg-blue-600 text-white px-8 py-3 rounded-xl font-bold transition-all"
+                onClick={() => setSantaX(prev => Math.max(5, prev - 8))}
+                className="bg-blue-600 hover:bg-blue-700 text-white w-14 h-14 rounded-full text-xl font-bold transition-all active:scale-95"
               >
-                🎮 Comenzar
+                ←
+              </button>
+              <button
+                onClick={lanzarRegalo}
+                disabled={giftsLeft <= 0}
+                className={`w-14 h-14 rounded-full text-xl font-bold transition-all active:scale-95 ${
+                  giftsLeft > 0 
+                    ? 'bg-red-600 hover:bg-red-700 text-white' 
+                    : 'bg-gray-500 text-gray-300 cursor-not-allowed'
+                }`}
+              >
+                🎁
+              </button>
+              <button
+                onClick={() => setSantaX(prev => Math.min(95, prev + 8))}
+                className="bg-blue-600 hover:bg-blue-700 text-white w-14 h-14 rounded-full text-xl font-bold transition-all active:scale-95"
+              >
+                →
               </button>
             </div>
+            
+            <div className="text-center text-white/70 text-sm">
+              Regalos: {giftsLeft}/10 • Felices: {niñosFelices}/5
+              {regalosQueGolpearonNiños > 0 && (
+                <span> • Eficiencia: {regalosQueGolpearonNiños} regalos usados</span>
+              )}
+            </div>
           </div>
+        )}
+
+        {gameActive && !gameOver && (
+          <button
+            onClick={endGame}
+            className="w-full mt-4 bg-red-600 hover:bg-red-700 text-white py-2 rounded-lg font-bold transition-all"
+          >
+            Terminar Juego
+          </button>
         )}
       </div>
 
       <button
         onClick={volverASeleccion}
-        className="w-full bg-gradient-to-r from-purple-500 to-pink-500 text-white py-3 rounded-xl font-bold hover:from-purple-600 hover:to-pink-600 transition-all"
-      >
-        ← Volver a Juegos 3
-      </button>
-    </div>
-  );
-};
-
-// =============================================
-// 4. 🧩 LABERINTO
-// =============================================
-const Laberinto = ({ volverASeleccion, guardarEnRanking }) => {
-  const [laberinto, setLaberinto] = useState([]);
-  const [posicion, setPosicion] = useState({ x: 1, y: 1 });
-  const [meta, setMeta] = useState({ x: 8, y: 8 });
-  const [movimientos, setMovimientos] = useState(0);
-  const [nivel, setNivel] = useState(1);
-  const [completado, setCompletado] = useState(false);
-
-  const generarLaberinto = (nivel) => {
-    const tamaño = 5 + nivel * 2;
-    const grid = Array(tamaño).fill().map(() => Array(tamaño).fill(1));
-    
-    // Crear camino básico
-    for (let i = 1; i < tamaño - 1; i++) {
-      for (let j = 1; j < tamaño - 1; j++) {
-        if (Math.random() > 0.3) grid[i][j] = 0;
-      }
-    }
-    
-    // Asegurar camino de inicio a meta
-    grid[1][1] = 0; // Inicio
-    grid[tamaño-2][tamaño-2] = 0; // Meta
-    
-    return grid;
-  };
-
-  useEffect(() => {
-    const nuevoLaberinto = generarLaberinto(nivel);
-    setLaberinto(nuevoLaberinto);
-    setPosicion({ x: 1, y: 1 });
-    setMeta({ x: nuevoLaberinto.length-2, y: nuevoLaberinto[0].length-2 });
-    setMovimientos(0);
-    setCompletado(false);
-  }, [nivel]);
-
-  const manejarTecla = (e) => {
-    if (completado) return;
-    
-    const { x, y } = posicion;
-    let nuevaX = x, nuevaY = y;
-
-    switch(e.key) {
-      case 'ArrowUp': nuevaY--; break;
-      case 'ArrowDown': nuevaY++; break;
-      case 'ArrowLeft': nuevaX--; break;
-      case 'ArrowRight': nuevaX++; break;
-      default: return;
-    }
-
-    if (nuevaX >= 0 && nuevaX < laberinto[0].length && 
-        nuevaY >= 0 && nuevaY < laberinto.length &&
-        laberinto[nuevaY][nuevaX] === 0) {
-      setPosicion({ x: nuevaX, y: nuevaY });
-      setMovimientos(prev => prev + 1);
-      
-      if (nuevaX === meta.x && nuevaY === meta.y) {
-        setCompletado(true);
-        const puntuacion = calcularPuntuacionLaberinto(movimientos + 1, nivel);
-        guardarEnRanking("laberinto", puntuacion, {
-          nivel: nivel,
-          movimientos: movimientos + 1,
-          tamaño: laberinto.length
-        });
-      }
-    }
-  };
-
-  useEffect(() => {
-    window.addEventListener('keydown', manejarTecla);
-    return () => window.removeEventListener('keydown', manejarTecla);
-  }, [laberinto, posicion, completado]);
-
-  const calcularPuntuacionLaberinto = (movimientos, nivel) => {
-    const base = nivel * 100;
-    const bonus = Math.max(0, 500 - movimientos * 10);
-    return base + bonus;
-  };
-
-  const siguienteNivel = () => {
-    setNivel(prev => prev + 1);
-  };
-
-  return (
-    <div className="text-center max-w-md mx-auto">
-      <h2 className="text-3xl font-bold mb-6">🧩 Laberinto</h2>
-      
-      <div className="bg-gradient-to-br from-green-100 to-blue-100 rounded-2xl p-4 mb-6">
-        <div className="grid grid-cols-3 gap-4">
-          <div className="bg-white rounded-xl p-3">
-            <div className="text-xl font-bold text-green-600">Nvl {nivel}</div>
-            <div className="text-sm text-gray-600">Nivel</div>
-          </div>
-          <div className="bg-white rounded-xl p-3">
-            <div className="text-xl font-bold text-blue-600">{movimientos}</div>
-            <div className="text-sm text-gray-600">Movimientos</div>
-          </div>
-          <div className="bg-white rounded-xl p-3">
-            <div className="text-xl font-bold text-purple-600">
-              {laberinto.length}x{laberinto[0]?.length || 0}
-            </div>
-            <div className="text-sm text-gray-600">Tamaño</div>
-          </div>
-        </div>
-      </div>
-
-      <div className="bg-white rounded-2xl p-6 mb-6 border-2 border-gray-300">
-        <div className="inline-grid gap-1 p-4 bg-gray-100 rounded-lg">
-          {laberinto.map((fila, y) => (
-            <div key={y} className="flex gap-1">
-              {fila.map((celda, x) => (
-                <div
-                  key={`${x}-${y}`}
-                  className={`w-6 h-6 rounded-sm ${
-                    celda === 1 ? 'bg-gray-800' : 
-                    x === posicion.x && y === posicion.y ? 'bg-green-500 animate-pulse' :
-                    x === meta.x && y === meta.y ? 'bg-red-500' : 'bg-white'
-                  } border border-gray-300`}
-                >
-                  {x === posicion.x && y === posicion.y && '🎅'}
-                  {x === meta.x && y === meta.y && posicion.x !== x && posicion.y !== y && '🎁'}
-                </div>
-              ))}
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {completado && (
-        <div className="bg-green-100 border-2 border-green-400 rounded-2xl p-6 mb-6">
-          <div className="text-2xl font-bold text-green-700 mb-2">🎉 ¡Nivel Completado!</div>
-          <p className="text-green-600 mb-4">
-            Puntuación: {calcularPuntuacionLaberinto(movimientos, nivel)}
-          </p>
-          <button
-            onClick={siguienteNivel}
-            className="w-full bg-green-500 hover:bg-green-600 text-white py-3 rounded-xl font-bold transition-all"
-          >
-            ➡️ Siguiente Nivel
-          </button>
-        </div>
-      )}
-
-      <div className="flex gap-3 mb-6">
-        <button
-          onClick={() => setNivel(1)}
-          className="flex-1 bg-blue-500 hover:bg-blue-600 text-white py-2 rounded-lg transition-all"
-        >
-          🔄 Reiniciar
-        </button>
-        <button
-          onClick={() => setNivel(prev => Math.max(1, prev - 1))}
-          className="flex-1 bg-gray-500 hover:bg-gray-600 text-white py-2 rounded-lg transition-all"
-        >
-          ⬅️ Anterior
-        </button>
-        <button
-          onClick={() => setNivel(prev => prev + 1)}
-          className="flex-1 bg-green-500 hover:bg-green-600 text-white py-2 rounded-lg transition-all"
-        >
-          Siguiente ➡️
-        </button>
-      </div>
-
-      <button
-        onClick={volverASeleccion}
-        className="w-full bg-gradient-to-r from-purple-500 to-pink-500 text-white py-3 rounded-xl font-bold hover:from-purple-600 hover:to-pink-600 transition-all"
+        className="w-full bg-purple-600 hover:bg-purple-700 text-white py-3 rounded-lg font-bold transition-all"
       >
         ← Volver a Juegos 3
       </button>
@@ -1104,17 +3122,19 @@ const Snake = ({ volverASeleccion, guardarEnRanking }) => {
   const [direccion, setDireccion] = useState('RIGHT');
   const [puntuacion, setPuntuacion] = useState(0);
   const [gameOver, setGameOver] = useState(false);
-  const [velocidad, setVelocidad] = useState(150);
-  const gameAreaRef = useRef(null);
+  const [gameActive, setGameActive] = useState(false);
 
-  const generarComida = () => {
-    const x = Math.floor(Math.random() * 20);
-    const y = Math.floor(Math.random() * 20);
-    setComida({ x, y });
+  const iniciarJuego = () => {
+    setSnake([{ x: 10, y: 10 }]);
+    setComida({ x: 5, y: 5 });
+    setDireccion('RIGHT');
+    setPuntuacion(0);
+    setGameOver(false);
+    setGameActive(true);
   };
 
   useEffect(() => {
-    if (gameOver) return;
+    if (!gameActive || gameOver) return;
 
     const manejarTecla = (e) => {
       switch(e.key) {
@@ -1127,10 +3147,10 @@ const Snake = ({ volverASeleccion, guardarEnRanking }) => {
 
     window.addEventListener('keydown', manejarTecla);
     return () => window.removeEventListener('keydown', manejarTecla);
-  }, [direccion, gameOver]);
+  }, [direccion, gameActive, gameOver]);
 
   useEffect(() => {
-    if (gameOver) return;
+    if (!gameActive || gameOver) return;
 
     const gameLoop = setInterval(() => {
       setSnake(prevSnake => {
@@ -1147,8 +3167,7 @@ const Snake = ({ volverASeleccion, guardarEnRanking }) => {
         if (cabeza.x < 0 || cabeza.x >= 20 || cabeza.y < 0 || cabeza.y >= 20) {
           setGameOver(true);
           guardarEnRanking("snake", puntuacion, {
-            longitud: prevSnake.length,
-            velocidad: velocidad
+            longitud: prevSnake.length
           });
           return prevSnake;
         }
@@ -1157,8 +3176,7 @@ const Snake = ({ volverASeleccion, guardarEnRanking }) => {
         if (prevSnake.some(segmento => segmento.x === cabeza.x && segmento.y === cabeza.y)) {
           setGameOver(true);
           guardarEnRanking("snake", puntuacion, {
-            longitud: prevSnake.length,
-            velocidad: velocidad
+            longitud: prevSnake.length
           });
           return prevSnake;
         }
@@ -1167,40 +3185,28 @@ const Snake = ({ volverASeleccion, guardarEnRanking }) => {
 
         // Comer comida
         if (cabeza.x === comida.x && cabeza.y === comida.y) {
-          setPuntuacion(prev => {
-            const nuevaPuntuacion = prev + 10;
-            if (nuevaPuntuacion % 50 === 0) {
-              setVelocidad(prevVel => Math.max(50, prevVel - 10));
-            }
-            return nuevaPuntuacion;
+          setPuntuacion(prev => prev + 10);
+          setComida({
+            x: Math.floor(Math.random() * 20),
+            y: Math.floor(Math.random() * 20)
           });
-          generarComida();
         } else {
           nuevoSnake.pop();
         }
 
         return nuevoSnake;
       });
-    }, velocidad);
+    }, 200);
 
     return () => clearInterval(gameLoop);
-  }, [direccion, comida, gameOver, velocidad, puntuacion]);
-
-  const reiniciarJuego = () => {
-    setSnake([{ x: 10, y: 10 }]);
-    setDireccion('RIGHT');
-    setPuntuacion(0);
-    setGameOver(false);
-    setVelocidad(150);
-    generarComida();
-  };
+  }, [direccion, comida, gameActive, gameOver, puntuacion]);
 
   return (
     <div className="text-center max-w-md mx-auto">
       <h2 className="text-3xl font-bold mb-6">🐍 Snake</h2>
       
       <div className="bg-gradient-to-br from-green-100 to-emerald-100 rounded-2xl p-4 mb-6">
-        <div className="grid grid-cols-3 gap-4">
+        <div className="grid grid-cols-2 gap-4">
           <div className="bg-white rounded-xl p-3">
             <div className="text-xl font-bold text-green-600">{puntuacion}</div>
             <div className="text-sm text-gray-600">Puntos</div>
@@ -1209,45 +3215,54 @@ const Snake = ({ volverASeleccion, guardarEnRanking }) => {
             <div className="text-xl font-bold text-blue-600">{snake.length}</div>
             <div className="text-sm text-gray-600">Longitud</div>
           </div>
-          <div className="bg-white rounded-xl p-3">
-            <div className="text-xl font-bold text-purple-600">{velocidad}ms</div>
-            <div className="text-sm text-gray-600">Velocidad</div>
-          </div>
         </div>
       </div>
 
       <div className="bg-gray-800 rounded-2xl p-4 mb-6">
-        <div 
-          ref={gameAreaRef}
-          className="grid grid-cols-20 grid-rows-20 gap-1 w-80 h-80 mx-auto bg-gray-900 rounded-lg p-2"
-        >
-          {Array.from({ length: 20 }).map((_, y) =>
-            Array.from({ length: 20 }).map((_, x) => {
-              const esSnake = snake.some(segmento => segmento.x === x && segmento.y === y);
-              const esCabeza = snake[0].x === x && snake[0].y === y;
-              const esComida = comida.x === x && comida.y === y;
-              
-              return (
-                <div
-                  key={`${x}-${y}`}
-                  className={`w-3 h-3 rounded-sm ${
-                    esCabeza ? 'bg-green-500 animate-pulse' :
-                    esSnake ? 'bg-green-400' :
-                    esComida ? 'bg-red-500 animate-bounce' : 'bg-gray-700'
-                  }`}
-                />
-              );
-            })
-          )}
+        <div className="relative w-full" style={{ paddingBottom: '100%' }}>
+          <div className="absolute inset-0 bg-gray-900 rounded-lg p-2">
+            <div className="grid grid-cols-20 grid-rows-20 gap-1 w-full h-full">
+              {Array.from({ length: 20 }).map((_, y) =>
+                Array.from({ length: 20 }).map((_, x) => {
+                  const esSnake = snake.some(segmento => segmento.x === x && segmento.y === y);
+                  const esCabeza = snake[0].x === x && snake[0].y === y;
+                  const esComida = comida.x === x && comida.y === y;
+                  
+                  return (
+                    <div
+                      key={`${x}-${y}`}
+                      className={`w-full h-full rounded-sm ${
+                        esCabeza ? 'bg-green-500' :
+                        esSnake ? 'bg-green-400' :
+                        esComida ? 'bg-red-500' : 'bg-gray-700'
+                      }`}
+                    />
+                  );
+                })
+              )}
+            </div>
+          </div>
         </div>
       </div>
 
+      {!gameActive && !gameOver && (
+        <div className="bg-white rounded-2xl p-6 mb-6">
+          <div className="text-4xl mb-4">🐍</div>
+          <button
+            onClick={iniciarJuego}
+            className="w-full bg-green-500 hover:bg-green-600 text-white py-3 rounded-xl font-bold transition-all"
+          >
+            Comenzar Juego
+          </button>
+        </div>
+      )}
+
       {gameOver && (
         <div className="bg-red-100 border-2 border-red-400 rounded-2xl p-6 mb-6">
-          <div className="text-2xl font-bold text-red-700 mb-2">💀 Game Over</div>
+          <div className="text-2xl font-bold text-red-700 mb-2"> Game Over</div>
           <p className="text-red-600 mb-4">Puntuación: {puntuacion}</p>
           <button
-            onClick={reiniciarJuego}
+            onClick={iniciarJuego}
             className="w-full bg-green-500 hover:bg-green-600 text-white py-3 rounded-xl font-bold transition-all"
           >
             🔄 Jugar Otra Vez
@@ -1255,34 +3270,36 @@ const Snake = ({ volverASeleccion, guardarEnRanking }) => {
         </div>
       )}
 
-      <div className="grid grid-cols-3 gap-2 mb-6">
-        <div></div>
-        <button
-          onClick={() => setDireccion('UP')}
-          className="bg-blue-500 hover:bg-blue-600 text-white p-3 rounded-lg transition-all"
-        >
-          ↑
-        </button>
-        <div></div>
-        <button
-          onClick={() => setDireccion('LEFT')}
-          className="bg-blue-500 hover:bg-blue-600 text-white p-3 rounded-lg transition-all"
-        >
-          ←
-        </button>
-        <button
-          onClick={() => setDireccion('DOWN')}
-          className="bg-blue-500 hover:bg-blue-600 text-white p-3 rounded-lg transition-all"
-        >
-          ↓
-        </button>
-        <button
-          onClick={() => setDireccion('RIGHT')}
-          className="bg-blue-500 hover:bg-blue-600 text-white p-3 rounded-lg transition-all"
-        >
-          →
-        </button>
-      </div>
+      {gameActive && (
+        <div className="grid grid-cols-3 gap-2 mb-6">
+          <div></div>
+          <button
+            onClick={() => setDireccion('UP')}
+            className="bg-blue-500 hover:bg-blue-600 text-white p-3 rounded-lg transition-all"
+          >
+            ↑
+          </button>
+          <div></div>
+          <button
+            onClick={() => setDireccion('LEFT')}
+            className="bg-blue-500 hover:bg-blue-600 text-white p-3 rounded-lg transition-all"
+          >
+            ←
+          </button>
+          <button
+            onClick={() => setDireccion('DOWN')}
+            className="bg-blue-500 hover:bg-blue-600 text-white p-3 rounded-lg transition-all"
+          >
+            ↓
+          </button>
+          <button
+            onClick={() => setDireccion('RIGHT')}
+            className="bg-blue-500 hover:bg-blue-600 text-white p-3 rounded-lg transition-all"
+          >
+            →
+          </button>
+        </div>
+      )}
 
       <button
         onClick={volverASeleccion}
@@ -1304,7 +3321,7 @@ const Snake = ({ volverASeleccion, guardarEnRanking }) => {
 };
 
 // =============================================
-// 🏆 COMPONENTE RANKING PARA JUEGOS 3
+// 🏆 COMPONENTE RANKING PARA JUEGOS 3 (SIN AVATAR, SIN TERRITORY WARS)
 // =============================================
 const RankingJuego3 = ({ juegoId, juegoNombre, rankingGlobal, usuarioActual }) => {
   const [rankingCompleto, setRankingCompleto] = useState([]);
@@ -1317,6 +3334,14 @@ const RankingJuego3 = ({ juegoId, juegoNombre, rankingGlobal, usuarioActual }) =
   const cargarRankingCompleto = async () => {
     try {
       setCargando(true);
+      
+      // ⚠️ EXCLUIR TERRITORY WARS DEL RANKING
+      if (juegoId === "territory-wars") {
+        setRankingCompleto([]);
+        setCargando(false);
+        return;
+      }
+      
       const rankingJuego = await gobaService.obtenerRankingJuego(juegoId);
       
       const topJugadores = rankingJuego
@@ -1342,7 +3367,7 @@ const RankingJuego3 = ({ juegoId, juegoNombre, rankingGlobal, usuarioActual }) =
       case 1: return "🥇";
       case 2: return "🥈";
       case 3: return "🥉";
-      default: return "🔹";
+      default: return `${posicion}º`; // Cambiado a número ordinal
     }
   };
 
@@ -1352,6 +3377,25 @@ const RankingJuego3 = ({ juegoId, juegoNombre, rankingGlobal, usuarioActual }) =
         <h3 className="font-bold text-gray-800 mb-3 text-center">{juegoNombre}</h3>
         <div className="text-center py-4">
           <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-500 mx-auto"></div>
+        </div>
+      </div>
+    );
+  }
+
+  // Si es Territory Wars, mostrar mensaje especial
+  if (juegoId === "territory-wars") {
+    return (
+      <div className="bg-gradient-to-br from-blue-50 to-purple-50 rounded-xl p-4 shadow-lg border-2 border-purple-300">
+        <h3 className="font-bold text-gray-800 mb-3 text-center text-sm bg-gradient-to-r from-purple-100 to-blue-100 rounded-lg py-2">
+          {juegoNombre} 🗺️
+        </h3>
+        <div className="text-center py-6 bg-white/50 rounded-lg">
+          <div className="text-3xl mb-3">👥</div>
+          <p className="text-gray-700 text-sm font-medium mb-2">Juego por Equipos</p>
+          <p className="text-gray-500 text-xs">Sin ranking individual</p>
+          <div className="mt-3 text-xs text-gray-600 bg-yellow-50 p-2 rounded border border-yellow-200">
+            Solo ranking por equipo
+          </div>
         </div>
       </div>
     );
@@ -1368,30 +3412,48 @@ const RankingJuego3 = ({ juegoId, juegoNombre, rankingGlobal, usuarioActual }) =
           rankingCompleto.map((jugador) => (
             <div 
               key={jugador.usuarioId}
-              className={`flex items-center gap-3 p-2 rounded-lg transition-all ${
-                jugador.esUsuarioActual ? 'bg-blue-50 ring-2 ring-blue-400' : 'bg-gray-50'
+              className={`flex items-center justify-between p-2 rounded-lg transition-all ${
+                jugador.esUsuarioActual 
+                  ? 'bg-gradient-to-r from-blue-50 to-blue-100 border-2 border-blue-300' 
+                  : 'bg-gray-50 border border-gray-100'
               }`}
             >
-              <span className="text-sm font-bold w-6 text-center">
-                {obtenerEmojiPosicion(jugador.posicion)}
-              </span>
-              <div className="w-8 h-8 rounded-full bg-gradient-to-r from-green-400 to-blue-500 flex items-center justify-center text-white text-xs font-bold">
-                {jugador.nombre?.charAt(0)?.toUpperCase() || "U"}
+              <div className="flex items-center gap-2 min-w-0 flex-1">
+                {/* MEDALLITA O NÚMERO */}
+                <div className="w-6 h-6 flex items-center justify-center flex-shrink-0">
+                  <span className="font-bold text-gray-700 text-sm">
+                    {obtenerEmojiPosicion(jugador.posicion)}
+                  </span>
+                </div>
+                
+                {/* SOLO NOMBRE (SIN AVATAR) */}
+                <div className="min-w-0 flex-1">
+                  <div className={`text-sm font-medium truncate ${
+                    jugador.esUsuarioActual ? 'text-blue-600 font-bold' : 'text-gray-800'
+                  }`}>
+                    {jugador.nombre || 'Jugador'}
+                    {jugador.esUsuarioActual && (
+                      <span className="ml-1 text-xs text-blue-500"></span>
+                    )}
+                  </div>
+                
+                </div>
               </div>
-              <span className={`text-sm font-medium truncate flex-1 ${
-                jugador.esUsuarioActual ? 'text-blue-600 font-bold' : 'text-gray-700'
-              }`}>
-                {jugador.esUsuarioActual ? "TÚ" : jugador.nombre}
-              </span>
-              <span className="text-sm font-bold bg-blue-100 text-blue-700 px-2 py-1 rounded-full">
-                {jugador.mejorPuntuacion}
-              </span>
+              
+              {/* PUNTUACIÓN */}
+              <div className="text-right flex-shrink-0 ml-2">
+                <div className="font-bold text-gray-800">
+                  {jugador.mejorPuntuacion}
+                </div>
+                <div className="text-xs text-gray-500">pts</div>
+              </div>
             </div>
           ))
         ) : (
           <div className="text-center py-6 bg-gray-50 rounded-lg">
             <div className="text-2xl mb-2">🏆</div>
             <p className="text-gray-500 text-sm">Sin datos aún</p>
+            <p className="text-gray-400 text-xs mt-1">Sé el primero en jugar</p>
           </div>
         )}
       </div>
@@ -1400,7 +3462,7 @@ const RankingJuego3 = ({ juegoId, juegoNombre, rankingGlobal, usuarioActual }) =
 };
 
 // =============================================
-// 🎯 COMPONENTE PRINCIPAL JUEGOS 3
+// 🎯 COMPONENTE PRINCIPAL JUEGOS 3 - CORREGIDO
 // =============================================
 export default function Juegos3() {
   const [usuarioActual, setUsuarioActual] = useState(null);
@@ -1411,13 +3473,13 @@ export default function Juegos3() {
 
   const juegos3 = [
     {
-      id: "ze-geometric",
-      nombre: "🎨 Ze Geometric",
-      descripcion: "Crea con bloques geométricos",
-      icono: "🎨",
-      color: "from-purple-500 to-pink-500",
-      dificultad: "Creativo",
-      edad: "3+"
+      id: "territory-wars",
+      nombre: "🗺️ Territory Control", 
+      descripcion: "Conquista territorios en equipo",
+      icono: "🗺️",
+      color: "from-purple-500 to-indigo-500",
+      dificultad: "Estratégico",
+      edad: "10+"
     },
     {
       id: "pong",
@@ -1429,21 +3491,21 @@ export default function Juegos3() {
       edad: "6+"
     },
     {
-      id: "cortador-copos",
-      nombre: "❄️ Cortador de Copos",
-      descripcion: "Fruit Ninja navideño",
-      icono: "❄️",
+      id: "sopa-letras",
+      nombre: "🧩 Sopa de Letras",
+      descripcion: "Encuentra palabras navideñas",
+      icono: "🧩",
       color: "from-blue-500 to-cyan-500",
-      dificultad: "Difícil",
+      dificultad: "Medio",
       edad: "8+"
     },
     {
-      id: "laberinto",
-      nombre: "🧩 Laberinto",
-      descripcion: "Encuentra la salida",
-      icono: "🧩",
-      color: "from-yellow-500 to-orange-500",
-      dificultad: "Medio",
+      id: "santa-gifts",
+      nombre: "🎅 Santa Gifts",
+      descripcion: "Lanza regalos desde el trineo",
+      icono: "🎅",
+      color: "from-red-500 to-orange-500",
+      dificultad: "Fácil",
       edad: "7+"
     },
     {
@@ -1467,6 +3529,7 @@ export default function Juegos3() {
     cargarRankingsJuegos3();
   }, []);
 
+  // 🎯 FUNCIÓN PARA CARGAR RANKINGS
   const cargarRankingsJuegos3 = async () => {
     try {
       setCargando(true);
@@ -1483,8 +3546,7 @@ export default function Juegos3() {
             nuevoRankingGlobal[juego.id][jugador.usuarioId] = {
               nombre: jugador.nombre,
               puntuacion: jugador.mejorPuntuacion,
-              fecha: jugador.fechaUltimoIntento,
-              avatar: jugador.avatar
+              fecha: jugador.fechaUltimoIntento
             };
           });
         } catch (error) {
@@ -1505,6 +3567,7 @@ export default function Juegos3() {
     }
   };
 
+  // 🎯 FUNCIÓN PARA GUARDAR EN RANKING
   const guardarEnRankingJuegos3 = async (juegoId, puntuacion, datosSession = {}) => {
     try {
       setMensaje("📡 Guardando en Juegos 3...");
@@ -1541,11 +3604,24 @@ export default function Juegos3() {
   };
 
   if (cargando) {
-    return <div className="text-center py-8">Cargando Juegos 3...</div>;
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-purple-600 mx-auto mb-4"></div>
+          <div className="text-xl text-gray-600">Cargando Juegos 3...</div>
+        </div>
+      </div>
+    );
   }
 
   if (!usuarioActual) {
-    return <div className="text-center py-8">Redirigiendo al login...</div>;
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="text-xl text-gray-600">Redirigiendo al login...</div>
+        </div>
+      </div>
+    );
   }
 
   return (
@@ -1555,15 +3631,16 @@ export default function Juegos3() {
         {/* HEADER */}
         <div className="text-center mb-12">
           <h1 className="text-5xl font-bold text-gray-800 mb-4 bg-gradient-to-r from-blue-600 via-green-500 to-purple-600 bg-clip-text text-transparent">
-            🎮 Juegos 3 - Clásicos
+            🎮 Juegos 3 - Clásicos & Estrategia
           </h1>
           <p className="text-xl text-gray-600 mb-8 font-light">
-            Juegos clásicos reinventados con ranking en tiempo real
+      
           </p>
           
           {mensaje && (
             <div className={`inline-block px-4 py-2 rounded-lg mb-4 ${
               mensaje.includes('✅') || mensaje.includes('🎉') ? 'bg-green-100 text-green-700 border border-green-300' :
+              mensaje.includes('⚠️') ? 'bg-yellow-100 text-yellow-700 border border-yellow-300' :
               'bg-blue-100 text-blue-700 border border-blue-300'
             }`}>
               {mensaje}
@@ -1578,7 +3655,7 @@ export default function Juegos3() {
               {juegos3.map((juego) => (
                 <div
                   key={juego.id}
-                  className={`bg-gradient-to-br ${juego.color} rounded-2xl p-6 text-white text-center shadow-xl transform transition-all duration-300 hover:scale-105 hover:shadow-2xl cursor-pointer`}
+                  className={`bg-gradient-to-br ${juego.color} rounded-2xl p-6 text-white text-center shadow-xl transform transition-all duration-300 hover:scale-105 hover:shadow-2xl cursor-pointer border-4 border-white/20`}
                   onClick={() => iniciarJuego(juego.id)}
                 >
                   <div className="text-5xl mb-4">{juego.icono}</div>
@@ -1592,46 +3669,104 @@ export default function Juegos3() {
                       Edad: {juego.edad}
                     </div>
                   </div>
-                  <div className="mt-2 bg-white/30 rounded-full px-3 py-1 text-sm">
+                  <div className="mt-2 bg-white/30 rounded-full px-3 py-1 text-sm font-semibold">
                     Mejor: {rankingGlobal[juego.id]?.[usuarioActual.id]?.puntuacion || 0} pts
                   </div>
                 </div>
               ))}
             </div>
 
-            {/* SECCIÓN DE RANKINGS */}
-            <div className="bg-white/90 rounded-2xl p-8 shadow-2xl border-2 border-green-200 mb-8">
-              <div className="flex justify-between items-center mb-6">
-                <h2 className="text-3xl font-bold text-gray-800">🏆 Rankings - 5 Juegos Clásicos</h2>
-                <button 
-                  onClick={cargarRankingsJuegos3}
-                  disabled={cargando}
-                  className="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg font-semibold transition-all disabled:opacity-50"
-                >
-                  {cargando ? '🔄' : '🔄 Actualizar'}
-                </button>
-              </div>
+           {/* SECCIÓN DE RANKINGS */}
+<div className="bg-white/90 rounded-2xl p-8 shadow-2xl border-2 border-purple-200 mb-8">
+  <div className="flex justify-between items-center mb-6">
+    <h2 className="text-3xl font-bold text-gray-800">🏆 Rankings Individuales</h2>
+    <button 
+      onClick={cargarRankingsJuegos3}
+      disabled={cargando}
+      className="bg-purple-500 hover:bg-purple-600 text-white px-4 py-2 rounded-lg font-semibold transition-all disabled:opacity-50 flex items-center gap-2"
+    >
+      {cargando ? (
+        <>
+          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+          Cargando...
+        </>
+      ) : (
+        <>🔄 Actualizar</>
+      )}
+    </button>
+  </div>
+  
+  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+    {/* Filtra juegos para excluir territory-wars */}
+    {juegos3
+      .filter(juego => juego.id !== "territory-wars")  // EXCLUIR TERRITORY WARS
+      .map((juego) => (
+        <RankingJuego3 
+          key={juego.id} 
+          juegoId={juego.id} 
+          juegoNombre={juego.nombre}
+          rankingGlobal={rankingGlobal}
+          usuarioActual={usuarioActual}
+        />
+      ))}
+  </div>
+</div>
+
+            {/* INFORMACIÓN DE LOS JUEGOS */}
+            <div className="bg-gradient-to-r from-blue-100 to-purple-100 rounded-2xl p-8 shadow-lg border-2 border-blue-200">
+              <h3 className="text-2xl font-bold text-gray-800 mb-6 text-center">ℹ️ Acerca de Juegos 3</h3>
               
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
-                {juegos3.map((juego) => (
-                  <RankingJuego3 
-                    key={juego.id} 
-                    juegoId={juego.id} 
-                    juegoNombre={juego.nombre}
-                    rankingGlobal={rankingGlobal}
-                    usuarioActual={usuarioActual}
-                  />
-                ))}
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <div className="text-center">
+                  <div className="text-3xl mb-2">🗺️</div>
+                  <h4 className="font-bold text-gray-800 mb-2">Territory Control</h4>
+                  <p className="text-sm text-gray-600">
+                    Competencia semanal entre 4 equipos. Conquista territorios hasta el domingo 6:00 PM.
+                  </p>
+                </div>
+                
+                <div className="text-center">
+                  <div className="text-3xl mb-2">🎮</div>
+                  <h4 className="font-bold text-gray-800 mb-2">Pong Clásico</h4>
+                  <p className="text-sm text-gray-600">
+                    El clásico juego de paletas con IA desafiante.
+                  </p>
+                </div>
+                
+                <div className="text-center">
+                  <div className="text-3xl mb-2">🧩</div>
+                  <h4 className="font-bold text-gray-800 mb-2">Sopa de Letras</h4>
+                  <p className="text-sm text-gray-600">
+                    Encuentra palabras navideñas escondidas en la grilla antes de que se acabe el tiempo.
+                  </p>
+                </div>
+
+                <div className="text-center">
+                  <div className="text-3xl mb-2">🎅</div>
+                  <h4 className="font-bold text-gray-800 mb-2">Santa Gifts</h4>
+                  <p className="text-sm text-gray-600">
+                    Ayuda a Santa a entregar regalos, evita que los duendes te los roben. 
+                  </p>
+                </div>
+
+                <div className="text-center">
+                  <div className="text-3xl mb-2">🐍</div>
+                  <h4 className="font-bold text-gray-800 mb-2">Snake</h4>
+                  <p className="text-sm text-gray-600">
+                    El clásico juego de la serpiente. Come la mayor cantidad de puntos sin chocar.
+                  </p>
+                </div>
               </div>
             </div>
           </>
         ) : (
           /* ÁREA DE JUEGO ACTIVO */
-          <div className="bg-white/90 backdrop-blur-sm rounded-2xl p-8 shadow-2xl border-2 border-green-200 max-w-4xl mx-auto">
-            {juegoActivo === "ze-geometric" && (
-              <ZeGeometric 
+          <div className="bg-white/90 backdrop-blur-sm rounded-2xl p-8 shadow-2xl border-2 border-purple-200 max-w-6xl mx-auto">
+            {juegoActivo === "territory-wars" && (
+              <TerritoryWars 
                 volverASeleccion={volverASeleccion}
                 guardarEnRanking={guardarEnRankingJuegos3}
+                usuarioActual={usuarioActual}
               />
             )}
             {juegoActivo === "pong" && (
@@ -1640,14 +3775,14 @@ export default function Juegos3() {
                 guardarEnRanking={guardarEnRankingJuegos3}
               />
             )}
-            {juegoActivo === "cortador-copos" && (
-              <CortadorCopos 
+            {juegoActivo === "sopa-letras" && (
+              <SopaLetrasNavidenia 
                 volverASeleccion={volverASeleccion}
                 guardarEnRanking={guardarEnRankingJuegos3}
               />
             )}
-            {juegoActivo === "laberinto" && (
-              <Laberinto 
+            {juegoActivo === "santa-gifts" && (
+              <SantaGifts 
                 volverASeleccion={volverASeleccion}
                 guardarEnRanking={guardarEnRankingJuegos3}
               />
@@ -1662,13 +3797,17 @@ export default function Juegos3() {
         )}
 
         {/* NAVEGACIÓN */}
-        <div className="text-center space-y-4">
+        <div className="text-center space-y-4 mt-8">
           <Link 
             to="/home" 
             className="inline-flex items-center gap-2 bg-gradient-to-r from-gray-500 to-gray-700 hover:from-gray-600 hover:to-gray-800 text-white font-semibold py-3 px-6 rounded-2xl transition-all duration-300 transform hover:scale-105 shadow-lg mx-2"
           >
             🏠 Volver al Home
           </Link>
+          
+          <div className="text-sm text-gray-500 mt-4">
+            🎯 Juegos 3 - Clásicos & Estrategia | v2.0
+          </div>
         </div>
       </div>
     </div>
