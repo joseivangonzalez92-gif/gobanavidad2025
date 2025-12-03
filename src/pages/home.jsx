@@ -72,16 +72,16 @@ export default function Home() {
               <div className="text-sm text-gray-600">Categorías</div>
             </div>
             <div className="bg-white/80 rounded-2xl p-4 shadow-lg border border-green-200">
-              <div className="text-2xl font-bold text-green-600">25</div>
-              <div className="text-sm text-gray-600">Retos Activos</div>
+              <div className="text-2xl font-bold text-green-600">10 Dic</div>
+              <div className="text-sm text-gray-600">Cierre nominación</div>
             </div>
             <div className="bg-white/80 rounded-2xl p-4 shadow-lg border border-blue-200">
-              <div className="text-2xl font-bold text-blue-600">24/7</div>
-              <div className="text-sm text-gray-600">Diversión</div>
+              <div className="text-2xl font-bold text-blue-600">21 Dic</div>
+              <div className="text-sm text-gray-600">Cierre votaciones</div>
             </div>
             <div className="bg-white/80 rounded-2xl p-4 shadow-lg border border-purple-200">
-              <div className="text-2xl font-bold text-purple-600">100%</div>
-              <div className="text-sm text-gray-600">Familiar</div>
+              <div className="text-2xl font-bold text-purple-600">30 Dic.</div>
+              <div className="text-sm text-gray-600">Goba Awards</div>
             </div>
           </div>
         </div>

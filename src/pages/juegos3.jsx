@@ -9,10 +9,10 @@ import { gobaService } from "../services/firebaseService";
 const TerritoryWars = ({ volverASeleccion, guardarEnRanking, usuarioActual }) => {
   // 🎯 CONFIGURACIÓN
   const EQUIPOS = {
-    ROJO: { nombre: "Rojo", color: "bg-red-500", emoji: "🔴", maxJugadores: 5 },
-    AZUL: { nombre: "Azul", color: "bg-blue-500", emoji: "🔵", maxJugadores: 5 },
-    VERDE: { nombre: "Verde", color: "bg-green-500", emoji: "🟢", maxJugadores: 5 },
-    AMARILLO: { nombre: "Amarillo", color: "bg-yellow-500", emoji: "🟡", maxJugadores: 5 }
+    ROJO: { nombre: "Rojo", color: "bg-red-500", emoji: "🔴", maxJugadores: 6 },
+    AZUL: { nombre: "Azul", color: "bg-blue-500", emoji: "🔵", maxJugadores: 6 },
+    VERDE: { nombre: "Verde", color: "bg-green-500", emoji: "🟢", maxJugadores: 6 },
+    AMARILLO: { nombre: "Amarillo", color: "bg-yellow-500", emoji: "🟡", maxJugadores: 6 }
   };
 
   // 🎯 SISTEMA DE POWER POR USUARIO (10 diarios a las 6 AM)
@@ -26,6 +26,14 @@ const TerritoryWars = ({ volverASeleccion, guardarEnRanking, usuarioActual }) =>
 
   // 🎯 DURACIÓN DE PROTECCIÓN (4 horas)
   const DURACION_PROTECCION = 4 * 60 * 60 * 1000; // 4 horas en milisegundos
+
+  // 🛡️ FUNCIÓN PARA VERIFICAR SI PROTECCIÓN SIGUE ACTIVA
+  const estaProtegido = (terreno) => {
+    if (!terreno || !terreno.protegido || !terreno.proteccionHasta) return false;
+    
+    const ahora = Date.now();
+    return terreno.proteccionHasta > ahora;
+  };
 
   // 🎯 CALCULAR FECHA DE CIERRE (Domingo 6:00 PM Honduras)
   const calcularCierre = () => {
@@ -240,7 +248,7 @@ const TerritoryWars = ({ volverASeleccion, guardarEnRanking, usuarioActual }) =>
     const jugadoresEnEquipo = jugadoresPorEquipo[equipoElegido] || [];
     
     if (jugadoresEnEquipo.length >= EQUIPOS[equipoElegido].maxJugadores) {
-      alert(`❌ El ${EQUIPOS[equipoElegido].nombre} ya está completo (5/5 jugadores)`);
+      alert(`❌ El ${EQUIPOS[equipoElegido].nombre} ya está completo (6/6 jugadores)`);
       return;
     }
 
@@ -511,28 +519,38 @@ const TerritoryWars = ({ volverASeleccion, guardarEnRanking, usuarioActual }) =>
     await guardarPowerUsuarioFirebase(nuevoPower, ultimoReset);
   };
 
-  // 🔓 VERIFICAR Y LIBERAR PROTECCIONES CADUCADAS
+  // 🔓 VERIFICAR Y LIBERAR PROTECCIONES CADUCADAS - VERSIÓN CORREGIDA
   const verificarProtecciones = async () => {
     const ahora = Date.now();
     let necesitaActualizar = false;
-    const nuevoTablero = [...tablero];
     
-    for (let fila = 0; fila < 7; fila++) {
-      for (let columna = 0; columna < 7; columna++) {
-        const terreno = nuevoTablero[fila][columna];
-        if (terreno && terreno.protegido && terreno.proteccionHasta && terreno.proteccionHasta <= ahora) {
-          console.log(`🛡️ Protección liberada en ${fila}-${columna}`);
-          nuevoTablero[fila][columna] = {
-            ...terreno,
-            protegido: false,
-            proteccionHasta: null
-          };
-          necesitaActualizar = true;
+    // Crear una copia profunda del tablero
+    const nuevoTablero = tablero.map((fila, filaIndex) => 
+      fila.map((terreno, columnaIndex) => {
+        // Verificar si el terreno tiene protección expirada
+        if (terreno && terreno.protegido && terreno.proteccionHasta) {
+          if (terreno.proteccionHasta <= ahora) {
+            console.log(`🛡️ Protección liberada en ${filaIndex}-${columnaIndex} 
+              (caducó: ${new Date(terreno.proteccionHasta).toLocaleTimeString()}, ahora: ${new Date(ahora).toLocaleTimeString()})`);
+            
+            necesitaActualizar = true;
+            return {
+              ...terreno,
+              protegido: false,
+              proteccionHasta: null,
+              ultimaActualizacion: Date.now()
+            };
+          }
         }
-      }
-    }
+        return terreno;
+      })
+    );
     
     if (necesitaActualizar) {
+      console.log('🔄 Actualizando tablero después de liberar protecciones');
+      // Actualizar estado local inmediatamente
+      setTablero(nuevoTablero);
+      // Sincronizar con Firebase
       await actualizarTableroCompleto(nuevoTablero);
     }
   };
@@ -659,7 +677,7 @@ const TerritoryWars = ({ volverASeleccion, guardarEnRanking, usuarioActual }) =>
     const { fila, columna } = terrenoSeleccionado;
     const terreno = tablero[fila][columna];
 
-    if (terreno && terreno.equipo && terreno.equipo !== miEquipo && !terreno.protegido) {
+    if (terreno && terreno.equipo && terreno.equipo !== miEquipo && !estaProtegido(terreno)) {
       const nuevoTerreno = { 
         ...terreno, 
         equipo: null, 
@@ -681,8 +699,14 @@ const TerritoryWars = ({ volverASeleccion, guardarEnRanking, usuarioActual }) =>
         });
       }
     } else {
-      if (terreno?.protegido) {
-        alert('❌ Este territorio está protegido');
+      if (estaProtegido(terreno)) {
+        // Calcular tiempo restante de protección
+        const ahora = Date.now();
+        const tiempoRestante = terreno.proteccionHasta - ahora;
+        const horas = Math.floor(tiempoRestante / (1000 * 60 * 60));
+        const minutos = Math.floor((tiempoRestante % (1000 * 60 * 60)) / (1000 * 60));
+        
+        alert(`❌ Este territorio está protegido por ${horas}h ${minutos}m más`);
       } else {
         alert('❌ Solo puedes atacar territorios enemigos');
       }
@@ -699,7 +723,7 @@ const TerritoryWars = ({ volverASeleccion, guardarEnRanking, usuarioActual }) =>
     const { fila, columna } = terrenoSeleccionado;
     const terreno = tablero[fila][columna];
 
-    if (terreno && terreno.equipo === miEquipo && !terreno.protegido) {
+    if (terreno && terreno.equipo === miEquipo && !estaProtegido(terreno)) {
       const proteccionHasta = Date.now() + DURACION_PROTECCION;
       const nuevoTerreno = { 
         ...terreno, 
@@ -722,8 +746,14 @@ const TerritoryWars = ({ volverASeleccion, guardarEnRanking, usuarioActual }) =>
         });
       }
     } else {
-      if (terreno?.protegido) {
-        alert('❌ Este territorio ya está protegido');
+      if (estaProtegido(terreno)) {
+        // Calcular tiempo restante de protección
+        const ahora = Date.now();
+        const tiempoRestante = terreno.proteccionHasta - ahora;
+        const horas = Math.floor(tiempoRestante / (1000 * 60 * 60));
+        const minutos = Math.floor((tiempoRestante % (1000 * 60 * 60)) / (1000 * 60));
+        
+        alert(`❌ Este territorio ya está protegido por ${horas}h ${minutos}m más`);
       } else {
         alert('❌ Solo puedes proteger tus propios territorios');
       }
@@ -851,9 +881,10 @@ const TerritoryWars = ({ volverASeleccion, guardarEnRanking, usuarioActual }) =>
                       w-8 h-8 rounded-md border transition-all duration-200 relative
                       ${equipo ? equipo.color : 'bg-gray-400'}
                       ${estaSeleccionado ? 'ring-2 ring-purple-500 scale-110' : 'hover:scale-105'}
-                      ${terreno?.protegido ? 'ring-1 ring-yellow-400 animate-pulse' : ''}
+                      ${estaProtegido(terreno) ? 'ring-1 ring-yellow-400 animate-pulse' : ''}
                       border-gray-300
                     `}
+                    title={estaProtegido(terreno) ? `Protegido hasta ${new Date(terreno.proteccionHasta).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}` : ''}
                   />
                 );
               })
@@ -1024,17 +1055,19 @@ const TerritoryWars = ({ volverASeleccion, guardarEnRanking, usuarioActual }) =>
         <div className="mt-3 bg-blue-50 border border-blue-200 rounded-lg p-2">
           <div className="text-xs font-bold text-blue-700">🛡️ Protecciones</div>
           <div className="text-xs text-blue-600">
-            Duración: <span className="font-bold">4 horas</span>
+            🕒 Duración: <span className="font-bold">4 horas</span>
             <br />
-            Protegen de ataques enemigos
+         
+            <br />
+       
           </div>
         </div>
 
         {/* 👥 INFO MULTIUSUARIO */}
         <div className="mt-3 bg-purple-50 border border-purple-200 rounded-lg p-2">
-          <div className="text-xs font-bold text-purple-700">Cierre Domingo 6pm</div>
+          <div className="text-xs font-bold text-purple-700">Tip</div>
           <div className="text-xs text-purple-600">
-            Equipo con más territorios ganará
+            Proteger puede ser clave las ultimas horas del juego. 
           </div>
         </div>
       </div>
@@ -1078,7 +1111,7 @@ const TerritoryWars = ({ volverASeleccion, guardarEnRanking, usuarioActual }) =>
               {terreno.equipo ? EQUIPOS[terreno.equipo].nombre : 'Territorio Neutral'}
             </div>
             <div className="text-xs text-gray-600">
-              Nivel {terreno.nivel} • {terreno.protegido ? '🛡️ Protegido' : '⚔️ Vulnerable'}
+              Nivel {terreno.nivel} • {estaProtegido(terreno) ? '🛡️ Protegido' : '⚔️ Vulnerable'}
             </div>
           </div>
         ) : (
@@ -1105,7 +1138,7 @@ const TerritoryWars = ({ volverASeleccion, guardarEnRanking, usuarioActual }) =>
 
           <button
             onClick={atacar}
-            disabled={!terreno || power < COSTOS_POWER.atacar || !esDeOtroEquipo || terreno?.protegido || tiempoRestante.terminado || !miEquipo}
+            disabled={!terreno || power < COSTOS_POWER.atacar || !esDeOtroEquipo || estaProtegido(terreno) || tiempoRestante.terminado || !miEquipo}
             className="w-full bg-red-600 hover:bg-red-700 disabled:bg-gray-300 text-white py-3 rounded-xl font-bold text-sm transition-all disabled:cursor-not-allowed shadow-md"
           >
             ⚔️ Atacar ({COSTOS_POWER.atacar} power)
@@ -1113,7 +1146,7 @@ const TerritoryWars = ({ volverASeleccion, guardarEnRanking, usuarioActual }) =>
 
           <button
             onClick={proteger}
-            disabled={!terreno || power < COSTOS_POWER.proteger || !esDeMiEquipo || terreno?.protegido || tiempoRestante.terminado || !miEquipo}
+            disabled={!terreno || power < COSTOS_POWER.proteger || !esDeMiEquipo || estaProtegido(terreno) || tiempoRestante.terminado || !miEquipo}
             className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-gray-300 text-white py-3 rounded-xl font-bold text-sm transition-all disabled:cursor-not-allowed shadow-md"
           >
             🛡️ Proteger ({COSTOS_POWER.proteger} power)
@@ -1235,7 +1268,7 @@ const TerritoryWars = ({ volverASeleccion, guardarEnRanking, usuarioActual }) =>
               {usuarioActual.nombre} - {EQUIPOS[miEquipo].nombre}
             </div>
             <div className="text-sm text-gray-600">
-              {jugadoresPorEquipo[miEquipo]?.length || 0}/5 jugadores en tu equipo
+              {jugadoresPorEquipo[miEquipo]?.length || 0}/6 jugadores en tu equipo
             </div>
           </div>
         </div>
@@ -1288,6 +1321,7 @@ const TerritoryWars = ({ volverASeleccion, guardarEnRanking, usuarioActual }) =>
     </div>
   );
 };
+
 
 // =============================================
 // 2. 🎮 PONG
@@ -3474,7 +3508,7 @@ export default function Juegos3() {
   const juegos3 = [
     {
       id: "territory-wars",
-      nombre: "🗺️ Territory Control", 
+      nombre: " Territory Control", 
       descripcion: "Conquista territorios en equipo",
       icono: "🗺️",
       color: "from-purple-500 to-indigo-500",
@@ -3483,7 +3517,7 @@ export default function Juegos3() {
     },
     {
       id: "pong",
-      nombre: "🎮 Pong",
+      nombre: " Pong",
       descripcion: "Clásico juego de paletas",
       icono: "🎮",
       color: "from-green-500 to-blue-500",
@@ -3492,7 +3526,7 @@ export default function Juegos3() {
     },
     {
       id: "sopa-letras",
-      nombre: "🧩 Sopa de Letras",
+      nombre: " Sopa de Letras",
       descripcion: "Encuentra palabras navideñas",
       icono: "🧩",
       color: "from-blue-500 to-cyan-500",
@@ -3501,7 +3535,7 @@ export default function Juegos3() {
     },
     {
       id: "santa-gifts",
-      nombre: "🎅 Santa Gifts",
+      nombre: " Santa Gifts",
       descripcion: "Lanza regalos desde el trineo",
       icono: "🎅",
       color: "from-red-500 to-orange-500",
@@ -3510,7 +3544,7 @@ export default function Juegos3() {
     },
     {
       id: "snake",
-      nombre: "🐍 Snake",
+      nombre: " Snake",
       descripcion: "Clásico juego de la serpiente",
       icono: "🐍",
       color: "from-emerald-500 to-green-500",

@@ -335,17 +335,26 @@ const generarOpcionesDropdown = (categoriaId) => {
     }
   };
 
-  // FECHAS AUTOMÁTICAS
+  // FECHAS AUTOMÁTICAS - ACTUALIZADAS
   const determinarFaseActual = () => {
     const hoy = new Date();
-    const fechaFinNominaciones = new Date('2025-12-10T23:59:59');
-    const fechaInicioVotaciones = new Date('2025-12-11T00:00:00');
-    const fechaFinVotaciones = new Date('2025-12-22T23:59:59');
+    
+    // FECHAS ACTUALIZADAS:
+    // Nominaciones cierran: Domingo 7 de Diciembre 2025 a las 8:00 PM
+    const fechaFinNominaciones = new Date('2025-12-07T20:00:00');
+    
+    // Votaciones abren: Martes 10 de Diciembre 2025 a las 12:00 AM
+    const fechaInicioVotaciones = new Date('2025-12-10T00:00:00');
+    
+    // Votaciones cierran: Domingo 21 de Diciembre 2025 a las 8:00 PM
+    const fechaFinVotaciones = new Date('2025-12-21T20:00:00');
 
     if (hoy < fechaFinNominaciones) {
       setFaseActual("nominaciones");
     } else if (hoy >= fechaInicioVotaciones && hoy <= fechaFinVotaciones) {
       setFaseActual("votacion");
+    } else if (hoy >= fechaFinNominaciones && hoy < fechaInicioVotaciones) {
+      setFaseActual("espera");
     } else {
       setFaseActual("resultados");
     }
@@ -726,7 +735,9 @@ const generarOpcionesDropdown = (categoriaId) => {
           <div className="bg-gradient-to-r from-red-500 to-orange-500 rounded-xl p-4 text-white shadow-lg">
             <h2 className="text-lg font-bold mb-2">⏰ Fecha Límite</h2>
             <p className="text-lg font-bold">
-              {faseActual === "nominaciones" ? "10 Dic 2025" : "22 Dic 2025"}
+              {faseActual === "nominaciones" 
+                ? "7 Dic 2025 (8:00 PM)" 
+                : "21 Dic 2025 (8:00 PM)"}
             </p>
           </div>
         </div>
@@ -737,7 +748,7 @@ const generarOpcionesDropdown = (categoriaId) => {
         <>
           {/* Información importante */}
           <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-6 mb-8">
-            <h2 className="text-xl font-bold text-yellow-800 mb-3">📝 Nominaciones cierra 10 de Dic.</h2>
+            <h2 className="text-xl font-bold text-yellow-800 mb-3">📝 Nominaciones cierran Domingo 7 Dic 8:00 PM</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-yellow-700">
               <div>
                 <p className="font-semibold">🎯 Sistema de Nominaciones</p>
@@ -747,7 +758,7 @@ const generarOpcionesDropdown = (categoriaId) => {
                 </ul>
               </div>
               <div>
-                <p className="font-semibold">Próxima Fase: Votación (12-22 Dic).</p>
+                <p className="font-semibold">Próxima Fase: Votación (10-21 Dic)</p>
                 <ul className="text-sm mt-2 space-y-1">
                   <li>• Ganadores se revelan en la Gran Gala</li>
                 </ul>
@@ -784,17 +795,16 @@ const generarOpcionesDropdown = (categoriaId) => {
                   )}
 
                   {/* Nominaciones actuales */}
-             {/* Información de nominaciones (oculta los nombres) */}
-<div className="mb-4">
-  <p className="text-xs font-semibold text-gray-500 mb-2">
-    📊 {nominacionesCategoria.length} nominaciones en total
-  </p>
-  <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 text-center">
-    <p className="text-xs text-blue-700">
-      🎭 Los nominados se mantienen en secreto hasta la votación final
-    </p>
-  </div>
-</div>
+                  <div className="mb-4">
+                    <p className="text-xs font-semibold text-gray-500 mb-2">
+                      📊 {nominacionesCategoria.length} nominaciones en total
+                    </p>
+                    <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 text-center">
+                      <p className="text-xs text-blue-700">
+                        🎭 Los nominados se mantienen en secreto hasta la votación final
+                      </p>
+                    </div>
+                  </div>
 
                   {/* Botón de nominar */}
                   {yaNomineTodas ? (
@@ -837,6 +847,7 @@ const generarOpcionesDropdown = (categoriaId) => {
                   <li>• Los resultados son SECRETOS</li>
                   <li>• Ganadores se revelan en la Gran Gala</li>
                   <li>• ¡Sorpresa garantizada!</li>
+                  <li>• Votaciones cierran: <strong>21 Dic 8:00 PM</strong></li>
                 </ul>
               </div>
             </div>
@@ -888,6 +899,31 @@ const generarOpcionesDropdown = (categoriaId) => {
             })}
           </div>
         </>
+      )}
+
+      {/* PERIODO DE ESPERA ENTRE FECHAS */}
+      {faseActual === "espera" && (
+        <div className="text-center py-12">
+          <div className="bg-blue-50 border border-blue-200 rounded-xl p-8 max-w-2xl mx-auto">
+            <h2 className="text-2xl font-bold text-blue-800 mb-4">⏳ Periodo de Espera</h2>
+            <p className="text-lg text-gray-700 mb-4">
+              Las nominaciones han cerrado. Estamos preparando los finalistas para la votación.
+            </p>
+            <p className="text-blue-600 font-semibold">
+              🗳️ La votación secreta comenzará el <strong>10 de Diciembre</strong>
+            </p>
+            <div className="mt-6">
+              <div className="inline-block bg-blue-100 text-blue-800 px-4 py-2 rounded-lg">
+                📅 Fechas importantes:
+                <ul className="text-sm mt-2 text-left">
+                  <li>• Nominaciones cerradas: 7 Dic 8:00 PM</li>
+                  <li>• Votación abre: 10 Dic 12:00 AM</li>
+                  <li>• Votación cierra: 21 Dic 8:00 PM</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
       )}
 
       {/* Progreso */}

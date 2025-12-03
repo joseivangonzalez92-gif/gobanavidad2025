@@ -424,12 +424,15 @@ export default function Challenges() {
     const ahora = getFechaHonduras();
     
     // Agregar tesoros (siempre activos)
-    preguntasTesoro.forEach(reto => {
-      retos.push({
-        ...reto,
-        estado: "activo"
-      });
+ preguntasTesoro.forEach(reto => {
+  const completado = estaCompletado(reto.id);
+  if (!completado) { // Solo agregar si NO está completado
+    retos.push({
+      ...reto,
+      estado: "activo"
     });
+  }
+});
     
     // Agregar retos de la semana actual que estén activos
     const retosSemana = getRetosSemanaActual();

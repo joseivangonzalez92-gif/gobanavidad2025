@@ -248,7 +248,7 @@ export default function Login() {
           {/* Formulario */}
           <div className="bg-white rounded-3xl p-8 shadow-2xl border-2 border-green-200">
             <h2 className="text-2xl font-bold text-center mb-6 text-gray-800">
-              Entrar o pedir acceso
+              Inicia sesión con tus datos
             </h2>
 
             {error && (
@@ -316,29 +316,7 @@ export default function Login() {
             </button>
           </div>
 
-          {/* DEBUG: Botón para limpiar storage */}
-          <div className="text-center mt-4">
-            <button 
-              onClick={limpiarStorage}
-              className="text-xs text-gray-500 underline"
-              disabled={cargando}
-            >
-              ¿Problemas? Limpiar datos y cerrar sesión
-            </button>
-          </div>
-
-          {/* Seguridad */}
-          <div className="mt-6 bg-blue-50 rounded-2xl p-4 border border-blue-200">
-            <h3 className="font-semibold text-blue-800 mb-2 flex items-center gap-2">
-              <span>🔒</span>
-              <span>Seguridad Familiar</span>
-            </h3>
-            <ul className="text-blue-700 text-sm space-y-1">
-              <li>• Sistema de aprobación activado</li>
-              <li>• Solo usuarios autorizados</li>
-              <li>• Espera aprobación si es tu primera vez</li>
-            </ul>
-          </div>
+       
 
           {/* Info Firebase */}
           <div className="mt-4 text-center">

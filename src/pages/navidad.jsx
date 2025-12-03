@@ -418,8 +418,8 @@ Si me ven, si me ven, voy camino de Belén`,
       reflexion: "La fe nos abre los ojos para reconocer a Jesús que viene. En Adviento, gritemos con fe: '¡Ten compasión de nosotros!'"
     },
     6: { // Sábado 6 de Diciembre - Día de San Nicolás
-      lectura: "Jesús dijo a la multitud: 'Yo soy la luz del mundo; el que me sigue no caminará en la oscuridad, sino que tendrá la luz de la vida'.",
-      referencia: "Juan 8, 12",
+      lectura: "En aquel tiempo, Jesús recorría todas las ciudades y los pueblos, enseñando en las sinagogas, predicando el Evangelio del Reino y curando toda enfermedad y dolencia. Al ver a las multitudes, se compadecía de ellas, porque estaban extenuadas y desamparadas, como ovejas sin pastor. Entonces dijo a sus discípulos: La cosecha es mucha y los trabajadores, pocos. Rueguen, por lo tanto, al dueño de la mies que envíe trabajadores a sus campos",
+      referencia: "Mateo 9, 35–10, 1. 6-8",
       reflexion: "San Nicolás, modelo de caridad, reflejó la luz de Cristo. En Adviento, seamos luz para los que están en tinieblas."
     },
     7: { // Domingo 7 de Diciembre - 2do Domingo de Adviento
@@ -430,13 +430,14 @@ Si me ven, si me ven, voy camino de Belén`,
   };
 
   // FUNCIÓN: Obtener hora actual en Honduras (UTC-6)
-  const obtenerHoraHonduras = () => {
-    const ahora = new Date();
-    // Honduras está en UTC-6 (sin horario de verano)
-    const offsetHonduras = -6 * 60 * 60 * 1000; // -6 horas en milisegundos
-    const horaHonduras = new Date(ahora.getTime() + offsetHonduras);
-    return horaHonduras;
-  };
+const obtenerHoraHonduras = () => {
+  const ahora = new Date();
+  // Honduras está en UTC-6
+  // La diferencia es: hora local - hora UTC = -6 horas
+  const offsetHonduras = -6 * 60; // -6 horas en minutos
+  const horaHonduras = new Date(ahora.getTime() + (offsetHonduras - ahora.getTimezoneOffset()) * 60 * 1000);
+  return horaHonduras;
+};
 
   // FUNCIÓN CORREGIDA: Calcular día actual CORRECTO (30 Nov = día 1)
   const obtenerDiaAdvientoCorregido = () => {
@@ -659,7 +660,7 @@ Si me ven, si me ven, voy camino de Belén`,
         };
       }
 
-      const esDomingo = fecha.getUTCDay() === 0;
+      const esDomingo = fecha.getDay() === 0;
       
       diasAdviento.push({
         id: `dia_${diaNumero}`,
@@ -719,19 +720,20 @@ Si me ven, si me ven, voy camino de Belén`,
   };
 
   // OBTENER DÍA DEL MES (corregido para fechas UTC)
-  const getDiaDelMes = (fecha) => {
-    return fecha.getUTCDate();
-  };
+const getDiaDelMes = (fecha) => {
+  return fecha.getDate(); // Usar getDate() en lugar de getUTCDate()
+};
 
   // OBTENER FECHA FORMATEADA (corregido)
-  const getFechaFormateada = (fecha) => {
-    const opciones = { 
-      weekday: 'long', 
-      day: 'numeric', 
-      month: 'long'
-    };
-    return fecha.toLocaleDateString('es-ES', opciones);
+const getFechaFormateada = (fecha) => {
+  const opciones = { 
+    weekday: 'long', 
+    day: 'numeric', 
+    month: 'long',
+    timeZone: 'America/Tegucigalpa' // Especificar zona horaria de Honduras
   };
+  return fecha.toLocaleDateString('es-HN', opciones);
+};
 
   // Obtener el día actual del Adviento
   const diaActual = contenidoAdviento.find(dia => dia.dia === diaAdvientoActual);
