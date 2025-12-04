@@ -73,7 +73,7 @@ export default function Home() {
             </div>
             <div className="bg-white/80 rounded-2xl p-4 shadow-lg border border-green-200">
               <div className="text-2xl font-bold text-green-600">10 Dic</div>
-              <div className="text-sm text-gray-600">Cierre nominación</div>
+              <div className="text-sm text-gray-600">Cierre Nominación</div>
             </div>
             <div className="bg-white/80 rounded-2xl p-4 shadow-lg border border-blue-200">
               <div className="text-2xl font-bold text-blue-600">21 Dic</div>
@@ -81,7 +81,7 @@ export default function Home() {
             </div>
             <div className="bg-white/80 rounded-2xl p-4 shadow-lg border border-purple-200">
               <div className="text-2xl font-bold text-purple-600">30 Dic.</div>
-              <div className="text-sm text-gray-600">Goba Awards</div>
+              <div className="text-sm text-gray-600">GOBA Awards</div>
             </div>
           </div>
         </div>

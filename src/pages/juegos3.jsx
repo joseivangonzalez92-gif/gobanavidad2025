@@ -856,7 +856,7 @@ const TerritoryWars = ({ volverASeleccion, guardarEnRanking, usuarioActual }) =>
       <div className="bg-white rounded-2xl p-6 shadow-2xl border-2 border-purple-200">
         <div className="text-center mb-6">
           <h3 className="text-2xl font-bold text-gray-800 mb-2">🗺️ Tablero del Reino</h3>
-          <p className="text-gray-600 text-sm">Construye territorios, defiende y conquista para tu equipo</p>
+          <p className="text-gray-600 text-sm">Construye, defiende y conquista para tu equipo</p>
         </div>
 
         <div className="mb-6 bg-gradient-to-r from-purple-500 to-pink-500 rounded-lg p-4 text-white">
@@ -1067,7 +1067,7 @@ const TerritoryWars = ({ volverASeleccion, guardarEnRanking, usuarioActual }) =>
         <div className="mt-3 bg-purple-50 border border-purple-200 rounded-lg p-2">
           <div className="text-xs font-bold text-purple-700">Tip</div>
           <div className="text-xs text-purple-600">
-            Proteger puede ser clave las ultimas horas del juego. 
+            Proteger puede ser clave en la recta final de la partida. 
           </div>
         </div>
       </div>
@@ -1111,7 +1111,7 @@ const TerritoryWars = ({ volverASeleccion, guardarEnRanking, usuarioActual }) =>
               {terreno.equipo ? EQUIPOS[terreno.equipo].nombre : 'Territorio Neutral'}
             </div>
             <div className="text-xs text-gray-600">
-              Nivel {terreno.nivel} • {estaProtegido(terreno) ? '🛡️ Protegido' : '⚔️ Vulnerable'}
+             • {estaProtegido(terreno) ? '🛡️ Protegido' : '⚔️ Vulnerable'}
             </div>
           </div>
         ) : (
@@ -1294,19 +1294,19 @@ const TerritoryWars = ({ volverASeleccion, guardarEnRanking, usuarioActual }) =>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
           <div className="text-center bg-white p-4 rounded-xl border border-green-200">
             <div className="text-2xl mb-2">🏗️</div>
-            <p className="text-gray-700 font-medium"><strong>Construir ({COSTOS_POWER.construir} power):</strong> Conquista territorio neutral</p>
+            <p className="text-gray-700 font-medium"><strong>Construir ({COSTOS_POWER.construir} power):</strong> "Selecciona casilla en color gris", Conquista territorio neutral</p>
           </div>
           <div className="text-center bg-white p-4 rounded-xl border border-red-200">
             <div className="text-2xl mb-2">⚔️</div>
-            <p className="text-gray-700 font-medium"><strong>Atacar ({COSTOS_POWER.atacar} power):</strong> Convierte territorio enemigo en neutral</p>
+            <p className="text-gray-700 font-medium"><strong>Atacar ({COSTOS_POWER.atacar} power):</strong> "Ataca casillas de color rival", Convierte territorio enemigo en neutral</p>
           </div>
           <div className="text-center bg-white p-4 rounded-xl border border-blue-200">
             <div className="text-2xl mb-2">🛡️</div>
-            <p className="text-gray-700 font-medium"><strong>Proteger ({COSTOS_POWER.proteger} power):</strong> 4h de inmunidad en territorio</p>
+            <p className="text-gray-700 font-medium"><strong>Proteger ({COSTOS_POWER.proteger} power):</strong> "Protege una casilla de tu color por 4 horas", inmunidad de territorio</p>
           </div>
         </div>
         <div className="mt-4 text-center text-sm text-gray-600 bg-white/50 py-2 rounded-lg">
-          ⚡ <strong>Power:</strong> 10 diarios por usuario a las 6:00 AM • ⏰ <strong>Finaliza:</strong> Domingo 6:00 PM Honduras
+          ⚡ <strong>Power:</strong> 10 diarios  • ⏰ <strong>Finaliza:</strong> Domingo 6:00 PM Honduras
         </div>
       </div>
 
@@ -3509,7 +3509,7 @@ export default function Juegos3() {
     {
       id: "territory-wars",
       nombre: " Territory Control", 
-      descripcion: "Conquista territorios en equipo",
+      descripcion: "Conquista territorios en este juego grupal de estrategia, Solo 1 equipo ganará",
       icono: "🗺️",
       color: "from-purple-500 to-indigo-500",
       dificultad: "Estratégico",
