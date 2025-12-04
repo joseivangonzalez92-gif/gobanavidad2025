@@ -72,7 +72,7 @@ export default function Home() {
               <div className="text-sm text-gray-600">Categorías</div>
             </div>
             <div className="bg-white/80 rounded-2xl p-4 shadow-lg border border-green-200">
-              <div className="text-2xl font-bold text-green-600">10 Dic</div>
+              <div className="text-2xl font-bold text-green-600">7 Dic</div>
               <div className="text-sm text-gray-600">Cierre Nominación</div>
             </div>
             <div className="bg-white/80 rounded-2xl p-4 shadow-lg border border-blue-200">
