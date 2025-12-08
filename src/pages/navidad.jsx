@@ -372,19 +372,20 @@ Ven pronto Señor...`,
       letra: `Campana sobre campana
 Y sobre campana una
 Asómate a la ventana
-Y verás al Niño en la cuna
-Belén, campana de Belén
+verás al Niño en la cuna
+Belén, campanas de Belén
 Que los ángeles tocan
-Que nuevas nos traen
-Recogío tu rebaño
-¿Y a dónde va tu pastorcillo?
-Voy llevando al portal
-De queso, manteca y vino
+Que nuevas nos traen...
+Recogído tu rebaño
+¿a dónde va tu pastorcillo?
+Voy a llevar al portal
+requeson, manteca y vino.. belen..! 
+
 Campana sobre campana
 Y sobre campana dos
 Asómate a la ventana
-Y verás al Niño de Dios
-Belén, campana de Belén
+Que está naciendo Dios
+Belén, campanas de Belén
 Que los ángeles tocan
 Que nuevas nos traen
 Belén, campana de Belén
@@ -490,25 +491,33 @@ Va anunciado él`,
   // EVANGELIOS DIARIOS REALES PARA DICIEMBRE 2025 - SOLO CITAS DIA DE ADVIENTO Y SU EVANGELIO 
   const evangeliosReales = {
    
-    4: { // Miércoles 3 de Diciembre
-      referencia: "Mateo 15, 29-37",
-      reflexion: "Jesús multiplica los panes por compasión. En Adviento, Él quiere saciar nuestro hambre espiritual."
+     9: { // Lunes 8 de Diciembre - Inmaculada Concepción (Solemnidad)
+      referencia: "Lucas 1, 26-38",
+      reflexion: "En María, 'llena de gracia', Dios preparó un corazón puro para recibir a su Hijo. En Adviento, pidamos pureza de corazón para acoger a Jesús."
     },
-    5: { // Jueves 4 de Diciembre - Día de Santa Bárbara
-      referencia: "Mateo 7, 21.24-27",
-      reflexion: "Santa Bárbara, mártir de la fe, nos enseña a construir nuestra vida sobre la roca firme de la voluntad de Dios."
+    10: { // Martes 9 de Diciembre
+      referencia: "Mateo 18, 12-14",
+      reflexion: "El Buen Pastor busca la oveja perdida. En Adviento, dejémonos encontrar por Jesús que viene a rescatarnos del pecado."
     },
-    6: { // Viernes 5 de Diciembre
-      referencia: "Mateo 9, 27-31",
-      reflexion: "La fe nos abre los ojos para reconocer a Jesús que viene. En Adviento, gritemos con fe: '¡Ten compasión de nosotros!'"
+    11: { // Miércoles 10 de Diciembre
+      referencia: "Mateo 11, 28-30",
+      reflexion: "Jesús nos invita: 'Vengan a mí'. En Adviento, acudamos a Él con nuestras cargas, Él nos dará descanso y paz verdadera."
     },
-    7: { // Sábado 6 de Diciembre - Día de San Nicolás
-      referencia: "Mateo 9, 35–10, 1. 6-8",
-      reflexion: "San Nicolás, modelo de caridad, reflejó la luz de Cristo. En Adviento, seamos luz para los que están en tinieblas."
+    12: { // Jueves 11 de Diciembre
+      referencia: "Mateo 11, 11-15",
+      reflexion: "Jesús proclama la grandeza de Juan Bautista. En Adviento, reconozcamos en los profetas y santos los preparadores del camino del Señor."
     },
-     8: { // Domingo 7 de Diciembre - 2do Domingo de Adviento
-      referencia: "Mateo 3, 1-12",
-      reflexion: "Juan Bautista nos llama a preparar el camino para Jesús. Es tiempo de conversión y de allanar los obstáculos."
+    13: { // Viernes 12 de Diciembre - Nuestra Señora de Guadalupe
+      referencia: "Lucas 1, 26-38",
+      reflexion: "En la Anunciación, Dios se hace presente en la historia. María de Guadalupe nos muestra que Dios viene a nuestro encuentro en nuestra cultura y realidad."
+    },
+    14: { // Sábado 13 de Diciembre - Día de Santa Lucía
+      referencia: "Mateo 17, 10-13",
+      reflexion: "Santa Lucía, mártir de la luz, conservó la vista de la fe. En Adviento, pidamos ver con claridad los signos de la venida del Señor."
+    },
+    15: { // Domingo 14 de Diciembre - 3er Domingo de Adviento (Gaudete)
+      referencia: "Mateo 11, 2-11",
+      reflexion: "Jesús responde a Juan: 'Los ciegos ven, los cojos andan...'. En este domingo de alegría, reconozcamos las obras de Cristo y alegrémonos en Él."
     }
   };
 
@@ -1015,17 +1024,17 @@ Va anunciado él`,
             {/* Reflexiones del Adviento */}
             <div className="bg-white/90 backdrop-blur-sm rounded-xl sm:rounded-2xl p-4 sm:p-6 shadow-lg border-2 border-green-200">
               <h2 className="text-xl sm:text-2xl font-bold text-green-700 mb-4">
-                Primera Semana de Adviento
+                Segunda Semana de Adviento
               </h2>
               
               <div className="space-y-4">
                 {reflexionesAdviento.map((reflexion, index) => (
                   <div key={index} className="bg-green-50 rounded-lg p-3 border-l-4 border-green-400">
                     <div className="flex justify-between items-start mb-1">
-                      <h3 className="font-bold text-green-800 text-sm sm:text-base">Isaías 40:3</h3>
+                      <h3 className="font-bold text-green-800 text-sm sm:text-base">Lucas 1, 28</h3>
                     
                     </div>
-                    <p className="text-xs sm:text-sm text-gray-700 mb-2">Una voz clama: «En el desierto abrid camino a Yahveh, trazad en la estepa una calzada recta a nuestro Dios.». </p>
+                    <p className="text-xs sm:text-sm text-gray-700 mb-2">"Alégrate, llena de gracia, el Señor está contigo" </p>
                   
                   </div>
                 ))}
