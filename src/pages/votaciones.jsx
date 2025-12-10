@@ -14,6 +14,7 @@ export default function Votaciones() {
   const [modalNominacionAbierto, setModalNominacionAbierto] = useState(false);
   const [categoriaNominando, setCategoriaNominando] = useState(null);
   const [opcionesDropdown, setOpcionesDropdown] = useState([]);
+  const [votosRealizados, setVotosRealizados] = useState({});
 
   // 25 Categorías divertidas para los GOBA Awards
   const categoriasGOBA = [
@@ -52,7 +53,7 @@ export default function Votaciones() {
     "Santiago", "Mateo", "Valeria", "Sebastián", "Abuelita"
   ];
 
-  // Función para normalizar nombres y evitar duplicados
+  // Función para normalizar nombres
   const normalizarNombre = (nombre) => {
     let nombreNormalizado = nombre
       .toLowerCase()
@@ -89,29 +90,42 @@ export default function Votaciones() {
     return allowed;
   }, [nombresFamilia]);
 
-  // 🆕 FUNCIÓN: Generar opciones aleatorias para dropdown
-const generarOpcionesDropdown = (categoriaId) => {
-  if (!usuarioActual) return [];
-  
-  const nominacionesCategoria = nominaciones[categoriaId] || [];
-  const misNominacionesEnCategoria = nominacionesCategoria.filter(n => 
-    n && n.nominador && normalizarNombre(n.nominador) === normalizarNombre(usuarioActual.nombre)
-  );
+  // Función para cargar votos del usuario
+  const cargarVotosUsuario = async () => {
+    if (!usuarioActual) return;
+    
+    try {
+      const votos = await gobaService.obtenerVotosUsuario(usuarioActual.id);
+      setVotosRealizados(votos || {});
+    } catch (error) {
+      console.error("Error cargando votos:", error);
+      setVotosRealizados({});
+    }
+  };
 
-  // Filtrar nombres que ya nominé en esta categoría
-  const nombresYaNominados = new Set(
-    misNominacionesEnCategoria.map(n => normalizarNombre(n.persona))
-  );
+  // Generar opciones aleatorias para dropdown
+  const generarOpcionesDropdown = (categoriaId) => {
+    if (!usuarioActual) return [];
+    
+    const nominacionesCategoria = nominaciones[categoriaId] || [];
+    const misNominacionesEnCategoria = nominacionesCategoria.filter(n => 
+      n && n.nominador && normalizarNombre(n.nominador) === normalizarNombre(usuarioActual.nombre)
+    );
 
-  // 🎲 MEZCLAR ALEATORIAMENTE TODAS las opciones disponibles
-  const opcionesDisponibles = nombresFamilia
-    .filter(nombre => !nombresYaNominados.has(normalizarNombre(nombre)))
-    .sort(() => Math.random() - 0.5); // ✅ TODAS las opciones, mezcladas aleatoriamente
+    // Filtrar nombres que ya nominé en esta categoría
+    const nombresYaNominados = new Set(
+      misNominacionesEnCategoria.map(n => normalizarNombre(n.persona))
+    );
 
-  return opcionesDisponibles;
-};
+    // Mezclar aleatoriamente todas las opciones disponibles
+    const opcionesDisponibles = nombresFamilia
+      .filter(nombre => !nombresYaNominados.has(normalizarNombre(nombre)))
+      .sort(() => Math.random() - 0.5);
 
-  // 🆕 FUNCIÓN: Abrir modal de nominación con dropdown
+    return opcionesDisponibles;
+  };
+
+  // Abrir modal de nominación con dropdown
   const abrirModalNominacion = (categoria) => {
     if (!usuarioActual) {
       alert("❌ Debes iniciar sesión para nominar");
@@ -140,7 +154,7 @@ const generarOpcionesDropdown = (categoriaId) => {
     setModalNominacionAbierto(true);
   };
 
-  // 🆕 FUNCIÓN: Nominar desde dropdown
+  // Nominar desde dropdown
   const nominarDesdeDropdown = async (personaSeleccionada) => {
     if (!personaSeleccionada || !categoriaNominando) return;
 
@@ -148,7 +162,7 @@ const generarOpcionesDropdown = (categoriaId) => {
     setModalNominacionAbierto(false);
   };
 
-  // 🆕 COMPONENTE: Modal de Nominación con Dropdown
+  // Componente: Modal de Nominación con Dropdown
   const ModalNominacionDropdown = () => {
     if (!modalNominacionAbierto || !categoriaNominando) return null;
 
@@ -186,13 +200,13 @@ const generarOpcionesDropdown = (categoriaId) => {
               ))}
             </select>
             <p className="text-xs text-gray-500 mt-2">
-            🎲 <strong>Todas las opciones disponibles</strong> - Orden aleatorio cada vez
+              🎲 Todas las opciones disponibles - Orden aleatorio cada vez
             </p>
           </div>
 
           <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-4">
             <p className="text-sm text-green-700 text-center">
-              🎯 <strong>Estrategia:</strong> Elige sabiamente para que tu favorito llegue a la final
+              🎯 Estrategia: Elige sabiamente para que tu favorito llegue a la final
             </p>
           </div>
 
@@ -262,6 +276,7 @@ const generarOpcionesDropdown = (categoriaId) => {
 
         setUsuarioActual(usuario);
         await cargarTodasNominaciones();
+        await cargarVotosUsuario();
         determinarFaseActual();
 
         const unsubscribeNominaciones = gobaService.escucharNominaciones((nuevasNominaciones) => {
@@ -285,11 +300,10 @@ const generarOpcionesDropdown = (categoriaId) => {
     initializeVotaciones();
   }, [navigate]);
 
-  // Función para procesar y combinar nominaciones - CORREGIDA
+  // Función para procesar y combinar nominaciones
   const procesarNominacionesCombinadas = (nominacionesDeFirebase) => {
     const todasNominacionesCombinadas = {};
     
-    // CORRECCIÓN: Convertir objeto Firebase a array
     const nominacionesArray = Array.isArray(nominacionesDeFirebase) 
       ? nominacionesDeFirebase 
       : Object.values(nominacionesDeFirebase || {});
@@ -322,7 +336,7 @@ const generarOpcionesDropdown = (categoriaId) => {
     setNominaciones(todasNominacionesCombinadas);
   };
 
-  // Cargar todas las nominaciones desde Firebase - MANTENER IGUAL
+  // Cargar todas las nominaciones desde Firebase
   const cargarTodasNominaciones = async () => {
     try {
       const todasNominaciones = await gobaService.obtenerTodasNominaciones();
@@ -335,18 +349,12 @@ const generarOpcionesDropdown = (categoriaId) => {
     }
   };
 
-  // FECHAS AUTOMÁTICAS - ACTUALIZADAS
+  // Fechas automáticas
   const determinarFaseActual = () => {
     const hoy = new Date();
     
-    // FECHAS ACTUALIZADAS:
-    // Nominaciones cierran: Domingo 7 de Diciembre 2025 a las 8:00 PM
     const fechaFinNominaciones = new Date('2025-12-07T20:00:00');
-    
-    // Votaciones abren: Martes 10 de Diciembre 2025 a las 12:00 AM
     const fechaInicioVotaciones = new Date('2025-12-10T00:00:00');
-    
-    // Votaciones cierran: Domingo 21 de Diciembre 2025 a las 8:00 PM
     const fechaFinVotaciones = new Date('2025-12-21T20:00:00');
 
     if (hoy < fechaFinNominaciones) {
@@ -360,7 +368,7 @@ const generarOpcionesDropdown = (categoriaId) => {
     }
   };
 
-  // 🔄 REEMPLAZAR la función nominarMultiplesPersonas
+  // Reemplazar la función nominarMultiplesPersonas
   const nominarMultiplesPersonas = (categoriaId, categoriaNombre) => {
     abrirModalNominacion({ id: categoriaId, nombre: categoriaNombre });
   };
@@ -382,14 +390,13 @@ const generarOpcionesDropdown = (categoriaId) => {
     const nombreNormalizado = normalizarNombre(personaNominada);
     const nombreOriginal = personaNominada.trim();
 
-    // Validación estricta de nombres permitidos
+    // Validación de nombres permitidos
     if (!normalizedAllowedNames.has(nombreNormalizado)) {
       alert(`❌ ¡"${nombreOriginal}" no es un nombre válido para nominar! Por favor, usa un nombre de la lista familiar.`);
       return;
     }
 
     try {
-      // 1. Obtener nominaciones actuales del usuario
       const todasNominaciones = await gobaService.obtenerTodasNominaciones();
       const miDocumento = todasNominaciones[usuarioId];
       
@@ -398,12 +405,10 @@ const generarOpcionesDropdown = (categoriaId) => {
         nominacionesUsuarioActual = limpiarDatosParaFirebase(miDocumento.nominaciones);
       }
 
-      // 2. Inicializar estructura si no existe
       if (!nominacionesUsuarioActual[categoriaId]) {
         nominacionesUsuarioActual[categoriaId] = [];
       }
       
-      // 3. Verificar límites y duplicados
       const misNominacionesEnCategoria = nominacionesUsuarioActual[categoriaId].filter(n => 
         n && n.nominador && normalizarNombre(n.nominador) === normalizarNombre(usuarioActual.nombre)
       );
@@ -422,7 +427,6 @@ const generarOpcionesDropdown = (categoriaId) => {
         return;
       }
 
-      // 4. Buscar nombre estandarizado en todas las nominaciones
       let nombreParaMostrar = nombreOriginal;
       for (const userId in todasNominaciones) {
         const doc = todasNominaciones[userId];
@@ -437,7 +441,6 @@ const generarOpcionesDropdown = (categoriaId) => {
         }
       }
 
-      // 5. Crear objeto de nominación
       const nuevaNominacion = {
         persona: nombreParaMostrar,
         personaNormalizada: nombreNormalizado,
@@ -448,14 +451,7 @@ const generarOpcionesDropdown = (categoriaId) => {
 
       nominacionesUsuarioActual[categoriaId].push(nuevaNominacion);
 
-      // 6. Limpiar y guardar
       const nominacionesLimpias = limpiarDatosParaFirebase(nominacionesUsuarioActual);
-
-      console.log("💾 Guardando nominaciones:", {
-        usuarioId: usuarioId,
-        usuarioNombre: usuarioActual.nombre,
-        nominacionesAGuardar: nominacionesLimpias
-      });
 
       const exito = await gobaService.guardarNominaciones(usuarioId, nominacionesLimpias);
 
@@ -502,7 +498,7 @@ const generarOpcionesDropdown = (categoriaId) => {
     return limpiarObjeto(datos);
   };
 
-  // FUNCIÓN PARA CONTAR NOMINACIONES
+  // Función para contar nominaciones (solo para fase de nominaciones)
   const getMisNominacionesTotales = () => {
     if (!usuarioActual) return 0;
     let count = 0;
@@ -526,7 +522,7 @@ const generarOpcionesDropdown = (categoriaId) => {
     );
   };
 
-  // Obtener finalistas para votación (TOP 3)
+  // Obtener finalistas para votación (TOP 3) - MODIFICADA: sin mostrar conteos
   const obtenerFinalistas = (categoriaId) => {
     const nominacionesCategoria = nominaciones[categoriaId] || [];
     
@@ -563,8 +559,14 @@ const generarOpcionesDropdown = (categoriaId) => {
     return finalistas;
   };
 
-  // 🆕 FUNCIÓN: Abrir modal de votación secreta
+  // Función: Abrir modal de votación secreta
   const abrirModalVotacion = (categoria) => {
+    // Verificar si ya votó en esta categoría
+    if (votosRealizados[categoria.id]) {
+      alert("❌ Ya has votado en esta categoría. Solo puedes votar una vez por categoría.");
+      return;
+    }
+
     const finalistas = obtenerFinalistas(categoria.id);
     
     if (finalistas.length === 0) {
@@ -577,35 +579,42 @@ const generarOpcionesDropdown = (categoriaId) => {
     setModalVotacionAbierto(true);
   };
 
-  // 🆕 FUNCIÓN: Realizar voto secreto
+  // Función: Realizar voto secreto
   const realizarVotoSecreto = async (finalista) => {
     if (!usuarioActual || !categoriaVotando) return;
 
-    // Validar con código secreto
-    const codigo = prompt(`🔒 ${usuarioActual.nombre}, ingresa tu código secreto para votar en:\n"${categoriaVotando.nombre}"`);
+    // Confirmar el voto
+    const confirmacion = window.confirm(
+      `¿Estás seguro de votar por "${finalista.persona}" en la categoría:\n"${categoriaVotando.nombre}"?\n\n⚠️ Solo podrás votar UNA vez en esta categoría.`
+    );
     
-    if (!codigo) {
-      alert("❌ Necesitas ingresar tu código secreto");
+    if (!confirmacion) {
       return;
     }
 
-    if (codigo !== usuarioActual.codigoSecreto) {
-      alert("❌ Código secreto incorrecto");
-      return;
-    }
-
-    // GUARDAR VOTO EN FIREBASE (secreto)
+    // GUARDAR VOTO EN FIREBASE
     try {
-      await gobaService.guardarVoto(usuarioActual.id, categoriaVotando.id, finalista.persona);
-      alert(`✅ ¡Voto SECRETO registrado para "${finalista.persona}"!\n\nLos resultados se revelarán en la Gran Gala 🎭`);
-      setModalVotacionAbierto(false);
+      const exito = await gobaService.guardarVoto(usuarioActual.id, categoriaVotando.id, finalista.persona);
+      
+      if (exito) {
+        // Actualizar estado local
+        setVotosRealizados(prev => ({
+          ...prev,
+          [categoriaVotando.id]: true
+        }));
+        
+        alert(`✅ ¡Voto SECRETO registrado!\n\nLos resultados se revelarán en la Gran Gala 🎭`);
+        setModalVotacionAbierto(false);
+      } else {
+        alert("❌ Error al guardar voto. Intenta nuevamente.");
+      }
     } catch (error) {
       console.error("Error guardando voto:", error);
       alert("❌ Error al guardar voto. Intenta nuevamente.");
     }
   };
 
-  // 🆕 COMPONENTE: Modal de Votación Secreta
+  // Componente: Modal de Votación Secreta
   const ModalVotacionSecreta = () => {
     if (!modalVotacionAbierto || !categoriaVotando) return null;
 
@@ -616,6 +625,9 @@ const generarOpcionesDropdown = (categoriaId) => {
             <h2 className="text-2xl font-bold text-gray-800 mb-2">🗳️ Votación Secreta</h2>
             <h3 className="text-xl text-purple-600 font-semibold">{categoriaVotando.nombre}</h3>
             <p className="text-gray-600 mt-2">Tu voto es 100% anónimo y secreto</p>
+            <p className="text-sm text-red-600 font-semibold mt-1">
+              ⚠️ Solo puedes votar UNA vez en esta categoría
+            </p>
           </div>
 
           <div className="space-y-3 mb-6">
@@ -628,10 +640,9 @@ const generarOpcionesDropdown = (categoriaId) => {
                 <div className="flex justify-between items-center">
                   <div>
                     <div className="font-semibold text-gray-800">{finalista.persona}</div>
-                    <div className="text-sm text-gray-500">{finalista.votos} nominaciones</div>
                   </div>
                   <span className="text-2xl">
-                    {index === 0 ? "🥇" : index === 1 ? "🥈" : "🥉"}
+                    {index === 0 ? "" : index === 1 ? "" : ""}
                   </span>
                 </div>
               </button>
@@ -718,29 +729,39 @@ const generarOpcionesDropdown = (categoriaId) => {
             : "🔒 Votación Secreta - Los resultados son sorpresa"}
         </p>
         
-        {/* Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 max-w-2xl mx-auto mb-8">
-          <div className="bg-gradient-to-r from-blue-500 to-purple-500 rounded-xl p-4 text-white shadow-lg">
-            <h2 className="text-lg font-bold mb-2">🏆 Categorías</h2>
-            <p className="text-2xl font-bold">{categoriasGOBA.length}</p>
+        {/* Stats - SOLO PARA FASE DE NOMINACIONES */}
+        {faseActual === "nominaciones" && (
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 max-w-2xl mx-auto mb-8">
+            <div className="bg-gradient-to-r from-blue-500 to-purple-500 rounded-xl p-4 text-white shadow-lg">
+              <h2 className="text-lg font-bold mb-2">🏆 Categorías</h2>
+              <p className="text-2xl font-bold">{categoriasGOBA.length}</p>
+            </div>
+            <div className="bg-gradient-to-r from-green-500 to-blue-500 rounded-xl p-4 text-white shadow-lg">
+              <h2 className="text-lg font-bold mb-2">⭐ Mis Nominaciones</h2>
+              <p className="text-2xl font-bold">
+                {misNominacionesTotales || 0}/{maxNominacionesPosibles}
+              </p>
+            </div>
+            <div className="bg-gradient-to-r from-red-500 to-orange-500 rounded-xl p-4 text-white shadow-lg">
+              <h2 className="text-lg font-bold mb-2">⏰ Fecha Límite</h2>
+              <p className="text-lg font-bold">7 Dic 2025 (8:00 PM)</p>
+            </div>
           </div>
-          <div className="bg-gradient-to-r from-green-500 to-blue-500 rounded-xl p-4 text-white shadow-lg">
-            <h2 className="text-lg font-bold mb-2">
-              {faseActual === "nominaciones" ? "⭐ Mis Nominaciones" : "✅ Listo para Votar"}
-            </h2>
-            <p className="text-2xl font-bold">
-              {faseActual === "nominaciones" ? `${misNominacionesTotales || 0}/${maxNominacionesPosibles}` : "¡Ya!"}
-            </p>
+        )}
+        
+        {/* Stats - PARA FASE DE VOTACIÓN (MUY LIMITADOS) */}
+        {faseActual === "votacion" && (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-lg mx-auto mb-8">
+            <div className="bg-gradient-to-r from-blue-500 to-purple-500 rounded-xl p-4 text-white shadow-lg">
+              <h2 className="text-lg font-bold mb-2">🏆 Categorías</h2>
+              <p className="text-2xl font-bold">{categoriasGOBA.length}</p>
+            </div>
+            <div className="bg-gradient-to-r from-red-500 to-orange-500 rounded-xl p-4 text-white shadow-lg">
+              <h2 className="text-lg font-bold mb-2">⏰ Fecha Límite</h2>
+              <p className="text-lg font-bold">21 Dic 2025 (8:00 PM)</p>
+            </div>
           </div>
-          <div className="bg-gradient-to-r from-red-500 to-orange-500 rounded-xl p-4 text-white shadow-lg">
-            <h2 className="text-lg font-bold mb-2">⏰ Fecha Límite</h2>
-            <p className="text-lg font-bold">
-              {faseActual === "nominaciones" 
-                ? "7 Dic 2025 (8:00 PM)" 
-                : "21 Dic 2025 (8:00 PM)"}
-            </p>
-          </div>
-        </div>
+        )}
       </div>
 
       {/* FASE DE NOMINACIONES */}
@@ -758,8 +779,9 @@ const generarOpcionesDropdown = (categoriaId) => {
                 </ul>
               </div>
               <div>
-                <p className="font-semibold">Próxima Fase: Votación (10-21 Dic)</p>
+                <p className="font-semibold">Próxima Fase: Votación Secreta (10-21 Dic)</p>
                 <ul className="text-sm mt-2 space-y-1">
+                  <li>• Los 3 más nominados pasan a la final</li>
                   <li>• Ganadores se revelan en la Gran Gala</li>
                 </ul>
               </div>
@@ -769,12 +791,9 @@ const generarOpcionesDropdown = (categoriaId) => {
           {/* Lista de Categorías para Nominaciones */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {categoriasGOBA.map((categoria) => {
-              const nominacionesCategoria = nominaciones[categoria.id] || [];
               const misNominacionesEnCategoria = getMisNominacionesPorCategoria(categoria.id);
               const yaNomineTodas = misNominacionesEnCategoria.length >= 3;
               
-              const topNominados = obtenerFinalistas(categoria.id);
-
               return (
                 <div key={categoria.id} className="bg-white border-2 border-purple-200 rounded-xl p-5 hover:shadow-lg transition-shadow">
                   <h3 className="text-lg font-bold text-gray-800 mb-2">{categoria.nombre}</h3>
@@ -794,18 +813,6 @@ const generarOpcionesDropdown = (categoriaId) => {
                     </div>
                   )}
 
-                  {/* Nominaciones actuales */}
-                  <div className="mb-4">
-                    <p className="text-xs font-semibold text-gray-500 mb-2">
-                      📊 {nominacionesCategoria.length} nominaciones en total
-                    </p>
-                    <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 text-center">
-                      <p className="text-xs text-blue-700">
-                        🎭 Los nominados se mantienen en secreto hasta la votación final
-                      </p>
-                    </div>
-                  </div>
-
                   {/* Botón de nominar */}
                   {yaNomineTodas ? (
                     <div className="bg-green-100 text-green-700 px-3 py-2 rounded-lg text-center text-sm">
@@ -823,10 +830,31 @@ const generarOpcionesDropdown = (categoriaId) => {
               );
             })}
           </div>
+          
+          {/* Progreso SOLO en fase de nominaciones */}
+          <div className="mt-8 bg-white border-2 border-blue-200 rounded-xl p-6">
+            <h2 className="text-xl font-bold text-gray-800 mb-4">📊 Tu Progreso en Nominaciones</h2>
+            <div className="flex items-center gap-4">
+              <div className="flex-1 bg-gray-200 rounded-full h-4">
+                <div 
+                  className="bg-green-500 h-4 rounded-full transition-all duration-500"
+                  style={{ width: `${((misNominacionesTotales || 0) / maxNominacionesPosibles) * 100}%` }}
+                ></div>
+              </div>
+              <span className="text-sm font-semibold text-gray-700">
+                {(misNominacionesTotales || 0)}/{maxNominacionesPosibles} nominaciones ({Math.round(((misNominacionesTotales || 0) / maxNominacionesPosibles) * 100)}%)
+              </span>
+            </div>
+            <p className="text-sm text-gray-600 mt-2">
+              {misNominacionesTotales === maxNominacionesPosibles 
+                ? "🎉 ¡Felicidades! Completaste todas las nominaciones posibles" 
+                : "Nomina 1 persona por categoría (máximo 3 por categoría)"}
+            </p>
+          </div>
         </>
       )}
 
-      {/* FASE DE VOTACIÓN SECRETA */}
+      {/* FASE DE VOTACIÓN SECRETA - SIN PROGRESO VISIBLE */}
       {faseActual === "votacion" && (
         <>
           {/* Información importante para votación SECRETA */}
@@ -839,14 +867,15 @@ const generarOpcionesDropdown = (categoriaId) => {
                   <li>• Haz clic en "Votar" en cualquier categoría</li>
                   <li>• Elige a tu favorito entre los 3 finalistas</li>
                   <li>• ¡Tu voto es 100% anónimo!</li>
+                  <li>• <strong>Solo 1 voto por categoría</strong></li>
                 </ul>
               </div>
               <div>
                 <p className="font-semibold mb-2">🎭 Misterio Navideño:</p>
                 <ul className="text-sm space-y-1">
-                  <li>• Los resultados son SECRETOS</li>
+                  <li>• <strong>Los resultados son SECRETOS TOTALES</strong></li>
                   <li>• Ganadores se revelan en la Gran Gala</li>
-                  <li>• ¡Sorpresa garantizada!</li>
+                  <li>• ¡Sorpresa garantizada para todos!</li>
                   <li>• Votaciones cierran: <strong>21 Dic 8:00 PM</strong></li>
                 </ul>
               </div>
@@ -858,45 +887,60 @@ const generarOpcionesDropdown = (categoriaId) => {
             {categoriasGOBA.map((categoria) => {
               const finalistas = obtenerFinalistas(categoria.id);
               const tieneFinalistas = finalistas.length > 0;
+              const yaVoto = votosRealizados[categoria.id];
               
               return (
                 <div key={categoria.id} className="bg-white border-2 border-purple-200 rounded-xl p-5 hover:shadow-lg transition-shadow">
                   <h3 className="text-lg font-bold text-gray-800 mb-2">{categoria.nombre}</h3>
                   <p className="text-sm text-gray-600 mb-4">{categoria.descripcion}</p>
                   
-                  {/* Finalistas */}
-                  <div className="mb-4">
-                    <p className="text-xs font-semibold text-gray-500 mb-2">
-                      Finalistas para votar:
-                    </p>
-                    {tieneFinalistas ? (
-                      <div className="space-y-2">
-                        {finalistas.map((finalista, index) => (
-                          <div key={index} className="flex justify-between items-center text-sm">
-                            <span className="text-gray-700">{finalista.persona}</span>
-                            <span className="bg-blue-100 text-blue-700 px-2 py-1 rounded text-xs">
-                              {finalista.votos} nominaciones
-                            </span>
-                          </div>
-                        ))}
-                        
+                  {/* Estado de voto */}
+                  {yaVoto ? (
+                    <div className="mb-4">
+                      <div className="bg-green-100 text-green-700 px-3 py-2 rounded-lg text-center text-sm">
+                        ✅ Ya votaste en esta categoría
+                      </div>
+                      <p className="text-xs text-gray-500 text-center mt-2">
+                        🔒 Tu voto es secreto
+                      </p>
+                    </div>
+                  ) : (
+                    <div className="mb-4">
+                      <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 text-center">
+                        <p className="text-xs text-blue-700">
+                          🎭 3 finalistas - Elige a tu favorito
+                        </p>
+                      </div>
+                      
+                      {tieneFinalistas ? (
                         <button
                           onClick={() => abrirModalVotacion(categoria)}
                           className="w-full bg-purple-500 hover:bg-purple-600 text-white font-medium py-2 px-4 rounded-lg transition-colors text-sm text-center mt-3"
                         >
                           🔒 Votar Secreto
                         </button>
-                      </div>
-                    ) : (
-                      <div className="text-center">
-                        <p className="text-xs text-gray-400 py-2">No hay finalistas</p>
-                        <p className="text-xs text-gray-500">No hubo suficientes nominaciones</p>
-                      </div>
-                    )}
-                  </div>
+                      ) : (
+                        <div className="text-center mt-3">
+                          <p className="text-xs text-gray-400">No hay finalistas</p>
+                        </div>
+                      )}
+                    </div>
+                  )}
                 </div>
               );
             })}
+          </div>
+          
+          {/* NOTA IMPORTANTE: Sin progreso visible en votación */}
+          <div className="mt-8 bg-red-50 border-2 border-red-200 rounded-xl p-6">
+            <h2 className="text-xl font-bold text-red-800 mb-4">⚠️ Votación 100% Secreta</h2>
+            <p className="text-gray-700 mb-3">
+              <strong>No se mostrará ningún progreso ni resultados durante la fase de votación.</strong>
+            </p>
+            <p className="text-sm text-gray-600">
+              Todos los votos son anónimos y los resultados se mantendrán en secreto hasta la Gran Gala Navideña. 
+              Esta es una votación de sorpresa donde nadie sabrá quién va ganando hasta el momento de la revelación.
+            </p>
           </div>
         </>
       )}
@@ -925,27 +969,6 @@ const generarOpcionesDropdown = (categoriaId) => {
           </div>
         </div>
       )}
-
-      {/* Progreso */}
-      <div className="mt-8 bg-white border-2 border-blue-200 rounded-xl p-6">
-        <h2 className="text-xl font-bold text-gray-800 mb-4">📊 Tu Progreso</h2>
-        <div className="flex items-center gap-4">
-          <div className="flex-1 bg-gray-200 rounded-full h-4">
-            <div 
-              className="bg-green-500 h-4 rounded-full transition-all duration-500"
-              style={{ width: `${((misNominacionesTotales || 0) / maxNominacionesPosibles) * 100}%` }}
-            ></div>
-          </div>
-          <span className="text-sm font-semibold text-gray-700">
-            {(misNominacionesTotales || 0)}/{maxNominacionesPosibles} nominaciones ({Math.round(((misNominacionesTotales || 0) / maxNominacionesPosibles) * 100)}%)
-          </span>
-        </div>
-        <p className="text-sm text-gray-600 mt-2">
-          {misNominacionesTotales === maxNominacionesPosibles 
-            ? "🎉 ¡Felicidades! Completaste todas las nominaciones posibles" 
-            : "Nomina 1 persona por categoría (máximo 3 por categoría)"}
-        </p>
-      </div>
 
       {/* Navegación */}
       <div className="text-center mt-12">
