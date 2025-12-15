@@ -15,6 +15,7 @@ export default function Votaciones() {
   const [categoriaNominando, setCategoriaNominando] = useState(null);
   const [opcionesDropdown, setOpcionesDropdown] = useState([]);
   const [votosRealizados, setVotosRealizados] = useState({});
+  const [cargandoVotos, setCargandoVotos] = useState(false);
 
   // 25 Categorías divertidas para los GOBA Awards
   const categoriasGOBA = [
@@ -90,17 +91,135 @@ export default function Votaciones() {
     return allowed;
   }, [nombresFamilia]);
 
-  // Función para cargar votos del usuario
-  const cargarVotosUsuario = async () => {
-    if (!usuarioActual) return;
+  // Función para cargar TODOS los votos del usuario - REVISADA
+  const cargarTodosLosVotos = async () => {
+    if (!usuarioActual) return {};
     
     try {
+      console.log("🔄 Cargando TODOS los votos para el usuario:", usuarioActual.id);
       const votos = await gobaService.obtenerVotosUsuario(usuarioActual.id);
-      setVotosRealizados(votos || {});
+      console.log("📊 Votos COMPLETOS desde Firebase:", votos);
+      
+      // Procesar votos para estado local
+      const todosLosVotosProcesados = {};
+      
+      if (votos && typeof votos === 'object') {
+        // Recorrer todas las propiedades del objeto de votos
+        Object.keys(votos).forEach(key => {
+          // Verificar si es una categoría (podría ser '1', '2', etc.)
+          const esNumero = !isNaN(key);
+          if (esNumero) {
+            // Si tiene cualquier valor truthy, significa que ya votó
+            if (votos[key]) {
+              todosLosVotosProcesados[key] = true;
+              console.log(`✅ Usuario ya votó en categoría ${key}`);
+            }
+          }
+        });
+      }
+      
+      console.log("🎯 TODOS los votos procesados para estado:", todosLosVotosProcesados);
+      setVotosRealizados(todosLosVotosProcesados);
+      
+      // También guardar en localStorage como respaldo
+      localStorage.setItem(`votos_${usuarioActual.id}`, JSON.stringify(todosLosVotosProcesados));
+      
+      return todosLosVotosProcesados;
+      
     } catch (error) {
-      console.error("Error cargando votos:", error);
+      console.error("❌ Error cargando votos:", error);
+      
+      // Intentar cargar desde localStorage como fallback
+      try {
+        const votosLocalStorage = localStorage.getItem(`votos_${usuarioActual.id}`);
+        if (votosLocalStorage) {
+          const votosParseados = JSON.parse(votosLocalStorage);
+          console.log("📂 Votos cargados desde localStorage:", votosParseados);
+          setVotosRealizados(votosParseados);
+          return votosParseados;
+        }
+      } catch (e) {
+        console.error("❌ Error cargando votos de localStorage:", e);
+      }
+      
+      console.log("⚠️ No se encontraron votos, iniciando con objeto vacío");
       setVotosRealizados({});
+      return {};
     }
+  };
+
+  // Función para verificar si ya votó en una categoría - SIMPLIFICADA
+  const yaVotoEnCategoria = (categoriaId) => {
+    const categoriaIdStr = categoriaId.toString();
+    
+    console.log(`🔍 Verificando voto en categoría ${categoriaIdStr}:`, {
+      votosRealizados,
+      tieneVoto: votosRealizados[categoriaIdStr],
+      usuario: usuarioActual?.id
+    });
+    
+    // Verificar estado local
+    if (votosRealizados[categoriaIdStr]) {
+      console.log(`✅ Ya votó en categoría ${categoriaIdStr} (estado local)`);
+      return true;
+    }
+    
+    // Verificar localStorage como respaldo
+    if (usuarioActual?.id) {
+      const votosLocalStorage = localStorage.getItem(`votos_${usuarioActual.id}`);
+      if (votosLocalStorage) {
+        try {
+          const votosParseados = JSON.parse(votosLocalStorage);
+          const yaVoto = !!votosParseados[categoriaIdStr];
+          console.log(`📂 Verificación localStorage para categoría ${categoriaIdStr}:`, yaVoto);
+          return yaVoto;
+        } catch (e) {
+          console.error("❌ Error parseando votos de localStorage:", e);
+        }
+      }
+    }
+    
+    console.log(`❌ No ha votado en categoría ${categoriaIdStr}`);
+    return false;
+  };
+
+  // Función para actualizar TODOS los votos después de votar
+  const actualizarTodosLosVotos = async () => {
+    if (!usuarioActual) return {};
+    
+    setCargandoVotos(true);
+    try {
+      const nuevosVotos = await cargarTodosLosVotos();
+      console.log("🔄 Votos actualizados después de votar:", nuevosVotos);
+      return nuevosVotos;
+    } catch (error) {
+      console.error("❌ Error actualizando votos:", error);
+      return {};
+    } finally {
+      setCargandoVotos(false);
+    }
+  };
+
+  // Función para guardar voto en el estado local inmediatamente
+  const guardarVotoLocalmente = (categoriaId) => {
+    const categoriaIdStr = categoriaId.toString();
+    
+    // Actualizar estado local
+    setVotosRealizados(prev => {
+      const nuevosVotos = {
+        ...prev,
+        [categoriaIdStr]: true
+      };
+      
+      console.log("💾 Guardando voto localmente:", nuevosVotos);
+      
+      // También guardar en localStorage
+      if (usuarioActual?.id) {
+        localStorage.setItem(`votos_${usuarioActual.id}`, JSON.stringify(nuevosVotos));
+      }
+      
+      return nuevosVotos;
+    });
   };
 
   // Generar opciones aleatorias para dropdown
@@ -264,7 +383,7 @@ export default function Votaciones() {
     return usuario;
   };
 
-  // Cargar datos al iniciar
+  // Cargar datos al iniciar - SIMPLIFICADO
   useEffect(() => {
     const initializeVotaciones = async () => {
       try {
@@ -275,22 +394,27 @@ export default function Votaciones() {
         if (!usuario) return;
 
         setUsuarioActual(usuario);
+        
+        // Cargar votos PRIMERO
+        const votosCargados = await cargarTodosLosVotos();
+        console.log("🎯 Votos iniciales cargados:", votosCargados);
+        
+        // Luego cargar nominaciones
         await cargarTodasNominaciones();
-        await cargarVotosUsuario();
+        
         determinarFaseActual();
 
+        // Escuchar cambios en nominaciones
         const unsubscribeNominaciones = gobaService.escucharNominaciones((nuevasNominaciones) => {
           console.log("🔄 Actualización en tiempo real:", nuevasNominaciones);
           procesarNominacionesCombinadas(nuevasNominaciones);
         });
 
         return () => {
-          if (unsubscribeNominaciones) {
-            unsubscribeNominaciones();
-          }
+          if (unsubscribeNominaciones) unsubscribeNominaciones();
         };
       } catch (error) {
-        console.error("Error inicializando votaciones:", error);
+        console.error("❌ Error inicializando votaciones:", error);
         alert("Error al cargar las votaciones. Recarga la página.");
       } finally {
         setLoading(false);
@@ -561,8 +685,13 @@ export default function Votaciones() {
 
   // Función: Abrir modal de votación secreta
   const abrirModalVotacion = (categoria) => {
+    console.log(`🔍 Intentando abrir votación para categoría ${categoria.id}`, {
+      yaVoto: yaVotoEnCategoria(categoria.id),
+      votosRealizados
+    });
+    
     // Verificar si ya votó en esta categoría
-    if (votosRealizados[categoria.id]) {
+    if (yaVotoEnCategoria(categoria.id)) {
       alert("❌ Ya has votado en esta categoría. Solo puedes votar una vez por categoría.");
       return;
     }
@@ -579,9 +708,25 @@ export default function Votaciones() {
     setModalVotacionAbierto(true);
   };
 
-  // Función: Realizar voto secreto
+  // Función: Realizar voto secreto - REVISADA COMPLETAMENTE
   const realizarVotoSecreto = async (finalista) => {
     if (!usuarioActual || !categoriaVotando) return;
+
+    const categoriaId = categoriaVotando.id;
+    const categoriaIdStr = categoriaId.toString();
+    
+    console.log(`🗳️ Intentando votar en categoría ${categoriaId}`, {
+      usuario: usuarioActual.id,
+      yaVoto: yaVotoEnCategoria(categoriaId),
+      finalista: finalista.persona
+    });
+
+    // Verificar nuevamente antes de proceder
+    if (yaVotoEnCategoria(categoriaId)) {
+      alert("❌ Ya has votado en esta categoría. No puedes votar de nuevo.");
+      setModalVotacionAbierto(false);
+      return;
+    }
 
     // Confirmar el voto
     const confirmacion = window.confirm(
@@ -594,23 +739,40 @@ export default function Votaciones() {
 
     // GUARDAR VOTO EN FIREBASE
     try {
-      const exito = await gobaService.guardarVoto(usuarioActual.id, categoriaVotando.id, finalista.persona);
+      console.log(`💾 Guardando voto en Firebase: usuario ${usuarioActual.id}, categoría ${categoriaId}, voto: ${finalista.persona}`);
+      
+      const exito = await gobaService.guardarVoto(usuarioActual.id, categoriaId, finalista.persona);
       
       if (exito) {
-        // Actualizar estado local
-        setVotosRealizados(prev => ({
-          ...prev,
-          [categoriaVotando.id]: true
-        }));
+        console.log(`✅ Voto guardado exitosamente en Firebase`);
+        
+        // GUARDAR LOCALMENTE INMEDIATAMENTE
+        guardarVotoLocalmente(categoriaId);
+        
+        // Luego actualizar desde Firebase para confirmación
+        setTimeout(async () => {
+          await actualizarTodosLosVotos();
+        }, 500);
         
         alert(`✅ ¡Voto SECRETO registrado!\n\nLos resultados se revelarán en la Gran Gala 🎭`);
         setModalVotacionAbierto(false);
       } else {
+        console.error("❌ Firebase no confirmó el guardado del voto");
         alert("❌ Error al guardar voto. Intenta nuevamente.");
       }
     } catch (error) {
-      console.error("Error guardando voto:", error);
-      alert("❌ Error al guardar voto. Intenta nuevamente.");
+      console.error("❌ Error guardando voto:", error);
+      
+      // Intentar guardar solo localmente si Firebase falla
+      try {
+        guardarVotoLocalmente(categoriaId);
+        console.log("💾 Voto guardado localmente como respaldo");
+        alert(`⚠️ Voto guardado localmente (error de conexión).\n\nLos resultados se revelarán en la Gran Gala 🎭`);
+        setModalVotacionAbierto(false);
+      } catch (localError) {
+        console.error("❌ Error incluso guardando localmente:", localError);
+        alert("❌ Error crítico al guardar voto. Intenta nuevamente.");
+      }
     }
   };
 
@@ -873,9 +1035,7 @@ export default function Votaciones() {
               <div>
                 <p className="font-semibold mb-2">🎭 Misterio Navideño:</p>
                 <ul className="text-sm space-y-1">
-                  <li>• <strong>Los resultados son SECRETOS TOTALES</strong></li>
                   <li>• Ganadores se revelan en la Gran Gala</li>
-                  <li>• ¡Sorpresa garantizada para todos!</li>
                   <li>• Votaciones cierran: <strong>21 Dic 8:00 PM</strong></li>
                 </ul>
               </div>
@@ -887,7 +1047,9 @@ export default function Votaciones() {
             {categoriasGOBA.map((categoria) => {
               const finalistas = obtenerFinalistas(categoria.id);
               const tieneFinalistas = finalistas.length > 0;
-              const yaVoto = votosRealizados[categoria.id];
+              const yaVoto = yaVotoEnCategoria(categoria.id);
+              
+              console.log(`📊 Categoría ${categoria.id} - Ya votó: ${yaVoto}`);
               
               return (
                 <div key={categoria.id} className="bg-white border-2 border-purple-200 rounded-xl p-5 hover:shadow-lg transition-shadow">
@@ -937,10 +1099,7 @@ export default function Votaciones() {
             <p className="text-gray-700 mb-3">
               <strong>No se mostrará ningún progreso ni resultados durante la fase de votación.</strong>
             </p>
-            <p className="text-sm text-gray-600">
-              Todos los votos son anónimos y los resultados se mantendrán en secreto hasta la Gran Gala Navideña. 
-              Esta es una votación de sorpresa donde nadie sabrá quién va ganando hasta el momento de la revelación.
-            </p>
+        
           </div>
         </>
       )}

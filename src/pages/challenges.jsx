@@ -20,7 +20,7 @@ export default function Challenges() {
   // Configuración de zona horaria de Honduras (UTC-6)
   const ZONA_HORARIA = -6;
 
-  // 8 RETOS SEMANALES DE FOTOS (Lunes a Domingo)
+  // 7 RETOS SEMANALES DE FOTOS (Lunes a Domingo) - SEMANA 7 ES LA ÚLTIMA
   const retosSemanales = [
     { id: "foto_1", titulo: "Reto Semanal #1", descripcion: "📸 ¡Sube tu foto sonriendo!", tipo: "foto", puntos: 10 },
     { id: "foto_2", titulo: "Reto Semanal #2", descripcion: "📸 ¡Sube tu foto comiendo un postre", tipo: "foto", puntos: 10 },
@@ -28,11 +28,11 @@ export default function Challenges() {
     { id: "foto_4", titulo: "Reto Semanal #4", descripcion: "📸 ¡Sube tu foto usando algo navideño", tipo: "foto", puntos: 10 },
     { id: "foto_5", titulo: "Reto Semanal #5", descripcion: "📸 ¡Sube tu foto viendo una película navideña", tipo: "foto", puntos: 10 },
     { id: "foto_6", titulo: "Reto Semanal #6", descripcion: "📸 ¡Sube tu foto junto a un arbol de navidad", tipo: "foto", puntos: 10 },
-    { id: "foto_7", titulo: "Reto Semanal #7", descripcion: "📸 ¡Sube tu foto comiendo comida navideña", tipo: "foto", puntos: 10 },
-    { id: "foto_8", titulo: "Reto Semanal #8", descripcion: "📸 ¡Sube tu foto abrazando a alguien", tipo: "foto", puntos: 10 }
+    { id: "foto_7", titulo: "Reto Semanal #7", descripcion: "📸 ¡Sube tu foto comiendo comida navideña", tipo: "foto", puntos: 10 }
+    // SEMANA 8 ELIMINADA - Esta es la última semana
   ];
 
-  // 🆕 FECHAS CORREGIDAS - Semana 1: 3-9 Nov 2025
+  // 🆕 FECHAS CORREGIDAS - Semana 1: 3-9 Nov 2025, ÚLTIMA SEMANA: 15-21 Dic 2025
   const fechasSemanales = [
     new Date(2025, 10, 3, 6, 0, 0),   // 3 Nov 2025 (Lunes) - Semana 1
     new Date(2025, 10, 10, 6, 0, 0),  // 10 Nov 2025 (Lunes) - Semana 2
@@ -40,11 +40,11 @@ export default function Challenges() {
     new Date(2025, 10, 24, 6, 0, 0),  // 24 Nov 2025 (Lunes) - Semana 4
     new Date(2025, 11, 1, 6, 0, 0),   // 1 Dic 2025 (Lunes) - Semana 5
     new Date(2025, 11, 8, 6, 0, 0),   // 8 Dic 2025 (Lunes) - Semana 6
-    new Date(2025, 11, 15, 6, 0, 0),  // 15 Dic 2025 (Lunes) - Semana 7
-    new Date(2025, 11, 22, 6, 0, 0)   // 22 Dic 2025 (Lunes) - Semana 8
+    new Date(2025, 11, 15, 6, 0, 0)   // 15 Dic 2025 (Lunes) - Semana 7 - ¡ÚLTIMA SEMANA!
+    // SEMANA 8 ELIMINADA
   ];
 
-  // 14 PREGUNTAS MIÉRCOLES Y VIERNES CON 4 OPCIONES
+  // 14 PREGUNTAS MIÉRCOLES Y VIERNES CON 4 OPCIONES (ÚLTIMA SEMANA: PREGUNTAS 13 Y 14)
   const preguntasMiercolesViernes = [
     // Semana 1 (3-9 Nov)
     { 
@@ -220,7 +220,7 @@ export default function Challenges() {
       ],
       puntos: 5
     },
-    // Semana 7 (15-21 Dic)
+    // SEMANA 7 - ¡ÚLTIMA SEMANA! (15-21 Dic)
     { 
       id: "pregunta_13", 
       titulo: "🎀 Pregunta Miércoles #7", 
@@ -249,6 +249,7 @@ export default function Challenges() {
       ],
       puntos: 5
     }
+    // NO HAY PREGUNTAS DE SEMANA 8 - ESTA ES LA ÚLTIMA
   ];
 
   // 4 PREGUNTAS DE BÚSQUEDA DEL TESORO (PERMANENTES) - MODIFICADAS PARA INPUT TEXTO
@@ -296,9 +297,23 @@ export default function Challenges() {
     return new Date(hondurasTime);
   };
 
+  // 🆕 FUNCIÓN PARA VERIFICAR SI TODOS LOS RETOS HAN CERRADO
+  const esDespuesDelCierre = () => {
+    const ahora = getFechaHonduras();
+    const cierreUltimaSemana = new Date(fechasSemanales[6]); // Semana 7
+    cierreUltimaSemana.setDate(cierreUltimaSemana.getDate() + 6); // Domingo
+    cierreUltimaSemana.setHours(18, 0, 0, 0); // Domingo 6:00pm
+    return ahora > cierreUltimaSemana;
+  };
+
   // 🆕 FUNCIÓN CORREGIDA PARA OBTENER SEMANA ACTUAL
   const getSemanaActual = () => {
     const ahora = getFechaHonduras();
+    
+    // Si ya pasó el cierre de la última semana, retornar -2 (TEMPORADA FINALIZADA)
+    if (esDespuesDelCierre()) {
+      return -2;
+    }
     
     for (let i = 0; i < fechasSemanales.length; i++) {
       const fechaInicio = fechasSemanales[i];
@@ -307,7 +322,7 @@ export default function Challenges() {
       fechaFin.setHours(18, 0, 0, 0); // Domingo 6:00pm (cierre)
       
       if (ahora >= fechaInicio && ahora <= fechaFin) {
-        return i; // Retorna 0-7 para semana actual
+        return i; // Retorna 0-6 para semana actual
       }
     }
     
@@ -319,6 +334,7 @@ export default function Challenges() {
     const ahora = getFechaHonduras();
     const semanaActual = getSemanaActual();
     
+    if (semanaActual === -2) return "temporada_finalizada";
     if (semanaActual === -1) return "fuera_temporada";
     
     if (tipo === "foto") {
@@ -355,7 +371,6 @@ export default function Challenges() {
       fechaApertura.setDate(fechaApertura.getDate() + diasSumar);
       fechaApertura.setHours(6, 0, 0, 0); // 6:00am
       
-      // 🆕 TODOS CIERRAN DOMINGO 6:00PM
       const fechaCierre = new Date(fechaAperturaBase);
       fechaCierre.setDate(fechaCierre.getDate() + 6); // Domingo
       fechaCierre.setHours(18, 0, 0, 0); // Domingo 6:00pm
@@ -366,7 +381,7 @@ export default function Challenges() {
     }
     
     if (tipo === "tesoro") {
-      return "activo"; // Siempre activos
+      return esDespuesDelCierre() ? "temporada_finalizada" : "activo";
     }
     
     return "proxima_semana";
@@ -378,6 +393,7 @@ export default function Challenges() {
     const ahora = getFechaHonduras();
     const retosSemana = [];
     
+    if (semanaActual === -2) return retosSemana;
     if (semanaActual === -1) return retosSemana;
     
     // Reto de foto de la semana actual
@@ -423,16 +439,23 @@ export default function Challenges() {
     const semanaActual = getSemanaActual();
     const ahora = getFechaHonduras();
     
-    // Agregar tesoros (siempre activos)
- preguntasTesoro.forEach(reto => {
-  const completado = estaCompletado(reto.id);
-  if (!completado) { // Solo agregar si NO está completado
-    retos.push({
-      ...reto,
-      estado: "activo"
-    });
-  }
-});
+    // Si la temporada ya finalizó, no hay retos activos
+    if (semanaActual === -2) {
+      return retos;
+    }
+    
+    // Agregar tesoros (solo si temporada activa)
+    if (semanaActual >= 0) {
+      preguntasTesoro.forEach(reto => {
+        const completado = estaCompletado(reto.id);
+        if (!completado) {
+          retos.push({
+            ...reto,
+            estado: "activo"
+          });
+        }
+      });
+    }
     
     // Agregar retos de la semana actual que estén activos
     const retosSemana = getRetosSemanaActual();
@@ -467,12 +490,15 @@ export default function Challenges() {
     return retos;
   };
 
-  // 🆕 FUNCIÓN CORREGIDA PARA RETOS PRÓXIMA SEMANA
+  // 🆕 FUNCIÓN CORREGIDA PARA RETOS PRÓXIMA SEMANA - MODIFICADA PARA SEMANA 7
   const getRetosProximaSemana = () => {
     const semanaActual = getSemanaActual();
     const proximos = [];
     
-    if (semanaActual === -1 || semanaActual >= 7) return proximos;
+    // Si es la última semana (semana 7) o temporada finalizada, no hay próxima semana
+    if (semanaActual === -2 || semanaActual >= 6) {
+      return proximos;
+    }
     
     const proximaSemana = semanaActual + 1;
     
@@ -563,7 +589,7 @@ export default function Challenges() {
         10 // Puntos por subir foto
       );
       
-      alert(`✅ ¡Foto subida correctamente! Ganaste ${puntosObtenidos} puntos. Puedes solicitar cambiar foto antes del Domingo 6pm.`);
+      alert(`✅ ¡Foto subida correctamente! Ganaste ${puntosObtenidos} puntos.`);
       
       // Limpiar estado
       setImagenSubida(null);
@@ -771,7 +797,8 @@ export default function Challenges() {
       "activo": "✅ Activo", 
       "cerrado": "❌ Cerrado",
       "proxima_semana": "📅 Próxima Semana",
-      "fuera_temporada": "🎄 Fuera de Temporada"
+      "fuera_temporada": "🎄 Fuera de Temporada",
+      "temporada_finalizada": "🏆 Temporada Finalizada"
     };
     return estados[estado] || estado;
   };
@@ -782,7 +809,8 @@ export default function Challenges() {
       "activo": "bg-green-100 text-green-800 border-green-200",
       "cerrado": "bg-red-100 text-red-800 border-red-200",
       "proxima_semana": "bg-purple-100 text-purple-800 border-purple-200",
-      "fuera_temporada": "bg-gray-100 text-gray-800 border-gray-200"
+      "fuera_temporada": "bg-gray-100 text-gray-800 border-gray-200",
+      "temporada_finalizada": "bg-gradient-to-r from-yellow-100 to-orange-100 text-orange-800 border-orange-300"
     };
     return colores[estado] || "bg-gray-100 text-gray-800 border-gray-200";
   };
@@ -791,6 +819,7 @@ export default function Challenges() {
   const getTextoSemanaActual = () => {
     const semanaActual = getSemanaActual();
     
+    if (semanaActual === -2) return "🏆 ¡Temporada Finalizada!";
     if (semanaActual === -1) return "Fuera de temporada navideña";
     
     const semanas = [
@@ -800,8 +829,7 @@ export default function Challenges() {
       "Semana 4 (24-30 Nov)",
       "Semana 5 (1-7 Dic)",
       "Semana 6 (8-14 Dic)",
-      "Semana 7 (15-21 Dic)",
-      "Semana 8 (22-28 Dic)"
+      "Semana 7 (15-21 Dic) - ¡ÚLTIMA SEMANA!"
     ];
     
     return semanas[semanaActual] || "Semana especial";
@@ -861,6 +889,43 @@ export default function Challenges() {
         </div>
       </div>
 
+      {/* 🆕 BANNER DE ÚLTIMA SEMANA */}
+      {getSemanaActual() === 6 && (
+        <div className="mb-8 bg-gradient-to-r from-red-500 to-orange-500 rounded-2xl p-6 text-center shadow-lg border-4 border-yellow-300 animate-pulse">
+          <h2 className="text-3xl font-bold text-white mb-3">🏆 ¡ÚLTIMA SEMANA!</h2>
+          <p className="text-xl text-white mb-2">Todos los retos cierran este <strong>Domingo 21 de Diciembre a las 6pm</strong></p>
+        
+          <p className="text-white text-sm mt-3">
+            Completa todos los retos disponibles para asegurar tu posición en el ranking final
+          </p>
+        </div>
+      )}
+
+      {/* 🆕 BANNER TEMPORADA FINALIZADA */}
+      {getSemanaActual() === -2 && (
+        <div className="mb-8 bg-gradient-to-r from-purple-600 to-blue-600 rounded-2xl p-8 text-center shadow-xl border-4 border-gold-500">
+          <h2 className="text-4xl font-bold text-white mb-4">🏆 ¡TEMPORADA FINALIZADA! 🏆</h2>
+          <div className="bg-white/20 rounded-xl p-4 mb-4">
+            <p className="text-2xl text-yellow-300 font-bold mb-2">
+              ¡La competencia ha concluido!
+            </p>
+            <p className="text-xl text-white mb-3">
+              Todos los retos cerraron el <strong>Domingo 21 de Diciembre a las 6pm</strong>
+            </p>
+            <p className="text-3xl font-bold text-white mt-4">
+              🎉 ¡El ganador es el usuario #1 del ranking! 🎉
+            </p>
+          </div>
+          {ranking.length > 0 && (
+            <div className="bg-white/10 rounded-xl p-4 inline-block">
+              <p className="text-lg text-yellow-200">
+                Actualmente liderando: <strong className="text-white">{ranking[0]?.nombre}</strong> con {ranking[0]?.puntosTotales || 0} puntos
+              </p>
+            </div>
+          )}
+        </div>
+      )}
+
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
         
         {/* Columna Principal */}
@@ -874,13 +939,30 @@ export default function Challenges() {
               </span>
             </h2>
             
-            {retosActivos.length === 0 ? (
+            {getSemanaActual() === -2 ? (
+              <div className="bg-gradient-to-r from-blue-50 to-purple-50 border-2 border-blue-300 rounded-xl p-10 text-center">
+                <p className="text-2xl text-blue-700 font-bold mb-4">
+                  🏁 La competencia ha terminado
+                </p>
+                <p className="text-lg text-gray-700 mb-6">
+                  Todos los retos cerraron el Domingo 21 de Diciembre a las 6pm
+                </p>
+                <div className="bg-white rounded-xl p-6 inline-block border-2 border-gold-500">
+                  <p className="text-xl font-bold text-purple-600">
+                    ¡Revisa el ranking para ver al GRAN GANADOR!
+                  </p>
+                </div>
+              </div>
+            ) : retosActivos.length === 0 ? (
               <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-8 text-center">
                 <p className="text-xl text-yellow-800 mb-4">
                   🕒 No hay retos activos en este momento
                 </p>
                 <p className="text-yellow-600">
-                  Los retos se activan automáticamente según su programación. ¡Vuelve pronto!
+                  {getSemanaActual() === 6 
+                    ? "¡Es la última semana! Los retos se activan según su horario programado."
+                    : "Los retos se activan automáticamente según su programación. ¡Vuelve pronto!"
+                  }
                 </p>
               </div>
             ) : (
@@ -1189,6 +1271,25 @@ export default function Challenges() {
                   : `Estás en posición #${ranking.findIndex(j => j.userId === usuarioActual.id) + 1}`
                 }
               </p>
+              
+              {/* 🆕 MENSAJE ESPECIAL PARA ÚLTIMA SEMANA */}
+              {getSemanaActual() === 6 && (
+                <p className="text-sm font-bold text-red-600 text-center mt-2">
+                  ⏰ ¡Cierra Domingo 21 Dic 6pm!
+                </p>
+              )}
+              
+              {/* 🆕 MENSAJE PARA TEMPORADA FINALIZADA */}
+              {getSemanaActual() === -2 && ranking.length > 0 && (
+                <div className="mt-4 bg-gradient-to-r from-yellow-100 to-orange-100 rounded-lg p-3 border border-yellow-300">
+                  <p className="text-sm font-bold text-purple-700 text-center">
+                    🏆 ¡GANADOR FINAL!
+                  </p>
+                  <p className="text-xs text-gray-700 text-center mt-1">
+                    {ranking[0]?.nombre} con {ranking[0]?.puntosTotales || 0} puntos
+                  </p>
+                </div>
+              )}
             </div>
           </div>
         </div>

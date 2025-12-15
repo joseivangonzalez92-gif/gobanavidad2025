@@ -224,24 +224,6 @@ export default function Home() {
             </div>
           </Link>
 
-          {/* Adviento 2025 */}
-          <Link 
-            to="/navidad" 
-            className="group"
-          >
-            <div className="bg-gradient-to-br from-green-500 to-blue-500 rounded-3xl p-8 text-white text-center shadow-2xl transform transition-all duration-300 hover:scale-105 hover:shadow-3xl h-full flex flex-col justify-between">
-              <div>
-                <div className="text-5xl mb-4">🎄</div>
-                <h3 className="text-2xl font-bold mb-3">Adviento2025</h3>
-                <p className="text-white/90 mb-4">
-                  Calendario de Adviento, villancicos y reflexiones
-                </p>
-              </div>
-              <div className="bg-white/20 rounded-xl p-3 mt-4">
-                <p className="text-sm font-semibold">✨2025✨</p>
-              </div>
-            </div>
-          </Link>
 
           {/* Mi Perfil */}
           <Link 
@@ -265,23 +247,6 @@ export default function Home() {
               </div>
             </div>
           </Link>
-
-          {/* 🎮 JUEGOS 3 - ¡ACTIVADO! */}
-          <Link to="/juegos3" className="group">
-            <div className="bg-gradient-to-br from-pink-500 to-rose-600 rounded-3xl p-8 text-white text-center shadow-2xl transform transition-all duration-300 hover:scale-105 hover:shadow-3xl h-full flex flex-col justify-between">
-              <div>
-                <div className="text-5xl mb-4">🎮</div>
-                <h3 className="text-2xl font-bold mb-3">Juegos 3</h3>
-                <p className="text-white/90 mb-4">
-                  Clásicos reinventados: Pong, Snake, Sopa de Letras y más
-                </p>
-              </div>
-              <div className="bg-white/20 rounded-xl p-3 mt-4">
-                <p className="text-sm font-semibold">✨ ¡Activo y disponible!</p>
-              </div>
-            </div>
-          </Link>
-
       
 
           {/* BOTÓN DE CERRAR SESIÓN */}
