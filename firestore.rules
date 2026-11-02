@@ -1,0 +1,180 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // FUNCIÓN PARA ADMIN - SOLO si usas Firebase Auth para admin
+    function isAdministrator() {
+      return request.auth != null && request.auth.uid == 'qhaGMlTBelQ2e75vwEyDzaFH6ia2';
+    }
+
+    // ✅ FUNCIONES CORREGIDAS - SIN FIREBASE AUTH PARA USUARIOS NORMALES
+    function canWrite() {
+      return true; // Temporalmente permitir escritura a todos
+    }
+    
+    function canRead() {
+      return true; // Temporalmente permitir lectura a todos
+    }
+
+    function isAuthenticated() {
+      return true; // Como no usas Firebase Auth, todos están "autenticados"
+    }
+
+    // 🎄 NUEVA COLECCIÓN: NAVIVIBES POSTS
+    match /navivibes_posts/{postId} {
+      allow read: if true; // Todos pueden leer posts
+      allow create, update, delete: if true; // Temporalmente todos pueden escribir
+    }
+
+    // 🎯 NUEVA COLECCIÓN: CONCURSOS EN TIEMPO REAL
+    match /concursos/{concursoId} {
+      allow read, write: if true; // Todos pueden leer y escribir en concursos
+    }
+
+    // COLECCIÓN 'usuarios' 
+    match /usuarios/{userId} {
+      allow read: if true; // Cualquiera puede leer (para login)
+      allow create, update, delete: if isAdministrator() || canWrite(); // Admin o temporalmente todos
+    }
+
+    // COLECCIÓN 'solicitudesRegistro' 
+    match /solicitudesRegistro/{solicitudId} {
+      allow create: if true; // Cualquiera puede crear solicitudes
+      allow read, update, delete: if isAdministrator() || canWrite(); // Admin o temporalmente todos
+    }
+
+    // COLECCIÓN 'nominaciones'
+    match /nominaciones/{userId} {
+      allow read: if true;
+      allow write: if canWrite(); // Temporalmente todos pueden escribir
+    }
+
+    // 🆕 COLECCIÓN 'eventos' - CALENDARIO (CORREGIDO)
+    match /eventos/{eventoId} {
+      allow read: if true; // ✅ TODOS pueden leer eventos
+      allow create, update, delete: if isAdministrator() || canWrite();
+    }
+
+    // 🆕 COLECCIÓN 'votos' - VOTACIÓN SECRETA
+    match /votos/{votoId} {
+      allow create, update: if canWrite();
+      allow read: if isAdministrator() || canRead();
+      allow delete: if isAdministrator();
+    }
+
+    // COLECCIÓN 'appSettings' (CONFIGURACIÓN GLOBAL)
+    match /appSettings/{documentId} {
+      allow read, write: if isAdministrator();
+    }
+
+    // 🆕 NUEVAS COLECCIONES PARA CHALLENGES
+
+    // COLECCIÓN 'challengePhotos' - FOTOS DE RETOS
+    match /challengePhotos/{photoId} {
+      allow read: if true;
+      allow create: if canWrite();
+      allow update: if isAdministrator() || canWrite();
+      allow delete: if isAdministrator();
+    }
+
+    // COLECCIÓN 'userPoints' - PUNTOS DE USUARIOS
+    match /userPoints/{userId} {
+      allow read: if true;
+      allow write: if isAdministrator() || canWrite();
+    }
+
+    // COLECCIÓN 'challengeCompletions' - RETOS COMPLETADOS
+    match /challengeCompletions/{completionId} {
+      allow create: if canWrite();
+      allow read: if canRead();
+      allow update, delete: if isAdministrator();
+    }
+
+    // 🆕 🆕 🆕 NUEVA COLECCIÓN: FOTOS PARA GALERÍA
+    match /fotos/{fotoId} {
+      allow read: if true; // Todos pueden leer fotos aprobadas
+      allow create: if canWrite(); // Usuarios pueden subir fotos
+      allow update: if isAdministrator() || canWrite(); // Admin puede aprobar/rechazar
+      allow delete: if isAdministrator(); // Solo admin puede eliminar
+    }
+
+    // 🎮 🎮 🎮 NUEVAS COLECCIONES PARA SISTEMA DE JUEGOS - CORREGIDAS
+
+    // COLECCIÓN 'juegosRankings' - RANKINGS POR JUEGO (ESTRUCTURA PLANA CORREGIDA)
+    match /juegosRankings/{documentId} {
+      allow read: if true; // Todos pueden ver rankings
+      allow create, update: if canWrite(); // Usuarios pueden guardar sus scores
+      allow delete: if isAdministrator();
+    }
+
+    // COLECCIÓN 'juegosSessions' - SESIONES DE JUEGO
+    match /juegosSessions/{sessionId} {
+      allow create: if canWrite(); // Usuarios pueden crear sesiones
+      allow read: if isAdministrator() || canRead(); // Admin puede ver todas, usuarios las suyas
+      allow delete: if isAdministrator();
+    }
+
+    // 🏪 NUEVAS COLECCIONES PARA TIENDA Y PUNTOS
+    match /pedidos/{pedidoId} {
+      allow create: if true; // Cualquiera puede crear pedidos
+      allow read: if isAdministrator() || canRead(); // Admin puede ver todos, usuarios los suyos
+      allow update: if isAdministrator(); // Solo admin puede actualizar
+      allow delete: if isAdministrator(); // Solo admin puede eliminar
+    }
+
+    match /puntosTransacciones/{transaccionId} {
+      allow create: if true; // Cualquiera puede crear transacciones
+      allow read: if isAdministrator() || canRead(); // Admin puede ver todo, usuarios las suyas
+      allow delete: if isAdministrator(); // Solo admin puede eliminar
+    }
+
+    // 🎁 NUEVAS COLECCIONES PARA CÓDIGOS DE REGALO
+    match /premiosCanjeados/{codigo} {
+      allow create: if true; // Cualquiera puede marcar premios canjeados
+      allow read: if isAdministrator() || canRead(); // Admin puede ver todo
+      allow update, delete: if isAdministrator(); // Solo admin puede modificar
+    }
+
+    // SUBCOLECCIÓN: códigos canjeados por usuario
+    match /usuarios/{userId}/codigosCanjeados/{codigo} {
+      allow create: if true; // Usuarios pueden marcar códigos usados
+      allow read: if isAdministrator() || canRead(); // Admin y usuario pueden ver
+      allow update, delete: if isAdministrator(); // Solo admin puede modificar
+    }
+
+    // 🎯 COLECCIÓN PARA FOTOS PENDIENTES DE GALERÍA
+    match /pendingGalleryPhotos/{photoId} {
+      allow create: if true; // Usuarios pueden subir fotos pendientes
+      allow read: if isAdministrator() || canRead(); // Admin puede ver pendientes
+      allow update: if isAdministrator(); // Solo admin puede aprobar/rechazar
+      allow delete: if isAdministrator() || canWrite(); // Admin y usuario pueden eliminar
+    }
+
+    // 📸 COLECCIÓN PARA FOTOS APROBADAS DE GALERÍA
+    match /galleryPhotos/{photoId} {
+      allow read: if true; // Todos pueden ver fotos aprobadas
+      allow create, update: if isAdministrator(); // Solo admin puede agregar/actualizar
+      allow delete: if isAdministrator(); // Solo admin puede eliminar
+    }
+         
+    // ⏰ COLECCIÓN PARA ESTADÍSTICAS DE TIEMPO
+    match /estadisticasTiempo/{userId} {
+      allow read, write: if true; // Todos pueden leer y escribir temporalmente
+    }
+
+    // 🕐 COLECCIÓN PARA SEGUIMIENTO DE TIEMPO DE USUARIOS
+    match /userSessions/{sessionId} {
+      allow read, write: if true; // Todos pueden leer y escribir temporalmente
+    }
+    
+    // 📊 COLECCIÓN PARA DATOS DE TIEMPO DE USUARIOS
+    match /userTimeTracking/{userId} {
+      allow read, write: if true; // Todos pueden leer y escribir temporalmente
+    }
+
+    // 🗺️ COLECCIÓN PARA TERRITORY WARS - TABLERO COMPARTIDO
+    match /territoryWars/{documentId} {
+      allow read, write: if true; // Todos pueden leer y escribir en el tablero compartido
+    }
+  }
+}

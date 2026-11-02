@@ -1,0 +1,1312 @@
+import React, { useState, useEffect } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { gobaService } from "../services/firebaseService";
+
+export default function Challenges() {
+  const navigate = useNavigate();
+  const [usuarioActual, setUsuarioActual] = useState(null);
+  const [retosActivos, setRetosActivos] = useState([]);
+  const [retosProximos, setRetosProximos] = useState([]);
+  const [retosSemanaActual, setRetosSemanaActual] = useState([]);
+  const [ranking, setRanking] = useState([]);
+  const [imagenSubida, setImagenSubida] = useState(null);
+  const [subiendoFoto, setSubiendoFoto] = useState(false);
+  const [retosCompletados, setRetosCompletados] = useState([]);
+  const [preguntasCompletadas, setPreguntasCompletadas] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [respuestasTesoro, setRespuestasTesoro] = useState({});
+  const [intentosPreguntas, setIntentosPreguntas] = useState({});
+
+  // Configuración de zona horaria de Honduras (UTC-6)
+  const ZONA_HORARIA = -6;
+
+  // 7 RETOS SEMANALES DE FOTOS (Lunes a Domingo) - SEMANA 7 ES LA ÚLTIMA
+  const retosSemanales = [
+    { id: "foto_1", titulo: "Reto Semanal #1", descripcion: "📸 ¡Sube tu foto sonriendo!", tipo: "foto", puntos: 10 },
+    { id: "foto_2", titulo: "Reto Semanal #2", descripcion: "📸 ¡Sube tu foto comiendo un postre", tipo: "foto", puntos: 10 },
+    { id: "foto_3", titulo: "Reto Semanal #3", descripcion: "📸 ¡Sube tu foto con decoraciones navideñas", tipo: "foto", puntos: 10 },
+    { id: "foto_4", titulo: "Reto Semanal #4", descripcion: "📸 ¡Sube tu foto usando algo navideño", tipo: "foto", puntos: 10 },
+    { id: "foto_5", titulo: "Reto Semanal #5", descripcion: "📸 ¡Sube tu foto viendo una película navideña", tipo: "foto", puntos: 10 },
+    { id: "foto_6", titulo: "Reto Semanal #6", descripcion: "📸 ¡Sube tu foto junto a un arbol de navidad", tipo: "foto", puntos: 10 },
+    { id: "foto_7", titulo: "Reto Semanal #7", descripcion: "📸 ¡Sube tu foto comiendo comida navideña", tipo: "foto", puntos: 10 }
+    // SEMANA 8 ELIMINADA - Esta es la última semana
+  ];
+
+  // 🆕 FECHAS CORREGIDAS - Semana 1: 2-8 Nov 2026, ÚLTIMA SEMANA: 14-20 Dic 2026
+  const fechasSemanales = [
+    new Date(2026, 10, 2, 6, 0, 0),   // 2 Nov 2026 (Lunes) - Semana 1
+    new Date(2026, 10, 9, 6, 0, 0),   // 9 Nov 2026 (Lunes) - Semana 2
+    new Date(2026, 10, 16, 6, 0, 0),  // 16 Nov 2026 (Lunes) - Semana 3
+    new Date(2026, 10, 23, 6, 0, 0),  // 23 Nov 2026 (Lunes) - Semana 4
+    new Date(2026, 10, 30, 6, 0, 0),  // 30 Nov 2026 (Lunes) - Semana 5
+    new Date(2026, 11, 7, 6, 0, 0),   // 7 Dic 2026 (Lunes) - Semana 6
+    new Date(2026, 11, 14, 6, 0, 0)   // 14 Dic 2026 (Lunes) - Semana 7 - ¡ÚLTIMA SEMANA!
+    // SEMANA 8 ELIMINADA
+  ];
+
+  // 14 PREGUNTAS MIÉRCOLES Y VIERNES CON 4 OPCIONES (ÚLTIMA SEMANA: PREGUNTAS 13 Y 14)
+  const preguntasMiercolesViernes = [
+    // Semana 1 (3-9 Nov)
+    { 
+      id: "pregunta_1", 
+      titulo: "🎄 Pregunta Miércoles #1", 
+      descripcion: "¿Navidad que vuelve?",
+      tipo: "pregunta",
+      respuestaCorrecta: "Tradición del año",
+      opciones: [
+        "llegó la navidad",
+        "Vuelve la parranda", 
+        "Un año que viene",
+        "Tradición del año"
+      ],
+      puntos: 5
+    },
+    { 
+      id: "pregunta_2", 
+      titulo: "🎅 Pregunta Viernes #1", 
+      descripcion: "¿LLega Naaavidad?",
+      tipo: "pregunta",
+      respuestaCorrecta: "Y yo sin tí",
+      opciones: [
+        "Con todos los poderes",
+        "si verdad",
+        "Y yo sin tí",
+        "Bonita navidad"
+      ],
+      puntos: 5
+    },
+    // Semana 2 (10-16 Nov)
+    { 
+      id: "pregunta_3", 
+      titulo: "🌟 Pregunta Miércoles #2", 
+      descripcion: "¿En qué año nació Don Reny?",
+      tipo: "pregunta",
+      respuestaCorrecta: "1971",
+      opciones: [
+        "1945",
+        "1971",
+        "1981",
+        "1975"
+      ],
+      puntos: 5
+    },
+    { 
+      id: "pregunta_4", 
+      titulo: "❄️ Pregunta Viernes #2", 
+      descripcion: "¿Qué se coloca tradicionalmente en la punta del árbol de Navidad?",
+      tipo: "pregunta",
+      respuestaCorrecta: "Una estrella",
+      opciones: [
+        "Una estrella",
+        "Un ángel",
+        "Una campana",
+        "Un muñeco de nieve"
+      ],
+      puntos: 5
+    },
+    // Semana 3 (17-23 Nov)
+    { 
+      id: "pregunta_5", 
+      titulo: "🎁 Pregunta Miércoles #3", 
+      descripcion: "¿Cuántos renos tiran del trineo de Santa?",
+      tipo: "pregunta",
+      respuestaCorrecta: "9",
+      opciones: [
+        "9",
+        "8",
+        "10", 
+        "12"
+      ],
+      puntos: 5
+    },
+    { 
+      id: "pregunta_6", 
+      titulo: "🦌 Pregunta Viernes #3", 
+      descripcion: "¿Cómo se llama el reno con la nariz roja?",
+      tipo: "pregunta",
+      respuestaCorrecta: "Rodolfo",
+      opciones: [
+        "Rodolfo",
+        "Cometa",
+        "Bailarín",
+        "Trueno"
+      ],
+      puntos: 5
+    },
+    // Semana 4 (24-30 Nov)
+    { 
+      id: "pregunta_7", 
+      titulo: "🍪 Pregunta Miércoles #4", 
+      descripcion: "¿Qué se le deja a Santa para que coma cuando visita las casas?",
+      tipo: "pregunta",
+      respuestaCorrecta: "Leche y galletas",
+      opciones: [
+        "Leche y galletas",
+        "Chocolate caliente",
+        "Ponche de frutas",
+        "Pastel de carne"
+      ],
+      puntos: 5
+    },
+    { 
+      id: "pregunta_8", 
+      titulo: "🔥 Pregunta Viernes #4", 
+      descripcion: "¿En qué mes se celebra la Navidad?",
+      tipo: "pregunta", 
+      respuestaCorrecta: "Diciembre",
+      opciones: [
+        "Diciembre",
+        "Noviembre",
+        "Enero",
+        "Febrero"
+      ],
+      puntos: 5
+    },
+    // Semana 5 (1-7 Dic)
+    { 
+      id: "pregunta_9", 
+      titulo: "🎵 Pregunta Miércoles #5", 
+      descripcion: "¿Cuál de estos es un villancico tradicional?",
+      tipo: "pregunta",
+      respuestaCorrecta: "Noche de Paz",
+      opciones: [
+        "Noche de Paz",
+        "Feliz Cumpleaños",
+        "Cumpleaños Feliz", 
+        "Las Mañanitas"
+      ],
+      puntos: 5
+    },
+    { 
+      id: "pregunta_10", 
+      titulo: "🤶 Pregunta Viernes #5", 
+      descripcion: "¿Cómo se llama la esposa de Santa Claus?",
+      tipo: "pregunta",
+      respuestaCorrecta: "Señora Claus",
+      opciones: [
+        "Señora Claus",
+        "Mamá Noel",
+        "Abuela Navidad",
+        "Reina Invierno"
+      ],
+      puntos: 5
+    },
+    // Semana 6 (8-14 Dic)
+    { 
+      id: "pregunta_11", 
+      titulo: "🧦 Pregunta Miércoles #6", 
+      descripcion: "¿Dónde se cuelgan los calcetines para los regalos?",
+      tipo: "pregunta",
+      respuestaCorrecta: "En la chimenea",
+      opciones: [
+        "En la chimenea",
+        "En la ventana",
+        "En la puerta",
+        "En el árbol"
+      ],
+      puntos: 5
+    },
+    { 
+      id: "pregunta_12", 
+      titulo: "⛄ Pregunta Viernes #6", 
+      descripcion: "¿De qué están hechos tradicionalmente los muñecos de nieve?",
+      tipo: "pregunta",
+      respuestaCorrecta: "Nieve",
+      opciones: [
+        "Nieve",
+        "Algodón",
+        "Espuma",
+        "Plástico"
+      ],
+      puntos: 5
+    },
+    // SEMANA 7 - ¡ÚLTIMA SEMANA! (15-21 Dic)
+    { 
+      id: "pregunta_13", 
+      titulo: "🎀 Pregunta Miércoles #7", 
+      descripcion: "¿Qué adornos se usan para decorar el árbol de Navidad?",
+      tipo: "pregunta",
+      respuestaCorrecta: "Esferas y luces",
+      opciones: [
+        "Esferas y luces",
+        "Flores y hojas",
+        "Cintas y lazos",
+        "Figuras de animales"
+      ],
+      puntos: 5
+    },
+    { 
+      id: "pregunta_14", 
+      titulo: "🐧 Pregunta Viernes #7", 
+      descripcion: "¿Qué animal NO está asociado tradicionalmente con la Navidad?",
+      tipo: "pregunta",
+      respuestaCorrecta: "Pingüino",
+      opciones: [
+        "Pingüino",
+        "Reno",
+        "Oso polar",
+        "Búho nevado"
+      ],
+      puntos: 5
+    }
+    // NO HAY PREGUNTAS DE SEMANA 8 - ESTA ES LA ÚLTIMA
+  ];
+
+  // 4 PREGUNTAS DE BÚSQUEDA DEL TESORO (PERMANENTES) - MODIFICADAS PARA INPUT TEXTO
+  const preguntasTesoro = [
+    { 
+      id: "tesoro_1", 
+      titulo: "🔍 Búsqueda del Tesoro #1", 
+      descripcion: "Encuentra el número secreto escondido en el ✨sitio✨",
+      tipo: "tesoro",
+      respuestaCorrecta: "2026",
+      puntos: 15
+    },
+    { 
+      id: "tesoro_2", 
+      titulo: "💝 Búsqueda del Tesoro #2", 
+      descripcion: "¿Cuál es la palabra oculta en NaviVibes?",
+      tipo: "tesoro", 
+      respuestaCorrecta: "Amor",
+      puntos: 15
+    },
+    { 
+      id: "tesoro_3", 
+      titulo: "🎯 Búsqueda del Tesoro #3", 
+      descripcion: "Encuentra la clave escondida en la sección de recuerdos",
+      tipo: "tesoro",
+      respuestaCorrecta: "El Pechocho",
+      puntos: 15
+    },
+    { 
+      id: "tesoro_4", 
+      titulo: "🏠 Búsqueda del Tesoro #4", 
+      descripcion: "La respuesta está en casa Goba - ¿Cuál es el secreto en el árbol familiar?",
+      tipo: "tesoro",
+      respuestaCorrecta: "OliRaf",
+      puntos: 15
+    }
+  ];
+
+  // Función para obtener fecha actual en hora de Honduras
+  const getFechaHonduras = () => {
+    const ahora = new Date();
+    const offset = ahora.getTimezoneOffset() * 60000;
+    const localTime = ahora.getTime();
+    const hondurasTime = localTime + (offset + (ZONA_HORARIA * 3600000));
+    return new Date(hondurasTime);
+  };
+
+  // 🆕 FUNCIÓN PARA VERIFICAR SI TODOS LOS RETOS HAN CERRADO
+  const esDespuesDelCierre = () => {
+    const ahora = getFechaHonduras();
+    const cierreUltimaSemana = new Date(fechasSemanales[6]); // Semana 7
+    cierreUltimaSemana.setDate(cierreUltimaSemana.getDate() + 6); // Domingo
+    cierreUltimaSemana.setHours(18, 0, 0, 0); // Domingo 6:00pm
+    return ahora > cierreUltimaSemana;
+  };
+
+  // 🆕 FUNCIÓN CORREGIDA PARA OBTENER SEMANA ACTUAL
+  const getSemanaActual = () => {
+    const ahora = getFechaHonduras();
+    
+    // Si ya pasó el cierre de la última semana, retornar -2 (TEMPORADA FINALIZADA)
+    if (esDespuesDelCierre()) {
+      return -2;
+    }
+    
+    for (let i = 0; i < fechasSemanales.length; i++) {
+      const fechaInicio = fechasSemanales[i];
+      const fechaFin = new Date(fechaInicio);
+      fechaFin.setDate(fechaFin.getDate() + 6); // Domingo
+      fechaFin.setHours(18, 0, 0, 0); // Domingo 6:00pm (cierre)
+      
+      if (ahora >= fechaInicio && ahora <= fechaFin) {
+        return i; // Retorna 0-6 para semana actual
+      }
+    }
+    
+    return -1; // Fuera de temporada
+  };
+
+  // 🆕 FUNCIÓN CORREGIDA - TODOS CIERRAN DOMINGO 6:00PM
+  const getEstadoReto = (reto, index, tipo) => {
+    const ahora = getFechaHonduras();
+    const semanaActual = getSemanaActual();
+    
+    if (semanaActual === -2) return "temporada_finalizada";
+    if (semanaActual === -1) return "fuera_temporada";
+    
+    if (tipo === "foto") {
+      const semanaReto = index;
+      
+      // Solo activo si es la semana correspondiente
+      if (semanaReto !== semanaActual) {
+        return semanaReto < semanaActual ? "cerrado" : "proxima_semana";
+      }
+      
+      const fechaApertura = fechasSemanales[index];
+      const fechaCierre = new Date(fechaApertura);
+      fechaCierre.setDate(fechaCierre.getDate() + 6); // Domingo
+      fechaCierre.setHours(18, 0, 0, 0); // Domingo 6:00pm
+      
+      if (ahora < fechaApertura) return "proximo";
+      if (ahora > fechaCierre) return "cerrado";
+      return "activo";
+    }
+    
+    if (tipo === "pregunta") {
+      const semanaReto = Math.floor(index / 2);
+      
+      // Solo activo si es la semana correspondiente
+      if (semanaReto !== semanaActual) {
+        return semanaReto < semanaActual ? "cerrado" : "proxima_semana";
+      }
+      
+      const fechaAperturaBase = fechasSemanales[semanaReto];
+      const fechaApertura = new Date(fechaAperturaBase);
+      
+      // Miércoles: +2 días, Viernes: +4 días
+      const diasSumar = index % 2 === 0 ? 2 : 4; // 0=Miércoles, 1=Viernes
+      fechaApertura.setDate(fechaApertura.getDate() + diasSumar);
+      fechaApertura.setHours(6, 0, 0, 0); // 6:00am
+      
+      const fechaCierre = new Date(fechaAperturaBase);
+      fechaCierre.setDate(fechaCierre.getDate() + 6); // Domingo
+      fechaCierre.setHours(18, 0, 0, 0); // Domingo 6:00pm
+      
+      if (ahora < fechaApertura) return "proximo";
+      if (ahora > fechaCierre) return "cerrado";
+      return "activo";
+    }
+    
+    if (tipo === "tesoro") {
+      return esDespuesDelCierre() ? "temporada_finalizada" : "activo";
+    }
+    
+    return "proxima_semana";
+  };
+
+  // 🆕 FUNCIÓN CORREGIDA PARA OBTENER RETOS DE LA SEMANA ACTUAL
+  const getRetosSemanaActual = () => {
+    const semanaActual = getSemanaActual();
+    const ahora = getFechaHonduras();
+    const retosSemana = [];
+    
+    if (semanaActual === -2) return retosSemana;
+    if (semanaActual === -1) return retosSemana;
+    
+    // Reto de foto de la semana actual
+    if (semanaActual < retosSemanales.length) {
+      const estado = getEstadoReto(retosSemanales[semanaActual], semanaActual, "foto");
+      retosSemana.push({
+        ...retosSemanales[semanaActual],
+        estado: estado,
+        fechaApertura: fechasSemanales[semanaActual],
+        horario: "Lunes 6:00am a Domingo 6:00pm"
+      });
+    }
+    
+    // Preguntas de la semana actual - SOLO MOSTRAR EN SU DÍA CORRESPONDIENTE
+    const preguntasSemana = preguntasMiercolesViernes.slice(semanaActual * 2, (semanaActual * 2) + 2);
+    preguntasSemana.forEach((pregunta, index) => {
+      const indiceGlobal = (semanaActual * 2) + index;
+      const estado = getEstadoReto(pregunta, indiceGlobal, "pregunta");
+      const dia = index === 0 ? "Miércoles" : "Viernes";
+      
+      const fechaAperturaBase = fechasSemanales[semanaActual];
+      const fechaApertura = new Date(fechaAperturaBase);
+      const diasSumar = index === 0 ? 2 : 4; // Miércoles: +2, Viernes: +4
+      fechaApertura.setDate(fechaApertura.getDate() + diasSumar);
+      fechaApertura.setHours(6, 0, 0, 0);
+      
+      // Si aún no es el día de la pregunta, cambiar estado a "proximo"
+      const estadoFinal = ahora < fechaApertura ? "proximo" : estado;
+      
+      retosSemana.push({
+        ...pregunta,
+        estado: estadoFinal,
+        horario: `${dia} 6:00am a Domingo 6:00pm`
+      });
+    });
+    
+    return retosSemana;
+  };
+
+  // 🆕 FUNCIÓN CORREGIDA PARA OBTENER RETOS ACTIVOS - SOLO MUESTRA PREGUNTAS EN SU DÍA CORRESPONDIENTE
+  const getRetosActivos = () => {
+    const retos = [];
+    const semanaActual = getSemanaActual();
+    const ahora = getFechaHonduras();
+    
+    // Si la temporada ya finalizó, no hay retos activos
+    if (semanaActual === -2) {
+      return retos;
+    }
+    
+    // Agregar tesoros (solo si temporada activa)
+    if (semanaActual >= 0) {
+      preguntasTesoro.forEach(reto => {
+        const completado = estaCompletado(reto.id);
+        if (!completado) {
+          retos.push({
+            ...reto,
+            estado: "activo"
+          });
+        }
+      });
+    }
+    
+    // Agregar retos de la semana actual que estén activos
+    const retosSemana = getRetosSemanaActual();
+    
+    retosSemana.forEach(reto => {
+      if (reto.estado === "activo") {
+        // Para preguntas semanales, verificar si ya es su día específico
+        if (reto.tipo === "pregunta") {
+          const indiceGlobal = preguntasMiercolesViernes.findIndex(p => p.id === reto.id);
+          if (indiceGlobal !== -1) {
+            const semanaReto = Math.floor(indiceGlobal / 2);
+            const fechaAperturaBase = fechasSemanales[semanaReto];
+            const fechaApertura = new Date(fechaAperturaBase);
+            
+            // Miércoles: +2 días, Viernes: +4 días
+            const diasSumar = indiceGlobal % 2 === 0 ? 2 : 4;
+            fechaApertura.setDate(fechaApertura.getDate() + diasSumar);
+            fechaApertura.setHours(6, 0, 0, 0); // 6:00am
+            
+            // Solo agregar si ya es el día correspondiente (miércoles o viernes)
+            if (ahora >= fechaApertura) {
+              retos.push(reto);
+            }
+          }
+        } else {
+          // Para fotos, agregar normalmente
+          retos.push(reto);
+        }
+      }
+    });
+    
+    return retos;
+  };
+
+  // 🆕 FUNCIÓN CORREGIDA PARA RETOS PRÓXIMA SEMANA - MODIFICADA PARA SEMANA 7
+  const getRetosProximaSemana = () => {
+    const semanaActual = getSemanaActual();
+    const proximos = [];
+    
+    // Si es la última semana (semana 7) o temporada finalizada, no hay próxima semana
+    if (semanaActual === -2 || semanaActual >= 6) {
+      return proximos;
+    }
+    
+    const proximaSemana = semanaActual + 1;
+    
+    // Reto de foto de la próxima semana
+    proximos.push({
+      id: `foto_${proximaSemana + 1}`,
+      titulo: "📸 Reto Semanal #" + (proximaSemana + 1),
+      descripcion: "❓ El reto de foto se revelará el lunes a las 6:00am",
+      tipo: "foto",
+      puntos: 10,
+      estado: "proxima_semana",
+      horario: "Lunes 6:00am"
+    });
+    
+    // Preguntas de la próxima semana (sin revelar)
+    const preguntasSemana = preguntasMiercolesViernes.slice(proximaSemana * 2, (proximaSemana * 2) + 2);
+    preguntasSemana.forEach((pregunta, index) => {
+      const dia = index === 0 ? "Miércoles" : "Viernes";
+      proximos.push({
+        id: pregunta.id,
+        titulo: pregunta.titulo,
+        descripcion: "❓ La pregunta se revelará la próxima semana",
+        tipo: "pregunta",
+        puntos: 5,
+        estado: "proxima_semana",
+        horario: `${dia} 6:00am`,
+        opciones: []
+      });
+    });
+    
+    return proximos;
+  };
+
+  // 🆕 FUNCIÓN PARA ACTUALIZAR PUNTOS EN TIEMPO REAL
+  const actualizarPuntosUsuario = async () => {
+    if (!usuarioActual) return;
+    
+    try {
+      console.log("🔄 Actualizando puntos del usuario...");
+      const usuarioActualizado = await gobaService.obtenerUsuario(usuarioActual.id);
+      
+      if (usuarioActualizado) {
+        console.log("✅ Puntos actualizados:", usuarioActualizado.puntos);
+        localStorage.setItem('usuarioActual', JSON.stringify(usuarioActualizado));
+        setUsuarioActual(usuarioActualizado);
+        return usuarioActualizado.puntos;
+      }
+    } catch (error) {
+      console.error("❌ Error actualizando puntos:", error);
+    }
+    
+    return usuarioActual.puntos;
+  };
+
+  // 🆕 FUNCIÓN PARA SUBIR FOTO RESTAURADA
+  const manejarSubidaFoto = async (retoId) => {
+    if (!imagenSubida || !usuarioActual) {
+      alert("❌ Por favor selecciona una foto primero");
+      return;
+    }
+
+    try {
+      setSubiendoFoto(true);
+      
+      // Subir imagen a ImgBB
+      const IMGBB_API_KEY = import.meta.env.VITE_IMGBB_API_KEY;
+      const formData = new FormData();
+      formData.append("image", imagenSubida);
+      
+      const imgbbResponse = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_API_KEY}`, {
+        method: "POST",
+        body: formData
+      });
+      
+      const imgbbData = await imgbbResponse.json();
+      
+      if (!imgbbData.success) {
+        throw new Error("Error al subir la imagen");
+      }
+      
+      const imageUrl = imgbbData.data.url;
+      
+      // Guardar en Firebase
+      const puntosObtenidos = await gobaService.completeChallenge(
+        usuarioActual.id,
+        retoId,
+        imageUrl,
+        10 // Puntos por subir foto
+      );
+      
+      alert(`✅ ¡Foto subida correctamente! Ganaste ${puntosObtenidos} puntos.`);
+      
+      // Limpiar estado
+      setImagenSubida(null);
+      
+      // Actualizar puntos y recargar datos
+      await actualizarPuntosUsuario();
+      loadChallengesData();
+      
+    } catch (error) {
+      console.error("❌ Error subiendo foto:", error);
+      alert("❌ Error al subir la foto. Intenta de nuevo.");
+    } finally {
+      setSubiendoFoto(false);
+    }
+  };
+
+  // Cargar usuario y datos al iniciar
+  useEffect(() => {
+    const usuario = JSON.parse(localStorage.getItem('usuarioActual'));
+    if (!usuario) {
+      navigate("/login");
+      return;
+    }
+    setUsuarioActual(usuario);
+    loadChallengesData();
+  }, [navigate]);
+
+  const loadChallengesData = async () => {
+    try {
+      setLoading(true);
+
+      // 1. OBTENER USUARIO ACTUAL
+      let usuarioLocal = JSON.parse(localStorage.getItem('usuarioActual'));
+      
+      if (!usuarioLocal || !usuarioLocal.id) {
+        console.log("❌ No hay usuario logueado");
+        navigate("/login");
+        return;
+      }
+      
+      console.log("🔍 Usuario local:", usuarioLocal.nombre, "Puntos:", usuarioLocal.puntos);
+
+      // 2. ACTUALIZAR DESDE FIREBASE
+      console.log("🔄 Buscando usuario en Firebase...");
+      const usuarioFirebase = await gobaService.obtenerUsuario(usuarioLocal.id);
+      
+      if (usuarioFirebase) {
+        console.log("✅ Usuario Firebase encontrado:", usuarioFirebase.nombre, "Puntos:", usuarioFirebase.puntos);
+        
+        // ACTUALIZAR LOCALSTORAGE Y STATE
+        localStorage.setItem('usuarioActual', JSON.stringify(usuarioFirebase));
+        setUsuarioActual(usuarioFirebase);
+        usuarioLocal = usuarioFirebase;
+      } else {
+        console.log("⚠️ No se encontró usuario en Firebase, usando datos locales");
+        setUsuarioActual(usuarioLocal);
+      }
+
+      // 3. CARGAR DATOS ADICIONALES
+      console.log("📊 Cargando ranking y retos completados...");
+      const [rankingData, completadosData, preguntasData] = await Promise.all([
+        gobaService.getRanking(),
+        gobaService.getUserCompletedChallenges(usuarioLocal.id),
+        gobaService.getCompletedQuestions(usuarioLocal.id)
+      ]);
+
+      setRanking(rankingData);
+      setRetosCompletados(completadosData);
+      setPreguntasCompletadas(preguntasData);
+      
+      // 4. CALCULAR RETOS
+      setRetosActivos(getRetosActivos());
+      setRetosSemanaActual(getRetosSemanaActual());
+      setRetosProximos(getRetosProximaSemana());
+
+      console.log("🎯 Datos cargados correctamente. Puntos actuales:", usuarioLocal.puntos);
+
+    } catch (error) {
+      console.error("❌ Error cargando datos de challenges:", error);
+      alert("Error al cargar los datos. Recarga la página.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // 🆕 FUNCIÓN PARA VALIDAR RESPUESTAS
+  const validarRespuesta = (retoId, respuestaUsuario) => {
+    let pregunta = preguntasMiercolesViernes.find(p => p.id === retoId);
+    
+    if (!pregunta) {
+      pregunta = preguntasTesoro.find(t => t.id === retoId);
+    }
+    
+    if (!pregunta) {
+      console.error("❌ Pregunta no encontrada:", retoId);
+      return false;
+    }
+    
+    const esCorrecta = respuestaUsuario.trim().toLowerCase() === pregunta.respuestaCorrecta.toLowerCase();
+    console.log("🔍 Validación respuesta:", {
+      retoId,
+      respuestaUsuario,
+      correcta: pregunta.respuestaCorrecta,
+      esCorrecta
+    });
+    
+    return esCorrecta;
+  };
+
+  // 🆕 FUNCIÓN CORREGIDA PARA COMPLETAR PREGUNTAS SEMANALES
+  const completarPreguntaSemanal = async (retoId, respuesta) => {
+    if (!usuarioActual) return;
+
+    if (intentosPreguntas[retoId]) {
+      alert("❌ Ya respondiste esta pregunta. Solo tienes un intento.");
+      return;
+    }
+
+    try {
+      const esCorrecta = validarRespuesta(retoId, respuesta);
+      const puntos = esCorrecta ? 5 : 0;
+      
+      console.log("🔍 Enviando a Firebase:", { retoId, respuesta, esCorrecta, puntos });
+
+      setIntentosPreguntas(prev => ({
+        ...prev,
+        [retoId]: true
+      }));
+
+      const puntosObtenidos = await gobaService.completeChallenge(
+        usuarioActual.id, 
+        retoId, 
+        respuesta, 
+        puntos
+      );
+
+      if (esCorrecta) {
+        alert(`✅ ¡Correcto! Ganaste ${puntosObtenidos} puntos`);
+      } else {
+        const pregunta = preguntasMiercolesViernes.find(p => p.id === retoId);
+        alert(`❌ Respuesta incorrecta. La respuesta correcta era: "${pregunta?.respuestaCorrecta}". No ganaste puntos.`);
+      }
+
+      // 🆕 ACTUALIZAR PUNTOS INMEDIATAMENTE
+      await actualizarPuntosUsuario();
+      // Y luego recargar todo
+      loadChallengesData();
+      
+    } catch (error) {
+      setIntentosPreguntas(prev => ({
+        ...prev,
+        [retoId]: false
+      }));
+      alert(`❌ ${error.message}`);
+    }
+  };
+
+  // 🆕 FUNCIÓN PARA MANEJAR CAMBIO EN INPUTS INDIVIDUALES DE TESORO
+  const manejarCambioRespuestaTesoro = (retoId, valor) => {
+    setRespuestasTesoro(prev => ({
+      ...prev,
+      [retoId]: valor
+    }));
+  };
+
+  // 🆕 FUNCIÓN PARA COMPLETAR TESORO CON INTENTOS ILIMITADOS
+  const completarTesoro = async (retoId) => {
+    if (!usuarioActual || !respuestasTesoro[retoId]?.trim()) {
+      alert("❌ Por favor escribe tu respuesta");
+      return;
+    }
+
+    try {
+      const respuestaUsuario = respuestasTesoro[retoId];
+      const esCorrecta = validarRespuesta(retoId, respuestaUsuario);
+      
+      if (!esCorrecta) {
+        alert(`❌ Respuesta incorrecta. ¡Sigue buscando!`);
+        return;
+      }
+      
+      const puntosObtenidos = await gobaService.completeChallenge(
+        usuarioActual.id, 
+        retoId, 
+        respuestaUsuario, 
+        15
+      );
+      
+      alert(`✅ ¡Correcto! Descubriste el tesoro y ganaste ${puntosObtenidos} puntos`);
+      manejarCambioRespuestaTesoro(retoId, "");
+      
+      // 🆕 ACTUALIZAR PUNTOS INMEDIATAMENTE
+      await actualizarPuntosUsuario();
+      // Y luego recargar todo
+      loadChallengesData();
+      
+    } catch (error) {
+      alert(`❌ ${error.message}`);
+    }
+  };
+
+  const getTextoEstado = (estado) => {
+    const estados = {
+      "proximo": "⏰ Próximo",
+      "activo": "✅ Activo", 
+      "cerrado": "❌ Cerrado",
+      "proxima_semana": "📅 Próxima Semana",
+      "fuera_temporada": "🎄 Fuera de Temporada",
+      "temporada_finalizada": "🏆 Temporada Finalizada"
+    };
+    return estados[estado] || estado;
+  };
+
+  const getColorEstado = (estado) => {
+    const colores = {
+      "proximo": "bg-blue-100 text-blue-800 border-blue-200",
+      "activo": "bg-green-100 text-green-800 border-green-200",
+      "cerrado": "bg-red-100 text-red-800 border-red-200",
+      "proxima_semana": "bg-purple-100 text-purple-800 border-purple-200",
+      "fuera_temporada": "bg-gray-100 text-gray-800 border-gray-200",
+      "temporada_finalizada": "bg-gradient-to-r from-yellow-100 to-orange-100 text-orange-800 border-orange-300"
+    };
+    return colores[estado] || "bg-gray-100 text-gray-800 border-gray-200";
+  };
+
+  // 🆕 TEXTO SEMANA ACTUAL CORREGIDO
+  const getTextoSemanaActual = () => {
+    const semanaActual = getSemanaActual();
+    
+    if (semanaActual === -2) return "🏆 ¡Temporada Finalizada!";
+    if (semanaActual === -1) return "Fuera de temporada navideña";
+    
+    const semanas = [
+      "Semana 1 (3-9 Nov)",
+      "Semana 2 (10-16 Nov)", 
+      "Semana 3 (17-23 Nov)",
+      "Semana 4 (24-30 Nov)",
+      "Semana 5 (1-7 Dic)",
+      "Semana 6 (8-14 Dic)",
+      "Semana 7 (15-21 Dic) - ¡ÚLTIMA SEMANA!"
+    ];
+    
+    return semanas[semanaActual] || "Semana especial";
+  };
+
+  // 🆕 FUNCIÓN PARA VERIFICAR SI UN RETO ESTÁ COMPLETADO
+  const estaCompletado = (retoId) => {
+    const fotoCompletada = retosCompletados.find(r => r.challengeId === retoId);
+    if (fotoCompletada) return fotoCompletada;
+    
+    const preguntaCompletada = preguntasCompletadas.find(p => p.challengeId === retoId);
+    return preguntaCompletada;
+  };
+
+  // 🆕 FUNCIÓN PARA VERIFICAR SI UNA PREGUNTA YA FUE INTENTADA
+  const fueIntentada = (retoId) => {
+    return intentosPreguntas[retoId] || estaCompletado(retoId);
+  };
+
+  if (!usuarioActual) {
+    return <div className="text-center py-8">Cargando...</div>;
+  }
+
+  if (loading) {
+    return (
+      <div className="max-w-6xl mx-auto px-4 py-8">
+        <div className="text-center py-12">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-500 mx-auto mb-4"></div>
+          <p className="text-gray-600">Cargando retos familiares...</p>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="max-w-6xl mx-auto px-4 py-8">
+      {/* Header MEJORADO - Avatar centrado sobre nombre */}
+      <div className="text-center mb-8">
+        <div className="flex flex-col items-center justify-center gap-4 mb-4">
+          {/* Avatar CENTRADO sobre nombre y territorio */}
+          <div className="flex flex-col items-center justify-center">
+            <span className="text-6xl mb-2">{usuarioActual.avatar}</span>
+            <h1 className="text-4xl font-bold text-gray-800">🎮 Retos Familiares</h1>
+            <p className="text-xl text-gray-600">{usuarioActual.nombre} - {usuarioActual.pais}</p>
+          </div>
+        </div>
+        
+        {/* Puntos acumulados - CONECTADO CON RANKING */}
+        <div className="mt-4 bg-gradient-to-r from-green-100 to-blue-100 rounded-xl p-6 inline-block border-2 border-green-200">
+          <div className="flex flex-col items-center justify-center">
+            <p className="text-4xl font-bold text-green-600 mb-2">
+              {ranking.find(jugador => jugador.userId === usuarioActual.id)?.puntosTotales || 0}
+            </p>
+            <p className="text-lg font-semibold text-gray-800">⭐ Puntos Acumulados</p>
+            <p className="text-sm text-gray-600 mt-1">Retos semanales</p>
+          </div>
+        </div>
+      </div>
+
+      {/* 🆕 BANNER DE ÚLTIMA SEMANA */}
+      {getSemanaActual() === 6 && (
+        <div className="mb-8 bg-gradient-to-r from-red-500 to-orange-500 rounded-2xl p-6 text-center shadow-lg border-4 border-yellow-300 animate-pulse">
+          <h2 className="text-3xl font-bold text-white mb-3">🏆 ¡ÚLTIMA SEMANA!</h2>
+          <p className="text-xl text-white mb-2">Todos los retos cierran este <strong>Domingo 21 de Diciembre a las 6pm</strong></p>
+        
+          <p className="text-white text-sm mt-3">
+            Completa todos los retos disponibles para asegurar tu posición en el ranking final
+          </p>
+        </div>
+      )}
+
+      {/* 🆕 BANNER TEMPORADA FINALIZADA */}
+      {getSemanaActual() === -2 && (
+        <div className="mb-8 bg-gradient-to-r from-purple-600 to-blue-600 rounded-2xl p-8 text-center shadow-xl border-4 border-gold-500">
+          <h2 className="text-4xl font-bold text-white mb-4">🏆 ¡TEMPORADA FINALIZADA! 🏆</h2>
+          <div className="bg-white/20 rounded-xl p-4 mb-4">
+            <p className="text-2xl text-yellow-300 font-bold mb-2">
+              ¡La competencia ha concluido!
+            </p>
+            <p className="text-xl text-white mb-3">
+              Todos los retos cerraron el <strong>Domingo 21 de Diciembre a las 6pm</strong>
+            </p>
+            <p className="text-3xl font-bold text-white mt-4">
+              🎉 ¡El ganador es el usuario #1 del ranking! 🎉
+            </p>
+          </div>
+          {ranking.length > 0 && (
+            <div className="bg-white/10 rounded-xl p-4 inline-block">
+              <p className="text-lg text-yellow-200">
+                Actualmente liderando: <strong className="text-white">{ranking[0]?.nombre}</strong> con {ranking[0]?.puntosTotales || 0} puntos
+              </p>
+            </div>
+          )}
+        </div>
+      )}
+
+      <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
+        
+        {/* Columna Principal */}
+        <div className="lg:col-span-3">
+          {/* Retos Activos (solo los que se pueden completar) */}
+          <div className="mb-12">
+            <h2 className="text-3xl font-bold text-gray-800 mb-6 flex items-center gap-3">
+              🎯 Retos Activos
+              <span className="text-sm bg-green-500 text-white px-3 py-1 rounded-full">
+                {retosActivos.length} disponibles
+              </span>
+            </h2>
+            
+            {getSemanaActual() === -2 ? (
+              <div className="bg-gradient-to-r from-blue-50 to-purple-50 border-2 border-blue-300 rounded-xl p-10 text-center">
+                <p className="text-2xl text-blue-700 font-bold mb-4">
+                  🏁 La competencia ha terminado
+                </p>
+                <p className="text-lg text-gray-700 mb-6">
+                  Todos los retos cerraron el Domingo 21 de Diciembre a las 6pm
+                </p>
+                <div className="bg-white rounded-xl p-6 inline-block border-2 border-gold-500">
+                  <p className="text-xl font-bold text-purple-600">
+                    ¡Revisa el ranking para ver al GRAN GANADOR!
+                  </p>
+                </div>
+              </div>
+            ) : retosActivos.length === 0 ? (
+              <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-8 text-center">
+                <p className="text-xl text-yellow-800 mb-4">
+                  🕒 No hay retos activos en este momento
+                </p>
+                <p className="text-yellow-600">
+                  {getSemanaActual() === 6 
+                    ? "¡Es la última semana! Los retos se activan según su horario programado."
+                    : "Los retos se activan automáticamente según su programación. ¡Vuelve pronto!"
+                  }
+                </p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {retosActivos.map((reto) => {
+                  const completado = estaCompletado(reto.id);
+                  const intentada = fueIntentada(reto.id);
+                  
+                  return (
+                    <div key={reto.id} className={`bg-white border-2 rounded-xl p-6 transition-all hover:shadow-lg ${
+                      reto.tipo === "tesoro" ? "border-yellow-300 bg-yellow-50" :
+                      reto.tipo === "foto" ? "border-green-300" : "border-blue-300"
+                    }`}>
+                      <div className="flex justify-between items-start mb-4">
+                        <div className="flex-1">
+                          <h3 className="text-xl font-semibold text-gray-800 mb-1">{reto.titulo}</h3>
+                          <div className="flex items-center gap-2 mb-2">
+                            <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                              reto.tipo === "tesoro" ? "bg-yellow-100 text-yellow-800" :
+                              reto.tipo === "foto" ? "bg-green-100 text-green-800" : "bg-blue-100 text-blue-800"
+                            }`}>
+                              {reto.tipo === "tesoro" ? "🔍 Tesoro" : 
+                               reto.tipo === "foto" ? "📸 Foto" : "❓ Pregunta"}
+                            </span>
+                            <span className="bg-purple-100 text-purple-700 px-2 py-1 rounded-full text-xs font-medium">
+                              {reto.puntos} puntos
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                      
+                      <p className="text-gray-600 mb-4 text-sm">{reto.descripcion}</p>
+
+                      {/* FOTO - SUBIR O VER COMPLETADO (RESTAURADO) */}
+                      {reto.tipo === "foto" && !completado && (
+                        <div className="space-y-4 p-4 bg-gradient-to-r from-green-50 to-blue-50 rounded-xl border-2 border-green-200">
+                          {/* Vista previa */}
+                          {imagenSubida && (
+                            <div className="text-center bg-white p-3 rounded-lg border-2 border-green-300">
+                              <p className="text-xs text-green-600 font-medium mb-2">Vista previa:</p>
+                              <img 
+                                src={URL.createObjectURL(imagenSubida)} 
+                                alt="Tu foto para el reto" 
+                                className="max-h-40 mx-auto rounded-lg shadow-md"
+                              />
+                              <p className="text-xs text-gray-500 mt-2">
+                                {imagenSubida.name} - {(imagenSubida.size / 1024 / 1024).toFixed(2)}MB
+                              </p>
+                            </div>
+                          )}
+
+                          {/* Input de archivo */}
+                          <label className="block cursor-pointer">
+                            <span className="sr-only">Seleccionar foto</span>
+                            <input
+                              type="file"
+                              accept="image/*"
+                              onChange={(e) => setImagenSubida(e.target.files[0])}
+                              disabled={subiendoFoto}
+                              className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-green-100 file:text-green-700 hover:file:bg-green-200 disabled:opacity-50"
+                            />
+                          </label>
+
+                          {/* Botón de subida */}
+                          <button
+                            onClick={() => manejarSubidaFoto(reto.id)}
+                            disabled={!imagenSubida || subiendoFoto}
+                            className={`w-full py-3 px-4 rounded-lg font-semibold transition-all ${
+                              !imagenSubida || subiendoFoto
+                                ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                                : 'bg-gradient-to-r from-green-500 to-blue-500 hover:from-green-600 hover:to-blue-600 text-white shadow-lg hover:shadow-xl transform hover:scale-105'
+                            }`}
+                          >
+                            {subiendoFoto ? (
+                              <span className="flex items-center justify-center gap-2">
+                                <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent"></div>
+                                Subiendo a Galería Familiar...
+                              </span>
+                            ) : (
+                              '📤 Subir a Galería Familiar'
+                            )}
+                          </button>
+                        </div>
+                      )}
+
+                      {/* PREGUNTAS SEMANALES - OPCIONES MÚLTIPLES (SOLO UN INTENTO) */}
+                      {reto.tipo === "pregunta" && !completado && (
+                        <div className="space-y-3">
+                          <p className="font-medium text-gray-700 text-sm">Elige la respuesta correcta:</p>
+                          <div className="grid grid-cols-1 gap-2">
+                            {reto.opciones.map((opcion, index) => (
+                              <button
+                                key={index}
+                                onClick={() => completarPreguntaSemanal(reto.id, opcion)}
+                                disabled={intentada}
+                                className={`w-full p-3 text-left rounded-lg transition-all duration-200 text-sm ${
+                                  intentada
+                                    ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                                    : 'bg-white border-2 border-gray-200 hover:border-blue-300 hover:bg-blue-50'
+                                }`}
+                              >
+                                {opcion}
+                                {intentada && (
+                                  <span className="float-right text-xs text-gray-500">✓ Respondida</span>
+                                )}
+                              </button>
+                            ))}
+                          </div>
+                          {intentada && !completado && (
+                            <p className="text-xs text-orange-600 text-center">
+                              ⚠️ Ya respondiste esta pregunta. Espera el resultado.
+                            </p>
+                          )}
+                        </div>
+                      )}
+
+                      {/* TESOROS - INPUT TEXTO INDIVIDUAL (INTENTOS ILIMITADOS) */}
+                      {reto.tipo === "tesoro" && !completado && (
+                        <div className="space-y-3">
+                          <p className="font-medium text-gray-700 text-sm">Escribe tu respuesta:</p>
+                          <div className="flex gap-2">
+                            <input
+                              type="text"
+                              value={respuestasTesoro[reto.id] || ""}
+                              onChange={(e) => manejarCambioRespuestaTesoro(reto.id, e.target.value)}
+                              placeholder="Escribe aquí tu respuesta..."
+                              className="flex-1 p-3 border-2 border-gray-200 rounded-lg focus:border-yellow-400 focus:outline-none text-sm"
+                            />
+                            <button
+                              onClick={() => completarTesoro(reto.id)}
+                              disabled={!respuestasTesoro[reto.id]?.trim()}
+                              className="bg-yellow-500 hover:bg-yellow-600 disabled:bg-gray-300 text-white px-4 py-3 rounded-lg font-medium transition-colors"
+                            >
+                              🔍 Verificar
+                            </button>
+                          </div>
+                          <p className="text-xs text-gray-500">
+                            💡 Puedes intentar cuantas veces quieras hasta encontrar la respuesta correcta.
+                          </p>
+                        </div>
+                      )}
+
+                      {/* RETO COMPLETADO - VISUALIZACIÓN */}
+                      {completado && (
+                        <div className={`border-2 rounded-lg p-4 text-center ${
+                          reto.tipo === "tesoro" || (completado.puntosObtenidos || completado.pointsAwarded) > 0 
+                            ? 'bg-green-100 border-green-300' 
+                            : 'bg-orange-100 border-orange-300'
+                        }`}>
+                          <div className={`font-semibold mb-2 ${
+                            reto.tipo === "tesoro" || (completado.puntosObtenidos || completado.pointsAwarded) > 0 
+                              ? 'text-green-700' 
+                              : 'text-orange-700'
+                          }`}>
+                            {reto.tipo === "tesoro" || (completado.puntosObtenidos || completado.pointsAwarded) > 0 
+                              ? '✅ ¡Reto Completado!' 
+                              : '⚠️ Respuesta Incorrecta'
+                            }
+                          </div>
+                          
+                          {reto.tipo === "foto" && completado.imageUrl && (
+                            <div className="mb-3">
+                              <p className="text-sm text-green-600 mb-2">Tu foto aprobada:</p>
+                              <img 
+                                src={completado.imageUrl} 
+                                alt="Foto aprobada" 
+                                className="max-h-32 mx-auto rounded-lg shadow-md"
+                              />
+                            </div>
+                          )}
+                          
+                          <div className={`text-lg font-bold ${
+                            reto.tipo === "tesoro" || (completado.puntosObtenidos || completado.pointsAwarded) > 0 
+                              ? 'text-green-800' 
+                              : 'text-orange-800'
+                          }`}>
+                            +{(completado.puntosObtenidos || completado.pointsAwarded) || 0} puntos ganados
+                          </div>
+                          
+                          {(reto.tipo === "pregunta" || reto.tipo === "tesoro") && (
+                            <p className={`text-sm mt-1 ${
+                              reto.tipo === "tesoro" || (completado.puntosObtenidos || completado.pointsAwarded) > 0 
+                                ? 'text-green-600' 
+                                : 'text-orange-600'
+                            }`}>
+                              {reto.tipo === "tesoro" 
+                                ? `Tesoro descubierto: ${reto.respuestaCorrecta}`
+                                : (completado.puntosObtenidos || completado.pointsAwarded) === 0 
+                                  ? `Respuesta incorrecta. La correcta era: ${reto.respuestaCorrecta}`
+                                  : `Respuesta correcta: ${reto.respuestaCorrecta}`
+                              }
+                            </p>
+                          )}
+                          
+                          {reto.tipo === "foto" && (
+                            <p className="text-sm text-green-600 mt-1">
+                              Validación Final todos los Domingo 6pm
+                            </p>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+
+          {/* Retos de la Semana Actual (todos los estados) */}
+          {retosSemanaActual.length > 0 && (
+            <div className="mb-12">
+              <h2 className="text-2xl font-bold text-gray-800 mb-6">
+                📅 {getTextoSemanaActual()}
+              </h2>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                {retosSemanaActual.map((reto, index) => (
+                  <div key={index} className={`bg-white border-2 rounded-xl p-4 ${getColorEstado(reto.estado)}`}>
+                    <div className="flex justify-between items-start mb-2">
+                      <h4 className="font-semibold text-gray-700 text-sm">{reto.titulo}</h4>
+                      <span className="bg-gray-200 text-gray-600 px-2 py-1 rounded text-xs">
+                        {reto.puntos} pts
+                      </span>
+                    </div>
+                    <p className="text-gray-600 text-xs mb-2">{reto.descripcion}</p>
+                    <div className="flex justify-between items-center">
+                      <span className={`text-xs font-medium px-2 py-1 rounded ${getColorEstado(reto.estado)}`}>
+                        {getTextoEstado(reto.estado)}
+                      </span>
+                      <span className="text-xs text-gray-500">{reto.horario}</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Retos Próxima Semana */}
+          {retosProximos.length > 0 && (
+            <div className="mb-12">
+              <h2 className="text-2xl font-bold text-gray-800 mb-6">
+                🔮 Próxima Semana
+              </h2>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                {retosProximos.map((reto, index) => (
+                  <div key={index} className="bg-gradient-to-br from-blue-50 to-purple-50 border border-blue-200 rounded-xl p-4">
+                    <div className="flex justify-between items-start mb-2">
+                      <h4 className="font-semibold text-gray-700 text-sm">{reto.titulo}</h4>
+                      <span className="bg-blue-200 text-blue-700 px-2 py-1 rounded text-xs">
+                        {reto.puntos} pts
+                      </span>
+                    </div>
+                    <p className="text-gray-600 text-xs mb-2">{reto.descripcion}</p>
+                    <p className="text-xs text-blue-600 font-medium">
+                      ⏰ {reto.horario}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Columna Lateral: Ranking */}
+        <div className="lg:col-span-1">
+          <div className="bg-white border-2 border-purple-200 rounded-xl p-6 sticky top-4">
+            <h2 className="text-2xl font-bold text-gray-800 mb-6 flex items-center gap-2">
+              🏆 Ranking
+              <span className="text-sm bg-purple-500 text-white px-2 py-1 rounded-full">
+                {ranking.length} jugadores
+              </span>
+            </h2>
+            
+            <div className="space-y-3 max-h-96 overflow-y-auto">
+              {ranking.slice(0, 10).map((jugador, index) => (
+                <div key={index} className={`flex items-center justify-between p-3 rounded-lg ${
+                  jugador.userId === usuarioActual.id 
+                    ? 'bg-gradient-to-r from-green-50 to-blue-50 border-2 border-green-200' 
+                    : 'bg-gray-50'
+                }`}>
+                  <div className="flex items-center gap-3 flex-1">
+                    <span className="text-2xl">{jugador.avatar}</span>
+                    <div className="flex-1 min-w-0">
+                      <p className={`font-semibold truncate text-sm ${
+                        jugador.userId === usuarioActual.id ? 'text-green-700' : 'text-gray-800'
+                      }`}>
+                        {jugador.nombre}
+                      </p>
+                      <p className="text-xs text-gray-600">{jugador.puntosTotales || 0} pts</p>
+                    </div>
+                  </div>
+                  <div className={`text-lg font-bold ${
+                    index === 0 ? 'text-yellow-500' : 
+                    index === 1 ? 'text-gray-500' : 
+                    index === 2 ? 'text-orange-500' : 'text-gray-400'
+                  }`}>
+                    #{index + 1}
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            <div className="mt-6 p-4 bg-blue-50 rounded-lg border border-blue-200">
+              <p className="text-sm text-gray-600 text-center">
+                {ranking.findIndex(j => j.userId === usuarioActual.id) === -1 
+                  ? "¡Completa tu primer reto para entrar al ranking!"
+                  : `Estás en posición #${ranking.findIndex(j => j.userId === usuarioActual.id) + 1}`
+                }
+              </p>
+              
+              {/* 🆕 MENSAJE ESPECIAL PARA ÚLTIMA SEMANA */}
+              {getSemanaActual() === 6 && (
+                <p className="text-sm font-bold text-red-600 text-center mt-2">
+                  ⏰ ¡Cierra Domingo 21 Dic 6pm!
+                </p>
+              )}
+              
+              {/* 🆕 MENSAJE PARA TEMPORADA FINALIZADA */}
+              {getSemanaActual() === -2 && ranking.length > 0 && (
+                <div className="mt-4 bg-gradient-to-r from-yellow-100 to-orange-100 rounded-lg p-3 border border-yellow-300">
+                  <p className="text-sm font-bold text-purple-700 text-center">
+                    🏆 ¡GANADOR FINAL!
+                  </p>
+                  <p className="text-xs text-gray-700 text-center mt-1">
+                    {ranking[0]?.nombre} con {ranking[0]?.puntosTotales || 0} puntos
+                  </p>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Navegación MEJORADA - Igual que Perfil */}
+      <div className="mt-8 bg-gradient-to-r from-purple-500 to-pink-500 rounded-2xl p-6 text-center shadow-xl">
+        <Link 
+          to="/home" 
+          className="inline-block bg-white text-purple-600 hover:bg-purple-50 font-bold py-4 px-8 rounded-xl transition-all transform hover:scale-105 text-lg"
+        >
+          🏠 Volver al Home Navideño
+        </Link>
+        <p className="text-white text-sm mt-3 opacity-90">
+          Regresa a la diversión familiar
+        </p>
+      </div>
+    </div>
+  );
+}

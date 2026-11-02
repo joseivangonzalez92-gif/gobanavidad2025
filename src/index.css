@@ -1,0 +1,115 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* 🎄 Armonización visual para versión Computadora (Estilo Glassy Festivo) */
+.desktop-view-container {
+  min-height: calc(100vh - 70px);
+}
+
+.desktop-view-container [class*="min-h-screen"] {
+  min-height: auto !important;
+  background: transparent !important;
+  background-image: none !important;
+}
+
+/* Tarjetas y módulos principales en modo vidrio translúcido */
+.desktop-view-container .bg-white,
+.desktop-view-container .bg-white\/90,
+.desktop-view-container .bg-white\/80,
+.desktop-view-container .bg-white\/95,
+.desktop-view-container .bg-white\/70 {
+  background-color: rgba(10, 16, 32, 0.65) !important;
+  backdrop-filter: blur(20px) !important;
+  -webkit-backdrop-filter: blur(20px) !important;
+  border-color: rgba(255, 255, 255, 0.15) !important;
+  color: #f8fafc !important;
+  box-shadow: 0 20px 45px -15px rgba(0, 0, 0, 0.5) !important;
+}
+
+/* Cajas secundarias y celdas */
+.desktop-view-container .bg-gray-50,
+.desktop-view-container .bg-gray-100,
+.desktop-view-container .bg-slate-50,
+.desktop-view-container .bg-slate-100,
+.desktop-view-container .bg-green-50,
+.desktop-view-container .bg-blue-50,
+.desktop-view-container .bg-purple-50,
+.desktop-view-container .bg-amber-50 {
+  background-color: rgba(255, 255, 255, 0.08) !important;
+  border-color: rgba(255, 255, 255, 0.12) !important;
+  color: #f8fafc !important;
+}
+
+/* Tipografía de alta legibilidad en fondo oscuro */
+.desktop-view-container .text-gray-800,
+.desktop-view-container .text-gray-900,
+.desktop-view-container .text-slate-900,
+.desktop-view-container .text-slate-800,
+.desktop-view-container .text-zinc-800,
+.desktop-view-container .text-zinc-900 {
+  color: #f8fafc !important;
+}
+
+.desktop-view-container .text-gray-700,
+.desktop-view-container .text-gray-600,
+.desktop-view-container .text-slate-700,
+.desktop-view-container .text-slate-600 {
+  color: #cbd5e1 !important;
+}
+
+.desktop-view-container .text-gray-500,
+.desktop-view-container .text-slate-500 {
+  color: #94a3b8 !important;
+}
+
+/* Títulos y encabezados */
+.desktop-view-container h1:not([class*="text-transparent"]),
+.desktop-view-container h2:not([class*="text-transparent"]),
+.desktop-view-container h3:not([class*="text-transparent"]),
+.desktop-view-container h4:not([class*="text-transparent"]) {
+  color: #ffffff !important;
+}
+
+/* Campos de entrada */
+.desktop-view-container input:not([type="checkbox"]):not([type="radio"]),
+.desktop-view-container textarea,
+.desktop-view-container select {
+  background-color: rgba(0, 0, 0, 0.45) !important;
+  color: #ffffff !important;
+  border-color: rgba(255, 255, 255, 0.2) !important;
+}
+
+.desktop-view-container input::placeholder,
+.desktop-view-container textarea::placeholder {
+  color: rgba(255, 255, 255, 0.45) !important;
+}
+
+/* Bordes unificados */
+.desktop-view-container .border-gray-200,
+.desktop-view-container .border-gray-100,
+.desktop-view-container .border-slate-200 {
+  border-color: rgba(255, 255, 255, 0.12) !important;
+}
+
+/* 🔥 REDUCE TAMAÑO DE TEXTO GENERAL en móviles */
+@media (max-width: 768px) {
+  html {
+    font-size: 14px;
+  }
+  
+  .text-4xl {
+    font-size: 1.75rem;
+    line-height: 2.25rem;
+  }
+  
+  .text-3xl {
+    font-size: 1.5rem;
+    line-height: 2rem;
+  }
+  
+  .text-2xl {
+    font-size: 1.25rem;
+    line-height: 1.75rem;
+  }
+}
